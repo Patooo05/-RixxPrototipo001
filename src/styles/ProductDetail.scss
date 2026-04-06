@@ -1,0 +1,85 @@
+/* ProductsGrid.scss */
+
+
+.products-grid {
+       // altura mínima = altura de la ventana
+  background-color: #000;
+  color: #fff;
+  font-family: 'Poppins', sans-serif;
+           // opcional, ajusta a tu gusto
+  box-sizing: border-box; // importante para que padding no agregue tamaño extra
+
+  &__title {
+    font-size: 2rem;
+    color: #ffd700;
+    margin-bottom: 0.5rem;
+  }
+
+  &__description {
+    font-size: 1rem;
+    margin-bottom: 1.5rem;
+    color: rgba(255, 255, 255, 0.8);
+  }
+
+  &__filters {
+    margin-bottom: 2rem;
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+
+
+  .filter-btn {
+    background: #1e1e1e;
+    border: 1px solid #ffd700;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    color: #fff;
+    transition: all 0.3s ease;
+    &.active, &:hover { background: #ffd700; color: #0a0a0a; }
+  }
+
+  &__items { display: grid; grid-template-columns: repeat(auto-fill,minmax(220px,1fr)); gap: 1.5rem; }
+  &__empty { text-align: center; padding: 2rem; color: rgba(255,255,255,0.7); }
+}
+
+/* ProductCard.scss */
+.product-card {
+  background: #1e1e1e;
+  border-radius: 12px;
+  padding: 1rem;
+  text-align: center;
+  position: relative;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+
+  &:hover { transform: translateY(-5px); box-shadow: 0 6px 20px rgba(0,0,0,0.5); }
+
+  img { width: 100%; height: 200px; object-fit: cover; border-radius: 8px; margin-bottom: 0.5rem; }
+
+  .product-info {
+    h3 { font-size: 1.2rem; color: #ffd700; margin-bottom: 0.3rem; }
+    .price { font-weight: 600; margin-bottom: 0.3rem; }
+    .category { font-size: 0.85rem; color: rgba(255,255,255,0.6); }
+    .stock { font-size: 0.85rem; color: #a5ff6c; }
+    .sold-out-label {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: #ff4d4d;
+      color: #fff;
+      padding: 0.2rem 0.5rem;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: bold;
+    }
+  }
+
+  &.sold-out img { filter: grayscale(60%); opacity: 0.8; }
+}
+
+@media (max-width: 768px) {
+  .products-grid { padding: 2rem 1rem; }
+  .products-grid__items { grid-template-columns: 1fr; }
+}

@@ -1,0 +1,62 @@
+.profile-advanced {
+  display: flex;
+  gap: 2rem;
+  padding: 2rem;
+  padding-top: 10rem;
+
+  &__sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    min-width: 180px;
+
+    @media (max-width: 768px) {
+      flex-direction: row;
+      overflow-x: auto;
+      min-width: auto;
+    }
+  }
+
+  &__tab {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 5px;
+    background-color: #f0f0f0;
+    font-weight: normal;
+    cursor: pointer;
+    transition: all 0.3s;
+
+    &:hover {
+      opacity: 0.85;
+    }
+
+    &.active {
+      background-color: #d4af37;
+      font-weight: bold;
+    }
+  }
+
+  &__icon {
+    font-size: 1.2rem;
+  }
+
+  &__content {
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+  }
+
+  &__slider {
+    display: flex;
+    transition: transform 0.4s ease-in-out;
+    width: 300%; /* depende de la cantidad de secciones */
+  }
+
+  &__panel {
+    min-width: 100%;
+    padding: 1rem;
+  }
+}

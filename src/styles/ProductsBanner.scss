@@ -1,0 +1,25 @@
+.products-banner {
+  position: relative;
+  width: 100%;
+  height: 100vh;         // ocupa toda la pantalla
+  min-height: 100vh;
+  overflow: hidden;
+
+  &__video {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;   // llena el contenedor sin distorsionar
+    transform: translate(-50%, -50%);
+    z-index: 1;
+  }
+
+  &__overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.25); // efecto oscuro opcional
+    z-index: 2;
+  }
+}

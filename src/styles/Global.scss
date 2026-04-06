@@ -1,0 +1,144 @@
+/* ==========================
+   RESET DE MÁRGENES Y PADDINGS
+========================== */
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box; /* opcional pero recomendable */
+}
+
+
+@import './variables.scss';
+// _variables.scss
+$gold: #d4af37;
+$text-color: #fff;
+$text-muted: rgba(255,255,255,.65);
+$error: #ff4d4d;
+
+
+.cart {
+  position: fixed;
+  top: 80px; /* debajo del navbar */
+  right: 1.5rem;
+  width: 320px; /* ancho más compacto */
+  max-height: 80vh; /* no ocupe toda la pantalla */
+  background-color: #0f0f0f;
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 12px;
+  box-shadow: 0 12px 36px rgba(0,0,0,0.45);
+  padding: 1rem;
+  overflow-y: auto;
+  z-index: 999;
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.6rem;
+
+    h3 {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: $gold;
+    }
+
+    .close-btn {
+      background: transparent;
+      color: $text-color;
+      font-size: 1.3rem;
+      cursor: pointer;
+      &:hover { color: $gold; }
+    }
+  }
+
+  &__items {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+
+    .cart-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.4rem 0.6rem;
+      background: #121212;
+      border-radius: 8px;
+
+      img {
+        width: 50px;
+        height: 50px;
+        object-fit: cover;
+        border-radius: 6px;
+      }
+
+      .info {
+        flex: 1;
+        margin-left: 0.6rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.2rem;
+
+        h4 {
+          font-size: 0.95rem;
+          font-weight: 600;
+          color: $text-color;
+        }
+
+        .price {
+          font-size: 0.85rem;
+          color: $gold;
+          font-weight: 700;
+        }
+
+        .quantity {
+          font-size: 0.8rem;
+          color: $text-muted;
+        }
+      }
+
+      .remove-btn {
+        background: transparent;
+        color: $error;
+        font-size: 1rem;
+        cursor: pointer;
+        &:hover { color: lighten($error, 10%); }
+      }
+    }
+  }
+
+  &__footer {
+    margin-top: auto;
+    padding-top: 0.6rem;
+    border-top: 1px solid rgba(255,255,255,0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    .total {
+      font-weight: 700;
+      font-size: 1rem;
+      color: $gold;
+    }
+
+    .checkout-btn {
+      font-size: 0.95rem;
+      padding: 0.5rem 1rem;
+    }
+  }
+}
+
+/* ==========================
+   Responsive carrito
+========================== */
+@media (max-width: 820px) {
+  .cart { width: 280px; right: 1rem; }
+}
+
+@media (max-width: 560px) {
+  .cart { width: 240px; right: 0.5rem; }
+}

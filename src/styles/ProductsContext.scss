@@ -1,0 +1,162 @@
+
+
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+}
+/* ==========================
+   Variables y tokens
+========================== */
+$bg: #0a0a0a;
+$ink: #ffffff;
+$muted: rgba(255,255,255,.78);
+$subtle: rgba(255,255,255,.55);
+$gold: #d4af37;
+$success: #a5ff6c;
+$error: #ff4d4d;
+$ease: cubic-bezier(.22,.61,.36,1);
+
+@mixin smooth($props: all, $dur: .3s, $e: $ease) {
+  transition: $props $dur $e;
+}
+
+/* ==========================
+   Products Grid
+========================== */
+.products-grid {
+  background: $bg;
+  color: $ink;
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+
+  &__header {
+    text-align: center;
+    margin-bottom: 1.5rem;
+
+    &__title {
+      font-size: clamp(1.8rem, 4vw, 2.4rem);
+      font-weight: 700;
+      color: $gold;
+      margin-bottom: .5rem;
+    }
+
+    &__description {
+      font-size: 1rem;
+      color: $muted;
+      max-width: 80ch;
+      margin: 0 auto;
+    }
+  }
+
+  &__items {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 1.5rem;
+  }
+
+  &__empty {
+    text-align: center;
+    padding: 2rem;
+    color: $subtle;
+    border: 1px dashed rgba(255,255,255,.2);
+    border-radius: 12px;
+    background: rgba(255,255,255,.02);
+  }
+}
+
+/* ==========================
+   Product Card
+========================== */
+.product-card {
+  background: #111;
+  border-radius: 14px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 6px 20px rgba(0,0,0,.3);
+  @include smooth(transform .3s);
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 28px rgba(0,0,0,.4);
+  }
+
+  .image-wrapper {
+    width: 100%;
+    aspect-ratio: 4/5;
+    overflow: hidden;
+    position: relative;
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      @include smooth(transform, .5s);
+    }
+
+    &:hover img {
+      transform: scale(1.05);
+    }
+  }
+
+  .product-info {
+    padding: 1rem;
+
+    h3 {
+      font-size: 1.1rem;
+      margin: 0 0 .25rem;
+      color: $ink;
+    }
+
+    .price {
+      font-weight: 700;
+      color: $gold;
+      margin-bottom: .5rem;
+    }
+
+    .category {
+      font-size: .85rem;
+      color: $muted;
+      margin-bottom: .5rem;
+    }
+
+    .stock {
+      font-size: .85rem;
+
+      &.available { color: $success; }
+      &.sold-out { color: $error; }
+    }
+  }
+
+  .sold-out-label {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: rgba(0,0,0,.7);
+    color: $ink;
+    font-size: .75rem;
+    font-weight: 700;
+    padding: .2rem .5rem;
+    border-radius: 999px;
+  }
+}
+
+/* ==========================
+   Responsive
+========================== */
+@media (max-width: 820px) {
+  .products-grid__items {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .products-grid__items {
+    grid-template-columns: 1fr;
+  }
+}

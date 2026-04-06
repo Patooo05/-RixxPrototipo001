@@ -1,0 +1,135 @@
+/* ==========================
+   Footer.scss (FINAL COMPLETO)
+========================== */
+
+.footer {
+  position: relative;
+  overflow: hidden;
+
+  background-color: rgba(0, 0, 0, 0.85);
+  border-top: 2px solid #d4af37;
+  padding: 3rem 0 1.5rem;
+  color: #d4af37;
+ 
+
+  &__container {
+    max-width: 1200px;
+    margin: 0 auto;
+    
+
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 2.5rem;
+  }
+
+  /* ----- BRAND ----- */
+  &__logo {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #d4af37;
+    letter-spacing: 2px;
+  }
+
+  &__text {
+    margin-top: 1rem;
+    color: #ccc;
+    line-height: 1.5;
+    max-width: 250px;
+  }
+
+  /* ----- COLUMNAS ----- */
+  h3 {
+    color: #fff;
+    margin-bottom: 1rem;
+    font-size: 1.1rem;
+  }
+
+  ul {
+    list-style: none;
+    padding: 0;
+
+    li {
+      margin-bottom: 0.6rem;
+
+      a {
+        color: #d4af37;
+        transition: all 0.3s;
+
+        &:hover {
+          color: #fff;
+          padding-left: 4px;
+        }
+      }
+    }
+  }
+
+  /* ----- SOCIAL ICONS ----- */
+  &__social {
+    display: flex;
+    gap: 1rem;
+
+    a {
+      font-size: 1.5rem;
+      color: #d4af37;
+      transition: transform 0.3s, color 0.3s;
+
+      &:hover {
+        transform: scale(1.2);
+        color: #fff;
+      }
+    }
+  }
+
+  /* ----- BOTTOM ----- */
+  &__bottom {
+    text-align: center;
+    margin-top: 3rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #333;
+
+    p {
+      color: #aaa;
+      font-size: 0.9rem;
+    }
+  }
+}
+
+/* ==========================
+   LOGO PNG COMO FONDO (OPACIDAD + BAJADO)
+========================== */
+
+.footer::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+
+  background-image: url("../assets/img/logo_vertical_invert.png");
+  background-repeat: no-repeat;
+
+  /* 🔥 Logo bajado 10rem */
+  background-position: center 10rem;
+
+  background-size: 50%;
+  opacity: 0.12;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Asegura que el contenido esté por encima */
+.footer * {
+  position: relative;
+  z-index: 2;
+}
+
+/* ==========================
+   RESPONSIVE
+========================== */
+@media (max-width: 600px) {
+  .footer {
+    text-align: center;
+
+    &__social {
+      justify-content: center;
+    }
+  }
+}
