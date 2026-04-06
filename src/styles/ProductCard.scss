@@ -1,121 +1,194 @@
+@use "variables" as *;
+
+// ── Animación de entrada ──────────────────────────────────────────────────────
+@keyframes fadeInCard {
+  from { opacity: 0; transform: translateY(20px) scale(0.95); }
+  to   { opacity: 1; transform: translateY(0)    scale(1);    }
+}
+
+// ── Tarjeta ───────────────────────────────────────────────────────────────────
 .product-card {
   background: #000;
-  border: 1px solid #d4af37;
+  border: 1px solid $gold;
   border-radius: 12px;
   overflow: hidden;
   cursor: pointer;
   position: relative;
+  display: flex;
+  flex-direction: column;
 
-  /* Animación de entrada más profesional */
   opacity: 0;
-  transform: translateY(12px) scale(0.98);
   animation: fadeInCard 0.65s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 
   transition:
-    transform 0.38s cubic-bezier(0.16, 1, 0.3, 1),
-    box-shadow 0.38s ease,
-    border-color 0.38s ease,
-    background 0.38s ease;
+    transform      0.38s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow     0.38s ease,
+    border-color   0.38s ease,
+    background     0.38s ease;
 
-  /* Hover ULTRA PREMIUM */
   &:hover {
     transform: translateY(-8px) scale(1.02);
     border-color: #f6e27f;
     background: linear-gradient(180deg, #0a0a0a, #000);
-    box-shadow: 0 15px 28px rgba(0, 0, 0, 0.55),
-                0 0 16px rgba(255, 215, 0, 0.18); // brillo dorado leve
+    box-shadow:
+      0 15px 28px rgba(0, 0, 0, 0.55),
+      0 0 16px rgba(212, 175, 55, 0.18);
   }
 
-  a {
-    color: #d4af37;
+  &--sold-out {
+    opacity: 0.75;
+    pointer-events: none;
+
+    img { filter: grayscale(100%) brightness(0.6); }
+  }
+
+  // ── Badges ─────────────────────────────────────────────────────────────────
+  &__badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 2;
+    padding: 0.25rem 0.65rem;
+    border-radius: 6px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    pointer-events: none;
+
+    &--new {
+      background: $gold;
+      color: #000;
+    }
+
+    &--sold-out {
+      background: rgba(255, 77, 77, 0.9);
+      color: #fff;
+      backdrop-filter: blur(3px);
+    }
+  }
+
+  // ── Link wrapper ───────────────────────────────────────────────────────────
+  &__link {
+    color: inherit;
     text-decoration: none;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    padding: 1.3rem;
-    gap: 0.55rem;
-
-    /* --- IMAGEN --- */
-    .image-wrapper {
-      width: 100%;
-      height: 210px;
-      border-radius: 10px;
-      overflow: hidden;
-      position: relative;
-
-      img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        transition:
-          transform 0.5s ease,
-          filter 0.35s ease;
-      }
-
-      /* efecto parallax ultra fino */
-      &:hover img {
-        transform: scale(1.12);
-        filter: brightness(1.12) contrast(1.05);
-      }
-    }
-
-    /* --- TITULO --- */
-    h3 {
-      margin: 0.9rem 0 0.3rem;
-      font-size: 1.25rem;
-      font-weight: 600;
-      letter-spacing: 0.6px;
-      color: #ffe08c;
-      text-align: center;
-      transition: color 0.3s ease;
-
-      /* hover dorado suave */
-      &:hover {
-        color: #ffefb3;
-      }
-    }
-
-    /* --- PRECIO --- */
-    p {
-      font-weight: 700;
-      font-size: 1.05rem;
-      color: #fff;
-      margin-bottom: 0.3rem;
-      letter-spacing: 0.4px;
-    }
+    flex: 1;
+    padding: 1.5rem 1.5rem 0.75rem;
+    gap: 0.75rem;
   }
 
-  /* --- ESTILO AGOTADO --- */
-  &.sold-out {
+  // ── Imagen ─────────────────────────────────────────────────────────────────
+  &__image-wrapper {
+    width: 100%;
+    height: 250px;
+    border-radius: 10px;
+    overflow: hidden;
+
     img {
-      filter: grayscale(100%) brightness(0.6) opacity(0.7);
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.5s ease, filter 0.35s ease;
     }
 
-    &::after {
-      content: "AGOTADO";
-      position: absolute;
-      top: 12px;
-      right: 12px;
-      background: rgba(255, 77, 77, 0.9);
-      padding: 0.3rem 0.75rem;
-      border-radius: 8px;
-      font-size: 0.78rem;
-      color: #fff;
-      font-weight: bold;
-      backdrop-filter: blur(3px);
-      box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+    &:hover img {
+      transform: scale(1.1);
+      filter: brightness(1.1);
     }
   }
-}
 
-/* Animación de entrada refinada */
-@keyframes fadeInCard {
-  0% {
-    opacity: 0;
-    transform: translateY(20px) scale(0.95);
+  &__image-placeholder {
+    width: 100%;
+    height: 250px;
+    background: linear-gradient(135deg, #111, #1a1a1a);
   }
-  100% {
-    opacity: 1;
-    transform: translateY(0) scale(1);
+
+  // ── Info ───────────────────────────────────────────────────────────────────
+  &__info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  &__name {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #ffe08c;
+    letter-spacing: 0.4px;
+  }
+
+  // ── Rating ─────────────────────────────────────────────────────────────────
+  &__stars {
+    display: flex;
+    gap: 2px;
+
+    .star {
+      font-size: 0.85rem;
+
+      &--filled { color: $gold; }
+      &--empty  { color: rgba(255, 255, 255, 0.2); }
+    }
+  }
+
+  // ── Precio ─────────────────────────────────────────────────────────────────
+  &__price {
+    margin: 0;
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: $gold;
+    letter-spacing: 0.3px;
+  }
+
+  // ── Descripción ────────────────────────────────────────────────────────────
+  &__desc {
+    margin: 0;
+    font-size: 0.82rem;
+    color: $text-muted;
+    line-height: 1.4;
+  }
+
+  // ── Categoría tag ──────────────────────────────────────────────────────────
+  &__category {
+    display: inline-block;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    color: rgba($gold, 0.75);
+    border: 1px solid rgba($gold, 0.3);
+    border-radius: 4px;
+    padding: 0.15rem 0.5rem;
+    width: fit-content;
+  }
+
+  // ── Botón ──────────────────────────────────────────────────────────────────
+  &__btn {
+    margin: auto 1.5rem 1.5rem;
+    padding: 0.75rem 1.2rem;
+    width: calc(100% - 3rem);
+    background: $gold;
+    color: #000;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.88rem;
+    font-weight: 700;
+    letter-spacing: 0.4px;
+    cursor: pointer;
+    box-sizing: border-box;
+    transition: background 0.25s ease, transform 0.2s ease;
+
+    &:hover:not(:disabled) {
+      background: #e8c44a;
+      transform: translateY(-1px);
+    }
+
+    &--disabled {
+      background: rgba(255, 255, 255, 0.12);
+      color: rgba(255, 255, 255, 0.4);
+      cursor: not-allowed;
+    }
   }
 }

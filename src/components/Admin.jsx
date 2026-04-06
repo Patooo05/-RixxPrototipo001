@@ -11,7 +11,7 @@ import "../styles/Stock.scss";
 const Admin = () => {
   const { products, addProduct, removeProduct, toggleFeatured, updateProduct, markProductsExported } =
     useContext(ProductsContext);
-  const { users, createUser } = useContext(AuthContext);
+  const { users, createUser, toggleUserStatus, togglePermission } = useContext(AuthContext);
 
   const [activeTab, setActiveTab] = useState("Dashboard");
   const [form, setForm] = useState({

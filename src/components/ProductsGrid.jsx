@@ -1,27 +1,35 @@
 import React, { useContext, useEffect } from "react";
 import ProductCard from "./ProductCard";
+import FilterBar from "./FilterBar";
 import { ProductsContext } from "./ProductsContext";
-import ProductsBanner from "./ProductsBanner";
 import "../styles/ProductsGrid.scss";
 import "../styles/Global.scss";
 import { fadeInOnScroll } from "../js/home";
 
-
-
 const ProductsGrid = () => {
-  const { products } = useContext(ProductsContext);
+  const {
+    products,
+    filteredProducts,
+    setSearch,
+    setCategoryFilter,
+    setPriceFilter,
+    setSortOrder
+  } = useContext(ProductsContext);
 
   useEffect(() => {
     fadeInOnScroll();
   }, []);
 
+  const handleClearFilters = () => {
+    setSearch("");
+    setCategoryFilter("Todos");
+    setPriceFilter("Todos");
+    setSortOrder("nuevo");
+  };
+
   return (
     <main className="products-grid">
 
-      {/* Banner */}
-
-
-      {/* Título y descripción de la colección */}
       <header className="products-grid__header">
         <h1 className="products-grid__title">Colección Rixx</h1>
         <p className="products-grid__description">
@@ -30,21 +38,33 @@ const ProductsGrid = () => {
         </p>
       </header>
 
-      {/* Grid de productos */}
-      <section className="products-grid__content">
-        <div className="products-grid__items">
-          {products.length > 0 ? (
-            products.map((product) => (
-              <ProductCard key={product.id} product={product} />
-            ))
+      <div className="products-grid__body">
+
+
+        <section className="products-grid__content">
+          <p className="products-grid__counter">
+            Mostrando <strong>{filteredProducts.length}</strong> de{" "}
+            <strong>{products.length}</strong> productos
+          </p>
+
+          {filteredProducts.length > 0 ? (
+            <div className="products-grid__items">
+              {filteredProducts.map((product, index) => (
+                <ProductCard key={product.id} product={product} index={index} />
+              ))}
+            </div>
           ) : (
             <div className="products-grid__empty">
-              <h2>Sin productos disponibles</h2>
-              <p>Estamos preparando el próximo drop. Vuelve pronto.</p>
+              <h2>No encontramos lentes que coincidan</h2>
+              <p>Prueba con otros filtros o términos de búsqueda.</p>
+              <button className="products-grid__empty-btn" onClick={handleClearFilters}>
+                Ver todos los productos
+              </button>
             </div>
           )}
-        </div>
-      </section>
+        </section>
+
+      </div>
 
     </main>
   );

@@ -44,6 +44,46 @@ export const AuthProvider = ({ children }) => {
   const isAdmin = currentUser?.role === "Administrador";
   const username = currentUser?.name;
 
+  // Registrar un nuevo usuario (cliente)
+  const register = (name, email, password) => {
+    if (!name || !email || !password) return false;
+    if (users.some(u => u.email === email)) return false;
+
+    const newUser = {
+      id: Date.now(),
+      name,
+      email,
+      password,
+      role: "Cliente"
+    };
+    const newList = [...users, newUser];
+    saveUsers(newList);
+    setCurrentUser(newUser);
+    localStorage.setItem("currentUser", JSON.stringify(newUser));
+    return true;
+  };
+
+  // Activar/desactivar usuario
+  const toggleUserStatus = (id) => {
+    const updated = users.map(u =>
+      u.id === id ? { ...u, active: u.active === false ? true : false } : u
+    );
+    saveUsers(updated);
+  };
+
+  // Alternar permiso de un usuario
+  const togglePermission = (id, perm) => {
+    const updated = users.map(u => {
+      if (u.id !== id) return u;
+      const perms = u.permissions || [];
+      const newPerms = perms.includes(perm)
+        ? perms.filter(p => p !== perm)
+        : [...perms, perm];
+      return { ...u, permissions: newPerms };
+    });
+    saveUsers(updated);
+  };
+
   // Crear un nuevo usuario (clonando permisos de otro)
   const createUser = (email, password, name, cloneFromEmail) => {
     if (!email || !password || !name) return false;
@@ -72,10 +112,13 @@ export const AuthProvider = ({ children }) => {
       users,
       login,
       logout,
+      register,
       isLoggedIn,
       isAdmin,
       username,
-      createUser
+      createUser,
+      toggleUserStatus,
+      togglePermission
     }}>
       {children}
     </AuthContext.Provider>
