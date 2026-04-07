@@ -1,10 +1,11 @@
 @use "variables" as *;
+@use "mixins" as *;
 
 html, body {
   margin: 0;
   padding: 0;
   width: 100%;
-  background-color: #0a0a0a;
+  background-color: $background;
 }
 
 // ── Página completa ───────────────────────────────────────────────────────────
@@ -12,36 +13,36 @@ html, body {
   padding: 3rem 2rem;
   margin-top: 6rem;
   width: 100%;
-  background-color: #000;
-  font-family: "Poppins", sans-serif;
+  background-color: $background;
+  font-family: $font-body;
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
 
-  // ── Header (título arriba, ancho completo) ──────────────────────────────────
+  // ── Header ─────────────────────────────────────────────────────────────────
   &__header {
     text-align: center;
     margin-bottom: 2.5rem;
   }
 
   &__title {
-    font-size: 2.5rem;
+    font-family: $font-headline;
+    font-size: $display-sm;
     font-weight: 700;
-    color: $gold;
+    color: $primary;
     margin: 0 0 0.75rem;
-    letter-spacing: 1px;
-    text-align: center;
+    letter-spacing: -0.02em;
   }
 
   &__description {
-    color: rgba(255, 255, 255, 0.75);
+    color: $on-surface-variant;
     max-width: 600px;
     margin: 0 auto;
     line-height: 1.6;
-    font-size: 1rem;
+    font-size: $body-lg;
   }
 
-  // ── Cuerpo: sidebar izquierda + contenido derecha ───────────────────────────
+  // ── Cuerpo: sidebar + contenido ────────────────────────────────────────────
   &__body {
     display: flex;
     flex-direction: row;
@@ -56,7 +57,6 @@ html, body {
     top: 7rem;
   }
 
-  // ── Área de contenido (contador + grid) ─────────────────────────────────────
   &__content {
     flex: 1;
     min-width: 0;
@@ -68,16 +68,16 @@ html, body {
     justify-content: space-between;
     align-items: center;
     padding: 1rem;
-    background: rgba(255, 255, 255, 0.03);
-    border-radius: 8px;
+    background: rgba($on-surface, 0.03);
+    border-radius: $radius-sm;
     margin-bottom: 2rem;
-    color: $text-muted;
-    font-size: 0.85rem;
+    color: $on-surface-variant;
+    font-size: $body-sm;
 
-    strong { color: $gold; }
+    strong { color: $primary; }
   }
 
-  // ── Grid de productos: siempre 3 columnas ──────────────────────────────────
+  // ── Grid ───────────────────────────────────────────────────────────────────
   &__items {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -87,12 +87,13 @@ html, body {
   // ── Estado vacío ───────────────────────────────────────────────────────────
   &__empty {
     text-align: center;
-    color: $text-muted;
+    color: $on-surface-variant;
     padding: 4rem 1rem;
 
     h2 {
-      color: #fff;
-      font-size: 1.4rem;
+      font-family: $font-headline;
+      color: $on-surface;
+      font-size: $headline-sm;
       margin-bottom: 0.5rem;
     }
 
@@ -100,35 +101,15 @@ html, body {
   }
 
   &__empty-btn {
-    padding: 0.7rem 1.75rem;
-    background: $gold;
-    color: #000;
-    border: none;
-    border-radius: 8px;
-    font-size: 0.9rem;
-    font-weight: 700;
-    cursor: pointer;
-    transition: background 0.25s ease;
-
-    &:hover { background: #e8c44a; }
+    @include btn-primary;
+    font-size: $label-md;
   }
 }
 
 // ── Responsive ────────────────────────────────────────────────────────────────
-@media (max-width: 1280px) {
-  .products-grid__items {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-
 @media (max-width: 1024px) {
-  .products-grid__sidebar {
-    width: 220px;
-  }
-
-  .products-grid__items {
-    grid-template-columns: repeat(2, 1fr);
-  }
+  .products-grid__sidebar { width: 220px; }
+  .products-grid__items { grid-template-columns: repeat(2, 1fr); }
 }
 
 @media (max-width: 768px) {
@@ -136,26 +117,12 @@ html, body {
     padding: 2rem 1rem;
     margin-top: 5rem;
   }
-
-  .products-grid__title { font-size: 1.75rem; }
-
-  .products-grid__body {
-    flex-direction: column;
-  }
-
-  .products-grid__sidebar {
-    width: 100%;
-    position: static;
-  }
-
-  .products-grid__items {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1rem;
-  }
+  .products-grid__title { font-size: $headline-lg; }
+  .products-grid__body { flex-direction: column; }
+  .products-grid__sidebar { width: 100%; position: static; }
+  .products-grid__items { grid-template-columns: repeat(2, 1fr); gap: 1rem; }
 }
 
 @media (max-width: 480px) {
-  .products-grid__items {
-    grid-template-columns: 1fr;
-  }
+  .products-grid__items { grid-template-columns: 1fr; }
 }

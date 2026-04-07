@@ -1,9 +1,11 @@
 import React, { useContext, useEffect, useState } from "react";
 import { ProductsContext } from "../components/ProductsContext";
+import { useCart } from "../components/CartContext";
 import "../styles/FeaturedProducts.scss";
 
 const FeaturedProducts = () => {
   const { products } = useContext(ProductsContext);
+  const { add } = useCart();
 
   const [loading, setLoading] = useState(true);
 
@@ -82,7 +84,13 @@ const FeaturedProducts = () => {
                 <h3 className="featured-name">{p.name}</h3>
                 <span className="price">${p.price}</span>
 
-                <button className="featured-btn">Agregar al carrito</button>
+                <button
+                  className="featured-btn"
+                  onClick={() => add(p, 1)}
+                  disabled={p.stock <= 0}
+                >
+                  {p.stock <= 0 ? "Sin stock" : "Agregar al carrito"}
+                </button>
               </div>
             </article>
           ))}

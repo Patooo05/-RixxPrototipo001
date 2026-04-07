@@ -1,12 +1,116 @@
-// variables.scss
-$gold: #d4af37;
-$text-color: #ffffff;
-$text-muted: rgba(255,255,255,0.65);
-$error: #ff4d4d;
-$success: #a5ff6c;
-$bg: #0a0a0a;
-$edge: #121212;
-$edge-2: #171717;
-$gold-soft: rgba(212,175,55,.28);
-$gold-glow: rgba(212,175,55,.22);
-$ease: cubic-bezier(.22,.61,.36,1);
+// ============================================================
+// NOIR ATELIER DESIGN SYSTEM — variables.scss
+// ============================================================
+
+// ── Color Tokens: Primaries (Gold) ──────────────────────────
+$primary:                   #D4AF37;
+$primary-container:         #D4AF37;
+$primary-fixed:             #ffe088;
+$primary-fixed-dim:         #D4AF37;
+$on-primary:                #1a1a1a;
+$on-primary-container:      #3c2f00;
+$on-primary-fixed:          #241a00;
+$on-primary-fixed-variant:  #574500;
+$inverse-primary:           #735c00;
+
+// ── Color Tokens: Surface Hierarchy (Obsidian) ──────────────
+$background:                  #0a0a0a;
+$surface:                     #0a0a0a;
+$surface-dim:                 #0a0a0a;
+$surface-bright:              #1a1a1a;
+$surface-variant:             #111111;
+$surface-container-lowest:    #050505;
+$surface-container-low:       #0d0d0d;
+$surface-container:           #111111;
+$surface-container-high:      #1a1a1a;
+$surface-container-highest:   #222222;
+$surface-tint:                #D4AF37;
+$inverse-surface:             #e5e2e1;
+$inverse-on-surface:          #1a1a1a;
+
+// ── Color Tokens: On-Surface ─────────────────────────────────
+$on-background:       #e5e2e1;
+$on-surface:          #e5e2e1;
+$on-surface-variant:  #99907c;
+
+// ── Color Tokens: Secondary ──────────────────────────────────
+$secondary:                   #c8c6c5;
+$secondary-container:         #2a2a2a;
+$secondary-fixed:             #e5e2e1;
+$secondary-fixed-dim:         #c8c6c5;
+$on-secondary:                #1a1a1a;
+$on-secondary-container:      #b7b5b4;
+$on-secondary-fixed:          #0a0a0a;
+$on-secondary-fixed-variant:  #2a2a2a;
+
+// ── Color Tokens: Tertiary ───────────────────────────────────
+$tertiary:                    #bfcdff;
+$tertiary-container:          #97b0ff;
+$tertiary-fixed:              #dbe1ff;
+$tertiary-fixed-dim:          #b4c5ff;
+$on-tertiary:                 #082b72;
+$on-tertiary-container:       #254188;
+$on-tertiary-fixed:           #00174b;
+$on-tertiary-fixed-variant:   #27438a;
+
+// ── Color Tokens: Outline ────────────────────────────────────
+$outline:          #4d4635;
+$outline-variant:  #353534;
+
+// ── Color Tokens: Error ──────────────────────────────────────
+$error:              #ffb4ab;
+$error-container:    #93000a;
+$on-error:           #690005;
+$on-error-container: #ffdad6;
+
+// ── Legacy Aliases (backward compatibility) ──────────────────
+$gold:        $primary;
+$text-color:  $on-surface;
+$text-muted:  $on-surface-variant;
+$bg:          $background;
+$edge:        $surface-container;
+$edge-2:      $surface-container-high;
+$gold-soft:   rgba($primary, 0.28);
+$gold-glow:   rgba($primary, 0.22);
+$success:     #a5ff6c;  // kept as-is, not in Noir Atelier spec
+
+// ── Typography ───────────────────────────────────────────────
+$font-headline: 'Noto Serif', Georgia, serif;
+$font-body:     'Manrope', system-ui, sans-serif;
+$font-label:    'Manrope', system-ui, sans-serif;
+
+$display-lg:   3.5rem;    // 56px — hero titles
+$display-md:   2.75rem;   // 44px
+$display-sm:   2.25rem;   // 36px
+$headline-lg:  2rem;      // 32px
+$headline-md:  1.75rem;   // 28px
+$headline-sm:  1.5rem;    // 24px
+$title-lg:     1.25rem;   // 20px
+$title-md:     1rem;      // 16px
+$title-sm:     0.875rem;  // 14px
+$body-lg:      1rem;
+$body-md:      0.875rem;
+$body-sm:      0.75rem;
+$label-lg:     0.875rem;
+$label-md:     0.75rem;
+$label-sm:     0.625rem;  // 10px — signature tiny-caps
+
+// ── Border Radius ────────────────────────────────────────────
+$radius-none: 0;
+$radius-sm:   0.125rem;   // ghost/minimal organic feel
+$radius-md:   0.375rem;
+$radius-lg:   0.5rem;     // cards
+$radius-xl:   0.75rem;
+$radius-full: 9999px;
+
+// ── Elevation / Shadows ──────────────────────────────────────
+$shadow-ambient:    0px 20px 40px rgba(0, 0, 0, 0.6);
+$shadow-gold-glow:  0 0 40px rgba($primary, 0.10);
+$shadow-gold-outer: 0 0 0 1px rgba($primary, 0.15);
+
+// ── Motion ───────────────────────────────────────────────────
+$ease:          cubic-bezier(.22, .61, .36, 1);
+$duration-fast: 150ms;
+$duration-base: 300ms;
+$duration-slow: 500ms;
+$duration-crawl: 1000ms;

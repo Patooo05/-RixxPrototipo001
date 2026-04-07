@@ -1,8 +1,14 @@
+@use "variables" as *;
+@use "mixins" as *;
+
 .profile-advanced {
   display: flex;
   gap: 2rem;
   padding: 2rem;
   padding-top: 10rem;
+  background: $background;
+  min-height: 100vh;
+  color: $on-surface;
 
   &__sidebar {
     display: flex;
@@ -21,26 +27,31 @@
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    padding: 0.5rem 1rem;
+    padding: 0.65rem 1rem;
     border: none;
-    border-radius: 5px;
-    background-color: #f0f0f0;
-    font-weight: normal;
+    border-radius: $radius-sm;
+    background: $surface-container;
+    color: $on-surface-variant;
+    font-family: $font-body;
+    font-size: $body-md;
+    font-weight: 400;
     cursor: pointer;
-    transition: all 0.3s;
+    transition: all $duration-base $ease;
 
     &:hover {
-      opacity: 0.85;
+      background: $surface-container-high;
+      color: $on-surface;
     }
 
     &.active {
-      background-color: #d4af37;
-      font-weight: bold;
+      background: $primary;
+      color: $on-primary;
+      font-weight: 700;
     }
   }
 
   &__icon {
-    font-size: 1.2rem;
+    font-size: $title-md;
   }
 
   &__content {
@@ -51,8 +62,8 @@
 
   &__slider {
     display: flex;
-    transition: transform 0.4s ease-in-out;
-    width: 300%; /* depende de la cantidad de secciones */
+    transition: transform $duration-slow $ease;
+    width: 300%;
   }
 
   &__panel {

@@ -1,37 +1,36 @@
+@use "variables" as *;
+@use "mixins" as *;
+
 .stock-container {
-  font-family: 'Poppins', sans-serif;
+  font-family: $font-body;
   padding: 2rem;
-  color: #fff;
-  background-color: #0a0a0a;
+  color: $on-surface;
+  background-color: $background;
   min-height: 100vh;
 
-  /* ======= CABECERA PREMIUM ======= */
+  // ── Header ─────────────────────────────────────────────────────────────────
   .erp-header {
     text-align: center;
     margin-bottom: 2rem;
     padding-bottom: 1rem;
-    border-bottom: 1px solid rgba(255, 215, 0, 0.3);
 
     h2 {
-      color: #ffd700;
+      font-family: $font-headline;
+      color: $primary;
       margin-bottom: 0.3rem;
-      font-size: 2.1rem;
+      font-size: $headline-md;
       font-weight: 600;
-      letter-spacing: 1px;
+      letter-spacing: -0.02em;
     }
 
     p {
-      font-size: 1rem;
-      opacity: 0.85;
-
-      span {
-        color: #ffd700;
-        font-weight: 500;
-      }
+      font-size: $body-lg;
+      color: $on-surface-variant;
+      span { color: $primary; font-weight: 500; }
     }
   }
 
-  /* ======= UPLOAD CSV ======= */
+  // ── Upload CSV ─────────────────────────────────────────────────────────────
   .erp-file-upload {
     display: flex;
     justify-content: center;
@@ -39,32 +38,32 @@
 
     input[type="file"] {
       padding: 0.7rem;
-      background-color: #111;
-      border: 1px solid #333;
-      border-radius: 8px;
+      background-color: $surface-container;
+      @include ghost-border;
+      border-radius: $radius-sm;
       cursor: pointer;
-      transition: 0.3s;
+      color: $on-surface-variant;
+      font-family: $font-body;
+      transition: border-color $duration-base $ease;
 
       &:hover:not(:disabled) {
-        border-color: #ffd700;
-        box-shadow: 0 0 8px #ffd70055;
+        border-color: rgba($primary, 0.4);
+        box-shadow: 0 0 8px rgba($primary, 0.1);
       }
 
-      &:disabled {
-        opacity: 0.4;
-        cursor: not-allowed;
-      }
+      &:disabled { opacity: 0.4; cursor: not-allowed; }
     }
   }
 
-  /* ======= SECCIÓN LISTA DE PRODUCTOS ======= */
+  // ── Sección lista de productos ─────────────────────────────────────────────
   .erp-product-list {
     margin-bottom: 1.5rem;
 
     h3 {
-      color: #ffd700;
+      font-family: $font-headline;
+      color: $primary;
       margin-bottom: 1rem;
-      font-size: 1.4rem;
+      font-size: $title-lg;
       font-weight: 500;
     }
 
@@ -76,80 +75,75 @@
 
       input {
         width: 260px;
-        background-color: #111;
-        color: #fff;
-        border-radius: 8px;
+        background-color: $surface-container-lowest;
+        color: $on-surface;
+        border-radius: $radius-sm;
         padding: 0.7rem;
-        border: 1px solid #333;
-        transition: 0.3s;
+        border: none;
+        border-bottom: 2px solid transparent;
+        font-family: $font-body;
+        transition: border-color $duration-base $ease;
 
         &:focus {
-          border-color: #ffd700;
-          box-shadow: 0 0 8px #ffd70088;
+          border-bottom-color: $primary;
+          outline: none;
         }
 
-        @media (max-width: 768px) {
-          width: 100%;
-        }
+        &::placeholder { color: rgba($on-surface-variant, 0.5); }
+
+        @media (max-width: 768px) { width: 100%; }
       }
     }
 
     select {
-      background-color: #111;
-      color: #fff;
+      background-color: $surface-container-lowest;
+      color: $on-surface;
       padding: 0.7rem;
-      border-radius: 8px;
-      border: 1px solid #333;
-      transition: 0.3s;
+      border-radius: $radius-sm;
+      border: none;
+      border-bottom: 2px solid transparent;
+      font-family: $font-body;
+      transition: border-color $duration-base $ease;
 
       &:focus {
-        border-color: #ffd700;
-        box-shadow: 0 0 8px #ffd70066;
+        border-bottom-color: $primary;
+        outline: none;
       }
     }
   }
 
-  /* ======= INPUTS GENERALES ======= */
+  // ── Inputs generales ───────────────────────────────────────────────────────
   input, select, button {
     margin: 0.5rem 0.5rem 1rem 0;
     padding: 0.6rem 0.8rem;
-    border-radius: 6px;
+    border-radius: $radius-sm;
     border: none;
     outline: none;
-    font-size: 0.95rem;
+    font-size: $body-md;
+    font-family: $font-body;
   }
 
   input, select {
-    background-color: #1a1a1a;
-    color: #fff;
-    transition: 0.3s;
+    background-color: $surface-container-high;
+    color: $on-surface;
+    transition: box-shadow $duration-base $ease;
 
-    &:focus {
-      box-shadow: 0 0 5px #ffd700;
-    }
+    &:focus { box-shadow: 0 0 5px rgba($primary, 0.4); }
   }
 
-  /* ======= BOTONES ======= */
   button {
-    background-color: #ffd700;
-    color: #0a0a0a;
+    @include gold-gradient;
+    color: $on-primary;
     font-weight: bold;
     cursor: pointer;
-    transition: 0.3s;
+    transition: filter $duration-fast $ease, transform $duration-fast $ease;
 
-    &:hover {
-      background-color: #e5c100;
-      transform: translateY(-2px);
-    }
-
-    &:disabled {
-      background-color: #555;
-      cursor: not-allowed;
-    }
+    &:hover { filter: brightness(1.1); transform: translateY(-2px); }
+    &:disabled { background: $surface-container-highest; color: $on-surface-variant; cursor: not-allowed; }
   }
 
   .error-message {
-    color: #ff4d4f;
+    color: $error;
     font-weight: bold;
     margin-bottom: 1rem;
   }
@@ -157,13 +151,10 @@
   .search-input {
     width: 220px;
     margin-right: 0.5rem;
-
-    @media (max-width: 768px) {
-      width: 100%;
-    }
+    @media (max-width: 768px) { width: 100%; }
   }
 
-  /* ======= DASHBOARD ======= */
+  // ── Dashboard ──────────────────────────────────────────────────────────────
   .dashboard {
     display: flex;
     flex-wrap: wrap;
@@ -172,113 +163,93 @@
 
     .chart-container {
       flex: 1 1 300px;
-      background-color: #111;
+      background-color: $surface-container;
       padding: 1rem;
-      border-radius: 12px;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
-      transition: transform 0.3s;
+      border-radius: $radius-lg;
+      box-shadow: $shadow-ambient;
+      transition: transform $duration-base $ease;
 
-      &:hover {
-        transform: translateY(-3px);
-      }
+      &:hover { transform: translateY(-3px); }
 
       h3 {
+        font-family: $font-headline;
         margin-bottom: 0.8rem;
-        color: #ffd700;
-        font-size: 1.2rem;
+        color: $primary;
+        font-size: $title-lg;
       }
 
       .stat {
-        font-size: 1.6rem;
+        font-size: $headline-sm;
         font-weight: bold;
-        color: #fff;
+        color: $on-surface;
       }
     }
   }
 
-  /* ======= TABLAS ======= */
+  // ── Resumen historial ──────────────────────────────────────
+  .history-summary {
+    font-size: $body-sm;
+    color: $on-surface-variant;
+    margin-bottom: 0.75rem;
+  }
+
+  // ── Tablas ─────────────────────────────────────────────────────────────────
   .stock-table,
   .history-table {
     width: 100%;
     border-collapse: collapse;
     margin-top: 1rem;
-    background-color: #111;
-    border-radius: 8px;
+    background-color: $surface-container;
+    border-radius: $radius-sm;
     overflow: hidden;
 
     th, td {
       border: none;
-      padding: 0.6rem 0.8rem;
+      padding: 0.8rem;
       text-align: left;
+      font-size: $body-sm;
     }
 
     th {
-      background-color: #1a1a1a;
-      color: #ffd700;
-      text-transform: uppercase;
-      font-size: 0.85rem;
-      font-weight: 600;
+      background-color: $surface-container-high;
+      @include label-uppercase($label-sm);
+      color: $primary;
     }
 
     td input {
       width: 100%;
-      background-color: #0a0a0a;
-      color: #fff;
+      background-color: $background;
+      color: $on-surface;
       border: none;
       padding: 0.3rem 0.4rem;
-      border-radius: 4px;
-      transition: 0.2s;
-
-      &:focus {
-        box-shadow: 0 0 4px #ffd700;
-      }
+      border-radius: $radius-sm;
+      font-family: $font-body;
+      transition: box-shadow $duration-fast $ease;
+      &:focus { box-shadow: 0 0 4px rgba($primary, 0.4); }
     }
 
     tr {
-      transition: background-color 0.3s, transform 0.2s;
-
-      &:hover {
-        background-color: #222;
-        transform: scale(1.01);
-      }
+      transition: background-color $duration-base $ease;
+      &:hover { background-color: $surface-container-high; }
+      &:nth-child(even) { background-color: $surface-container-low; }
     }
 
-    tr:nth-child(even) {
-      background-color: #111;
-    }
+    // Stock status rows
+    tr.low-stock    { background-color: rgba($error-container, 0.2); }
+    tr.medium-stock { background-color: rgba($primary, 0.08); }
+    tr.high-stock   { background-color: rgba($success, 0.08); }
 
-    /* STOCK COLORS */
-    tr.low-stock    { background-color: #ff4d4f33; }
-    tr.medium-stock { background-color: #ffd70033; }
-    tr.high-stock   { background-color: #52c41a33; }
+    // History action rows
+    tr.edit-action   { background-color: rgba($primary, 0.03); &:hover { background-color: rgba($primary, 0.07); } }
+    tr.delete-action { background-color: rgba(255, 77, 77, 0.08); &:hover { background-color: rgba(255, 77, 77, 0.14); } }
+    tr.sale-action   { background-color: rgba(255, 77, 77, 0.05); &:hover { background-color: rgba(255, 77, 77, 0.10); } }
 
-    /* HISTORIAL */
-    tr.edit-action {
-      background-color: #1890ff33;
-
-      &:hover {
-        background-color: #1890ff55;
-      }
-    }
-
-    tr.delete-action {
-      background-color: #ff4d4f33;
-
-      &:hover {
-        background-color: #ff4d4f55;
-      }
-    }
-
-    tr.sale-action {
-      background-color: #52c41a33;
-
-      &:hover {
-        background-color: #52c41a55;
-      }
-    }
+    // History quantity colors
+    td.qty-minus { color: #ff4d4d; font-weight: 600; }
+    td.qty-plus  { color: #a5ff6c; font-weight: 600; }
   }
 
-  /* ======= VENTAS ======= */
+  // ── Ventas ─────────────────────────────────────────────────────────────────
   .sales-section {
     display: flex;
     flex-wrap: wrap;
@@ -286,34 +257,19 @@
     margin-top: 1rem;
     gap: 0.5rem;
 
-    select, input[type="number"], button {
-      width: auto;
-    }
-
-    button {
-      margin-left: 0.5rem;
-    }
+    select, input[type="number"], button { width: auto; }
+    button { margin-left: 0.5rem; }
 
     @media (max-width: 768px) {
       flex-direction: column;
       align-items: flex-start;
-
-      select, input[type="number"], button {
-        width: 100%;
-        margin-bottom: 0.5rem;
-      }
+      select, input[type="number"], button { width: 100%; margin-bottom: 0.5rem; }
     }
   }
 
-  /* ======= RESPONSIVE ======= */
+  // ── Responsive ─────────────────────────────────────────────────────────────
   @media (max-width: 768px) {
-    .dashboard {
-      flex-direction: column;
-    }
-
-    .stock-table,
-    .history-table {
-      font-size: 0.85rem;
-    }
+    .dashboard { flex-direction: column; }
+    .stock-table, .history-table { font-size: $label-sm; }
   }
 }

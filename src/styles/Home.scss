@@ -1,25 +1,37 @@
-/* ============================================================
-   HOME PAGE — Rixx Lentes
-   Estructurado, limpio y optimizado
-============================================================ */
+@use "variables" as *;
+@use "mixins" as *;
+
+@keyframes titleFade {
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes reviewsTitleFade {
+  to { opacity: 1; }
+}
+
+@keyframes fadeUpSoft {
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
 .home {
   width: 100%;
-  background-color: #000;
+  background-color: $background;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
 
-  * {
-    transition: all 0.28s ease;
-  }
+  * { transition: color $duration-base $ease, background $duration-base $ease; }
 
-  /* ============================
-     FADE-IN ON SCROLL
-  ============================= */
+  // ── Fade-in on scroll ─────────────────────────────────────────────────────
   .fade-in-on-scroll {
     opacity: 0;
     transform: translateY(14px);
-    transition: opacity 0.9s ease-out, transform 0.9s ease-out;
+    transition: opacity 0.9s $ease, transform 0.9s $ease;
 
     &.visible {
       opacity: 1;
@@ -27,9 +39,7 @@
     }
   }
 
-  /* ============================
-     ICONOS SOCIALES FIJOS
-  ============================= */
+  // ── Social icons ─────────────────────────────────────────────────────────
   .social-icons-solo {
     position: fixed;
     top: 92.5%;
@@ -41,356 +51,342 @@
     z-index: 500;
 
     a {
-      color: #fff;
+      color: $on-surface-variant;
       font-size: 1.5rem;
+      transition: color $duration-base $ease, transform $duration-fast $ease;
 
       &:hover {
-        color: #d4af37;
+        color: $primary;
         transform: scale(1.25);
       }
     }
   }
 
-  /* ============================
-     BANNER PRINCIPAL
-  ============================= */
+  // ── Video Carousel Banner ─────────────────────────────────────────────────
   .banner {
     position: relative;
     width: 100%;
     height: 100vh;
     overflow: hidden;
+    background: $background;
 
-    .banner-video {
+    // ── Capas de video (crossfade) ─────────────────────────────────────────
+    .banner__slide {
       position: absolute;
       inset: 0;
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
       z-index: 1;
-    }
+      opacity: 0;
+      transition: opacity 1s $ease;
 
-    .banner-overlay {
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(
-        180deg,
-        rgba(0, 0, 0, 0.32),
-        rgba(0, 0, 0, 0.55) 60%,
-        rgba(0, 0, 0, 0.78)
-      );
-      z-index: 2;
-      pointer-events: none;
-    }
+      video {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
 
-    .banner-text {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      z-index: 3;
-      width: min(92%, 760px);
-      text-align: center;
-
-      .presentation-card {
-        display: inline-block;
-        background: rgba(0, 0, 0, 0.28);
-        padding: 1.6rem 2rem;
-        border-radius: 14px;
-        backdrop-filter: blur(6px);
-        border: 1px solid rgba(255, 255, 255, 0.06);
-        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.45);
-
-        &__title {
-          color: #d4af37;
-          font-weight: 700;
-          font-size: clamp(1.6rem, 3vw, 2.4rem);
-          margin-bottom: 0.5rem;
-        }
-
-        &__text {
-          color: rgba(255, 255, 255, 0.9);
-          line-height: 1.45;
-        }
+      &--active {
+        opacity: 1;
       }
     }
 
-    .banner-button {
+    // ── Overlay oscuro gradiente ───────────────────────────────────────────
+    .banner-overlay {
       position: absolute;
-      bottom: 3rem;
+      inset: 0;
+      z-index: 2;
+      background: linear-gradient(
+        180deg,
+        rgba($background, 0.25) 0%,
+        rgba($background, 0.45) 50%,
+        rgba($background, 0.88) 100%
+      );
+      pointer-events: none;
+    }
+
+    // ── Contenido del slide (texto + CTA) ─────────────────────────────────
+    .banner__content {
+      position: absolute;
+      inset: 0;
+      z-index: 3;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2rem;
+      padding: 0 1.5rem 5rem;
+      text-align: center;
+
+      opacity: 0;
+      transform: translateY(12px);
+      transition: opacity 0.8s $ease 0.3s, transform 0.8s $ease 0.3s;
+      pointer-events: none;
+
+      &--active {
+        opacity: 1;
+        transform: translateY(0);
+        pointer-events: auto;
+      }
+
+      .presentation-card {
+        @include glass-surface(0.3);
+        padding: 2rem 2.5rem;
+        border-radius: $radius-lg;
+        @include ghost-border;
+        max-width: 680px;
+
+        &__title {
+          font-family: $font-headline;
+          color: $primary;
+          font-weight: 700;
+          font-size: clamp($headline-sm, 3.5vw, $display-sm);
+          letter-spacing: -0.02em;
+          margin-bottom: 0.6rem;
+          text-shadow: 0 4px 20px rgba($primary, 0.3);
+        }
+
+        &__text {
+          font-family: $font-body;
+          color: rgba($on-surface, 0.88);
+          font-size: $body-lg;
+          line-height: 1.6;
+        }
+      }
+
+      .banner__cta {
+        @include btn-primary;
+        font-size: $label-md;
+        border-radius: $radius-sm;
+      }
+    }
+
+    // ── Flechas de navegación ──────────────────────────────────────────────
+    .banner__arrow {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 4;
+      width: 48px;
+      height: 48px;
+      border-radius: $radius-sm;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba($surface-container, 0.5);
+      @include ghost-border;
+      color: $on-surface;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background $duration-base $ease, color $duration-base $ease, border-color $duration-base $ease;
+
+      &:hover {
+        background: rgba($primary, 0.15);
+        color: $primary;
+        border-color: rgba($primary, 0.4);
+      }
+
+      &--prev { left: 1.5rem; }
+      &--next { right: 1.5rem; }
+    }
+
+    // ── Indicadores (dots) ─────────────────────────────────────────────────
+    .banner__dots {
+      position: absolute;
+      bottom: 1.8rem;
       left: 50%;
       transform: translateX(-50%);
-      z-index: 3;
+      z-index: 4;
+      display: flex;
+      gap: 0.6rem;
+      align-items: center;
+    }
 
-      .primary-btn {
-        background: #d4af37;
-        padding: 0.78rem 1.6rem;
-        border-radius: 12px;
-        font-weight: 700;
-        color: #000;
-        box-shadow: 0 10px 30px rgba(212, 175, 55, 0.16);
+    .banner__dot {
+      width: 28px;
+      height: 3px;
+      border-radius: $radius-sm;
+      background: rgba($on-surface, 0.3);
+      cursor: pointer;
+      transition: background $duration-base $ease, width $duration-base $ease;
 
-        &:hover {
-          transform: translateY(-3px);
-          background: #b8952e;
-          box-shadow: 0 14px 36px rgba(212, 175, 55, 0.22);
-        }
+      &--active {
+        background: $primary;
+        width: 48px;
       }
     }
   }
 
-  /* ============================
-     FRASE CENTRAL
-  ============================= */
+  // ── Frase central ────────────────────────────────────────────────────────
   .middle-text {
     width: 100%;
     max-width: 880px;
     margin: 2.6rem auto;
     padding: 2rem 1.2rem;
     text-align: center;
-    color: #fff;
-    background: rgba(0, 0, 0, 0.14);
-    border-radius: 10px;
-    font-size: 1.15rem;
-    line-height: 1.45;
+    color: $on-surface;
+    background: rgba($surface-container, 0.4);
+    border-radius: $radius-sm;
+    font-family: $font-body;
+    font-size: $body-lg;
+    line-height: 1.5;
   }
 
-  /* ============================
-     UNDER-CARD BANNER
-  ============================= */
+  // ── Under-card banner ─────────────────────────────────────────────────────
   .under-card-banner {
-  position: relative;
-  width: 100%;
-  min-height: 900px;
-  overflow: hidden;
-  border-radius: 14px;
-
-  /* —————————————— IMAGEN DE FONDO —————————————— */
-  .under-banner-img {
-    position: absolute;
-    inset: 0;
+    position: relative;
     width: 100%;
-    height: 1200px;
-    object-fit: cover;
+    min-height: 900px;
+    overflow: hidden;
+    background: $surface-container-lowest;
 
-    /* 🌟 Imagen subida para mostrar mejor la parte estética */
-    object-position: center -380px;
+    .under-banner-img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 1200px;
+      object-fit: cover;
+      object-position: center -380px;
+      opacity: 0.42;
+      z-index: 1;
+      transition: transform 0.9s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.8s $ease;
 
-    opacity: 0.42;
-    z-index: 1;
-
-    /* Animación suave */
-    transition: transform 0.9s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.8s ease;
-
-    &:hover {
-      transform: scale(1.06);
-      opacity: 0.52;
-    }
-  }
-
-  /* —————————————— CONTENIDO EN EL CENTRO —————————————— */
- .under-banner-overlay {
-  position: absolute;
-  top: 0;
-  left: 50%;
-  transform: translate(-50%, -5rem);
-  margin-top: 5rem;
-
-  z-index: 2;
-  width: 100%;
-  max-width: 1400px;
-
-  padding: 2rem 2rem 0.5rem 2rem;
-  text-align: center;
-
-  background: transparent;
-
-  /* ===========================
-     CABECERA
-  =========================== */
-
-  .under-header {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 1.4rem;
-  }
-
-  .under-title {
-    font-size: clamp(2.2rem, 3.2vw, 3rem);
-    font-weight: 700;
-    color: #f7d878;
-    letter-spacing: 1.6px;
-
-    text-shadow: 0 4px 18px rgba(247, 216, 120, 0.32);
-    transform: translateY(4px);
-    opacity: 0;
-    animation: titleFade 1.3s ease forwards;
-  }
-
-  @keyframes titleFade {
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
-  .under-btn {
-    padding: 1rem 2.3rem;
-    font-size: 1.05rem;
-    border-radius: 14px;
-    font-weight: 600;
-
-    background: linear-gradient(90deg, #ffd700, #f1c95e);
-    box-shadow: 0 8px 28px rgba(212, 175, 55, 0.35);
-
-    transition: 0.35s cubic-bezier(0.25, 0.8, 0.25, 1);
-
-    &:hover {
-      transform: translateY(-3px) scale(1.03);
-      box-shadow: 0 12px 36px rgba(212, 175, 55, 0.55);
-      filter: brightness(1.15);
-    }
-  }
-
-  /* ===========================
-     RESEÑAS
-  =========================== */
-
-  .banner-reviews {
-    margin-top: 3rem;
-    max-width: 760px;
-    margin-inline: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 1.3rem;
-
-    .reviews-title {
-      color: #ffffff;
-      font-size: 1.45rem;
-      font-weight: 600;
-      letter-spacing: 0.8px;
-
-      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.55);
-      margin-bottom: 0.6rem;
-      opacity: 0;
-      animation: reviewsTitleFade 1s ease 0.3s forwards;
-    }
-
-    @keyframes reviewsTitleFade {
-      to {
-        opacity: 1;
-      }
-    }
-
-    .reviews-list {
-      display: flex;
-      flex-direction: column;
-      gap: 1.2rem;
-    }
-
-    /* ——— TARJETAS DE RESEÑA ——— */
-    .review-card {
-      background: rgba(255, 255, 255, 0.05);
-      padding: 1.3rem 1.4rem;
-      border-radius: 14px;
-
-      /* borde dorado premium */
-      border: 1px solid rgba(255, 215, 0, 0.25);
-
-      box-shadow: 0 4px 26px rgba(0, 0, 0, 0.35);
-      backdrop-filter: blur(2px);
-
-      position: relative;
-      overflow: hidden;
-
-      transition: 0.35s ease;
-
-      /* EFECTO HOVER LUXURY */
       &:hover {
-        transform: translateY(-4px);
-        background: rgba(255, 215, 0, 0.12);
-        border-color: rgba(255, 215, 0, 0.45);
+        transform: scale(1.06);
+        opacity: 0.52;
+      }
+    }
+
+    .under-banner-overlay {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translate(-50%, -5rem);
+      margin-top: 5rem;
+      z-index: 2;
+      width: 100%;
+      max-width: 1400px;
+      padding: 2rem 2rem 0.5rem;
+      text-align: center;
+      background: transparent;
+
+      .under-header {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1.4rem;
       }
 
-      /* GLOW DINÁMICO */
-      &::before {
-        content: "";
-        position: absolute;
-        inset: 0;
-        background: radial-gradient(
-          circle at top right,
-          rgba(255, 215, 0, 0.18),
-          transparent 60%
-        );
+      .under-title {
+        font-family: $font-headline;
+        font-size: clamp($headline-md, 3.2vw, $display-sm);
+        font-weight: 700;
+        color: $primary;
+        letter-spacing: -0.02em;
+        text-shadow: 0 4px 18px rgba($primary, 0.25);
+        transform: translateY(4px);
         opacity: 0;
-        transition: 0.4s ease;
+        animation: titleFade 1.3s $ease forwards;
       }
 
-      &:hover::before {
-        opacity: 1;
-        transform: scale(1.15);
+      .under-btn {
+        @include btn-primary;
+        font-size: $label-md;
+        border-radius: $radius-sm;
       }
 
-      .review-text {
-        color: rgba(255, 255, 255, 0.92);
-        font-size: 1.05rem;
-        line-height: 1.45;
-        letter-spacing: 0.35px;
-      }
-    }
+      // ── Reseñas ────────────────────────────────────────────────────────────
+      .banner-reviews {
+        margin-top: 3rem;
+        max-width: 760px;
+        margin-inline: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 1.3rem;
 
-    /* ——— Nen mensaje sin reseñas ——— */
-    .no-reviews {
-      color: rgba(255, 255, 255, 0.7);
-      font-size: 1rem;
-      margin-top: 1rem;
-      font-style: italic;
-      letter-spacing: 0.3px;
+        .reviews-title {
+          font-family: $font-headline;
+          color: $on-surface;
+          font-size: $headline-sm;
+          font-weight: 600;
+          letter-spacing: 0.02em;
+          text-shadow: 0 2px 10px rgba(0, 0, 0, 0.55);
+          margin-bottom: 0.6rem;
+          opacity: 0;
+          animation: reviewsTitleFade 1s $ease 0.3s forwards;
+        }
+
+        .reviews-list {
+          display: flex;
+          flex-direction: column;
+          gap: 1.2rem;
+        }
+
+        .review-card {
+          @include glass-surface(0.08);
+          padding: 1.3rem 1.4rem;
+          border-radius: $radius-lg;
+          @include ghost-border;
+          position: relative;
+          overflow: hidden;
+          transition: transform $duration-base $ease, background $duration-base $ease;
+
+          &:hover {
+            transform: translateY(-4px);
+            background: rgba($primary, 0.06);
+            border-color: rgba($primary, 0.25);
+          }
+
+          &::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            @include cinematic-light(top right);
+            opacity: 0;
+            transition: opacity $duration-base $ease;
+          }
+
+          &:hover::before { opacity: 1; }
+
+          .review-text {
+            font-family: $font-body;
+            color: rgba($on-surface, 0.92);
+            font-size: $body-lg;
+            line-height: 1.5;
+            letter-spacing: 0.01em;
+          }
+        }
+
+        .no-reviews {
+          color: $on-surface-variant;
+          font-size: $body-lg;
+          margin-top: 1rem;
+          font-style: italic;
+        }
+      }
+
+      .fade-in-review {
+        opacity: 0;
+        transform: translateY(18px);
+        animation: fadeUpSoft 0.7s $ease forwards;
+      }
     }
   }
 
-  /* ===========================
-     ANIMACIÓN REVIEWS
-  =========================== */
-  .fade-in-review {
-    opacity: 0;
-    transform: translateY(18px);
-    animation: fadeUpSoft 0.7s ease forwards;
-  }
-
-  @keyframes fadeUpSoft {
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-}
-
-  /* ============================
-     SOCIAL BOX
-  ============================= */
+  // ── Social box ───────────────────────────────────────────────────────────
   .social-box {
     text-align: center;
-    color: #fff;
+    color: $on-surface;
     max-width: 880px;
     margin: 2.5rem auto 3rem;
 
-    p {
-      margin: 0.3rem 0;
-    }
+    p { margin: 0.3rem 0; font-family: $font-body; }
   }
 
-  /* ============================
-     RESPONSIVE
-  ============================= */
+  // ── Responsive ───────────────────────────────────────────────────────────
   @media (max-width: 1024px) {
     .under-card-banner {
       min-height: 300px;
-
-      .under-banner-img {
-        height: 300px;
-        object-position: center -60px;
-      }
+      .under-banner-img { height: 300px; object-position: center -60px; }
     }
   }
 
@@ -400,42 +396,37 @@
       bottom: 1rem;
       transform: translateX(-50%);
       gap: 1.5rem;
-
-      a {
-        font-size: 1.8rem;
-      }
+      a { font-size: 1.8rem; }
     }
   }
-}}
+}
 
-/* ============================================================
-   REVIEW FORM — SEPARADO DEL BANNER
-============================================================ */
+// ── Review Form ──────────────────────────────────────────────────────────────
 .review-form-box {
   width: 100%;
   max-width: 620px;
   margin: 3rem auto;
   padding: 2.4rem;
   text-align: center;
-
-  background: rgba(255, 255, 255, 0.04);
-  backdrop-filter: blur(14px);
-  border-radius: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.45);
+  @include glass-surface(0.06);
+  background: $surface-container;
+  border-radius: $radius-lg;
+  @include ghost-border;
+  @include ambient-shadow;
+  transition: transform $duration-base $ease, box-shadow $duration-base $ease;
 
   &:hover {
     transform: translateY(-4px);
-    box-shadow: 0 26px 70px rgba(0, 0, 0, 0.55);
+    @include ambient-shadow;
   }
 
   h4 {
-    color: #ffd700;
-    font-size: 1.8rem;
+    font-family: $font-headline;
+    color: $primary;
+    font-size: $headline-sm;
     margin-bottom: 1.6rem;
-    letter-spacing: 1px;
-    text-shadow: 0 0 12px rgba(255, 215, 0, 0.25);
-
+    letter-spacing: 0.02em;
+    text-shadow: 0 0 12px rgba($primary, 0.2);
     position: relative;
     display: inline-block;
     padding-bottom: 0.35rem;
@@ -447,16 +438,14 @@
       left: 50%;
       width: 42%;
       height: 2px;
-      background: linear-gradient(90deg, transparent, #ffd700, transparent);
+      background: linear-gradient(90deg, transparent, $primary, transparent);
       transform: translateX(-50%);
-      opacity: 0.8;
-      transition: width 0.35s ease;
-      border-radius: 10px;
+      opacity: 0.7;
+      transition: width $duration-base $ease;
+      border-radius: $radius-sm;
     }
 
-    &:hover::after {
-      width: 60%;
-    }
+    &:hover::after { width: 60%; }
   }
 
   .review-form {
@@ -468,47 +457,44 @@
       width: 100%;
       min-height: 140px;
       padding: 1.2rem;
-      font-size: 1rem;
-      color: #fff;
-      background: rgba(255, 255, 255, 0.03);
-      border: 1px solid rgba(255, 255, 255, 0.10);
-      border-radius: 16px;
+      font-size: $body-lg;
+      font-family: $font-body;
+      color: $on-surface;
+      background: $surface-container-lowest;
+      border: none;
+      border-bottom: 2px solid transparent;
+      border-radius: $radius-sm;
       resize: none;
-      backdrop-filter: blur(6px);
-      box-shadow: inset 0 0 16px rgba(0, 0, 0, 0.45);
+      transition: border-color $duration-base $ease;
 
       &:focus {
-        border-color: rgba(255, 215, 0, 0.55);
-        background: rgba(255, 255, 255, 0.06);
+        border-bottom-color: $primary;
         outline: none;
       }
+
+      &::placeholder { color: rgba($on-surface-variant, 0.5); }
     }
 
     .send-btn {
-      background: linear-gradient(120deg, #fff2b0, #ffd700, #eac345);
-      color: #000;
+      @include gold-gradient(120deg);
+      color: $on-primary;
       font-weight: 700;
+      font-family: $font-body;
       padding: 0.85rem 2rem;
-      border-radius: 16px;
+      border-radius: $radius-sm;
       cursor: pointer;
-      box-shadow: 0 12px 30px rgba(212, 175, 55, 0.35);
+      border: none;
+      @include ambient-shadow;
+      transition: transform $duration-fast $ease, filter $duration-fast $ease;
 
-      &:hover {
-        transform: translateY(-3px) scale(1.03);
-      }
+      &:hover { transform: translateY(-3px) scale(1.03); filter: brightness(1.08); }
     }
 
     .sent-message {
-      color: #ffd700;
-      font-size: 1rem;
+      color: $primary;
+      font-size: $body-lg;
       margin-top: -0.5rem;
-      animation: fadeIn 0.6s ease forwards;
+      animation: fadeIn 0.6s $ease forwards;
     }
   }
-}
-
-/* Animación global */
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(6px); }
-  to   { opacity: 1; transform: translateY(0); }
 }

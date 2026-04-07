@@ -1,9 +1,12 @@
+@use "variables" as *;
+
 .products-banner {
   position: relative;
   width: 100%;
-  height: 100vh;         // ocupa toda la pantalla
+  height: 100vh;
   min-height: 100vh;
   overflow: hidden;
+  background: $background;
 
   &__video {
     position: absolute;
@@ -11,15 +14,21 @@
     left: 50%;
     width: 100%;
     height: 100%;
-    object-fit: cover;   // llena el contenedor sin distorsionar
+    object-fit: cover;
     transform: translate(-50%, -50%);
     z-index: 1;
+    filter: brightness(0.5);
   }
 
   &__overlay {
     position: absolute;
     inset: 0;
-    background: rgba(0, 0, 0, 0.25); // efecto oscuro opcional
+    background: linear-gradient(
+      180deg,
+      rgba($background, 0.25),
+      rgba($background, 0.55) 60%,
+      rgba($background, 0.85)
+    );
     z-index: 2;
   }
 }

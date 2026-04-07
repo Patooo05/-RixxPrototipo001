@@ -40,6 +40,9 @@ const ProductsGrid = () => {
 
       <div className="products-grid__body">
 
+        <aside className="products-grid__sidebar">
+          <FilterBar />
+        </aside>
 
         <section className="products-grid__content">
           <p className="products-grid__counter">

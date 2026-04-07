@@ -2,6 +2,26 @@ import React, { useState, useContext } from "react";
 import { ProductsContext } from "./ProductsContext";
 import "../styles/Stock.scss";
 
+const typeLabel = (type) => {
+  if (type === "edit")   return "Ajuste manual";
+  if (type === "sale")   return "Venta";
+  if (type === "delete") return "Eliminación";
+  return type;
+};
+
+const formatHistoryDate = (dateStr) => {
+  try {
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return dateStr;
+    return d.toLocaleString("es-UY", {
+      day: "2-digit", month: "short",
+      hour: "2-digit", minute: "2-digit",
+    });
+  } catch {
+    return dateStr;
+  }
+};
+
 const Stock = ({ currentUser }) => {
   const { products, updateStock, history, registerSale } =
     useContext(ProductsContext);
@@ -28,9 +48,12 @@ const Stock = ({ currentUser }) => {
     setSelectedProduct("");
   };
 
+  const salesCount  = history.filter((h) => h.type === "sale").length;
+  const editsCount  = history.filter((h) => h.type === "edit").length;
+
   return (
     <div className="stock-container">
-      {/* ---------- TÍTULO + INFO USUARIO ---------- */}
+      {/* ---------- TÍTULO ---------- */}
       <h2>ERP Lentes - Stock y Ventas</h2>
 
       {currentUser && (
@@ -45,12 +68,12 @@ const Stock = ({ currentUser }) => {
         type="file"
         accept=".csv"
         onChange={handleFileUpload}
-        disabled={currentUser?.role !== "Administrador"}  // <-- FIX
+        disabled={currentUser?.role !== "Administrador"}
       />
 
       {error && <p className="error-message">{error}</p>}
 
-      {/* ---------- BUSCAR PRODUCTO ---------- */}
+      {/* ---------- LISTA DE PRODUCTOS ---------- */}
       <h3>Lista de Productos</h3>
       <input
         type="text"
@@ -60,7 +83,6 @@ const Stock = ({ currentUser }) => {
         onChange={(e) => setSearch(e.target.value)}
       />
 
-      {/* ---------- TABLA DE STOCK ---------- */}
       <table className="stock-table">
         <thead>
           <tr>
@@ -70,13 +92,14 @@ const Stock = ({ currentUser }) => {
             <th>Actualizar stock</th>
           </tr>
         </thead>
-
         <tbody>
           {filteredProducts.map((product) => (
             <tr
               key={product.id}
               className={
-                product.stock <= 5
+                product.stock === 0
+                  ? "low-stock"
+                  : product.stock <= 5
                   ? "low-stock"
                   : product.stock <= 15
                   ? "medium-stock"
@@ -91,9 +114,7 @@ const Stock = ({ currentUser }) => {
                   type="number"
                   min="0"
                   defaultValue={product.stock}
-                  onBlur={(e) =>
-                    updateStock(product.id, Number(e.target.value))
-                  }
+                  onBlur={(e) => updateStock(product.id, Number(e.target.value))}
                 />
               </td>
             </tr>
@@ -129,34 +150,47 @@ const Stock = ({ currentUser }) => {
       {/* ---------- HISTORIAL ---------- */}
       <h3>Historial de Cambios</h3>
 
+      {history.length > 0 && (
+        <p className="history-summary">
+          {salesCount} ventas registradas · {editsCount} ajustes manuales
+        </p>
+      )}
+
       <table className="history-table">
         <thead>
           <tr>
-            <th>ID Producto</th>
+            <th>Producto</th>
             <th>Acción</th>
             <th>Cantidad</th>
             <th>Fecha</th>
           </tr>
         </thead>
-
         <tbody>
-          {history.map((h, index) => (
-            <tr
-              key={index}
-              className={
-                h.type === "edit"
-                  ? "edit-action"
-                  : h.type === "delete"
-                  ? "delete-action"
-                  : "sale-action"
-              }
-            >
-              <td>{h.productId}</td>
-              <td>{h.type}</td>
-              <td>{h.quantity}</td>
-              <td>{h.date}</td>
-            </tr>
-          ))}
+          {history.map((h, index) => {
+            const productName =
+              products.find((p) => p.id === h.productId)?.name ||
+              `#${h.productId}`;
+            const isMinus = h.type === "sale" || h.type === "delete";
+            return (
+              <tr
+                key={index}
+                className={
+                  h.type === "edit"
+                    ? "edit-action"
+                    : h.type === "delete"
+                    ? "delete-action"
+                    : "sale-action"
+                }
+              >
+                <td>{productName}</td>
+                <td>{typeLabel(h.type)}</td>
+                <td className={isMinus ? "qty-minus" : "qty-plus"}>
+                  {isMinus ? `−${h.quantity}` : `+${h.quantity}`}
+                </td>
+                <td>{formatHistoryDate(h.date)}</td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>

@@ -11,6 +11,7 @@ import userIcon from "../../../assets/img/User.svg";
 
 import { Link, useNavigate } from "react-router-dom";
 import { AuthContext } from "../../AuthContext.jsx";
+import { useCart } from "../../CartContext.jsx";
 import LoginModal from "../../LoginModal.jsx";
 import RegisterModal from "../../RegisterModal.jsx";
 
@@ -19,8 +20,10 @@ const Navbar = ({ onCartClick }) => {
   const [showNavbar, setShowNavbar] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showRegisterModal, setShowRegisterModal] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const { isLoggedIn, username, isAdmin, logout } = useContext(AuthContext);
+  const { count } = useCart();
 
   const [welcomeFragments, setWelcomeFragments] = useState([]);
   const [justLoggedIn, setJustLoggedIn] = useState(false);
@@ -100,11 +103,17 @@ const Navbar = ({ onCartClick }) => {
               <img src={logoNavbar} alt="Rixx Lentes" className="navbar__logo-img" />
             </Link>
 
-            <ul className="navbar__links links-visible">
-              <li><Link to="/">Inicio</Link></li>
-              <li><Link to="/productos">Productos</Link></li>
-              <li><Link to="/about">Nosotros</Link></li>
-              <li><Link to="/contacto">Contacto</Link></li>
+            <button className="navbar__toggle" onClick={() => setMenuOpen(o => !o)} aria-label="Menú">
+              <span className="bar"></span>
+              <span className="bar"></span>
+              <span className="bar"></span>
+            </button>
+
+            <ul className={`navbar__links links-visible ${menuOpen ? "active" : ""}`}>
+              <li><Link to="/" onClick={() => setMenuOpen(false)}>Inicio</Link></li>
+              <li><Link to="/productos" onClick={() => setMenuOpen(false)}>Productos</Link></li>
+              <li><Link to="/about" onClick={() => setMenuOpen(false)}>Nosotros</Link></li>
+              <li><Link to="/contacto" onClick={() => setMenuOpen(false)}>Contacto</Link></li>
             </ul>
 
             <div className="navbar__actions actions-visible">
@@ -139,6 +148,7 @@ const Navbar = ({ onCartClick }) => {
               {!isAdmin && isLoggedIn && (
                 <button className="cart1" onClick={onCartClick}>
                   <img src={cartIcon} alt="Carrito" className="icon" />
+                  {count > 0 && <span className="cart-badge">{count}</span>}
                 </button>
               )}
             </div>

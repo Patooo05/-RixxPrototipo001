@@ -11,6 +11,15 @@ import Home from "./components/Home.jsx";
 import Admin from "./components/Admin.jsx";
 import Profile from "./components/Profile.jsx";
 
+// Páginas informativas simples
+const PlaceholderPage = ({ title }) => (
+  <main style={{ minHeight: "80vh", display: "flex", alignItems: "center", justifyContent: "center",
+    background: "#0a0a0a", color: "#99907c", flexDirection: "column", gap: "1rem", paddingTop: "8rem" }}>
+    <h1 style={{ color: "#D4AF37", fontFamily: "Noto Serif, serif" }}>{title}</h1>
+    <p>Esta sección estará disponible próximamente.</p>
+  </main>
+);
+
 import { AuthProvider, AuthContext } from "./components/AuthContext.jsx";
 import { ProductsProvider } from "./components/ProductsContext.jsx";
 import { CartProvider } from "./components/CartContext.jsx";
@@ -38,6 +47,13 @@ function App() {
               <Route path="/producto/:id" element={<ProductDetail />} />
               <Route path="/admin" element={<ProtectedAdminRoute><Admin /></ProtectedAdminRoute>} />
               <Route path="/perfil" element={<Profile />} />
+              <Route path="/about" element={<PlaceholderPage title="Nosotros" />} />
+              <Route path="/contacto" element={<PlaceholderPage title="Contacto" />} />
+              <Route path="/colecciones" element={<PlaceholderPage title="Colecciones" />} />
+              <Route path="/envios" element={<PlaceholderPage title="Envíos" />} />
+              <Route path="/cambios" element={<PlaceholderPage title="Cambios & Devoluciones" />} />
+              <Route path="/preguntas" element={<PlaceholderPage title="Preguntas Frecuentes" />} />
+              <Route path="/terminos" element={<PlaceholderPage title="Términos y Condiciones" />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
             <Footer />

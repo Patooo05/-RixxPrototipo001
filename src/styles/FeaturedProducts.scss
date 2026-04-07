@@ -1,124 +1,102 @@
+@use "variables" as *;
+@use "mixins" as *;
+
+@keyframes fadeUp {
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes skeletonLoading {
+  from { background-position: -200% 0; }
+  to   { background-position:  200% 0; }
+}
+
 .featured-products {
   padding: 6rem 2rem 5rem;
   text-align: center;
-  color: #fff;
-  font-family: "Poppins", sans-serif;
+  background: $surface-container-lowest;
 
-  /* ==== Header ==== */
+  // ── Header ─────────────────────────────────────────────────────────────────
   .featured-header {
     max-width: 800px;
-    margin: 0 auto 3.5rem auto;
+    margin: 0 auto 3.5rem;
 
     .featured-title {
-      font-size: clamp(2.5rem, 4vw, 3.3rem);
+      font-family: $font-headline;
+      font-size: clamp($headline-md, 4vw, $display-sm);
       font-weight: 700;
-      color: #ffd700;
-      letter-spacing: 0.5px;
-      text-shadow: 0 4px 20px rgba(255, 215, 0, 0.35);
+      color: $primary;
+      letter-spacing: -0.02em;
+      text-shadow: 0 4px 20px rgba($primary, 0.25);
       margin-bottom: 0.6rem;
       opacity: 0;
       transform: translateY(12px);
-      animation: fadeUp 0.8s ease forwards;
+      animation: fadeUp 0.8s $ease forwards;
     }
 
     .featured-subtitle {
-      font-size: 1.1rem;
-      opacity: 0.85;
+      font-family: $font-body;
+      font-size: $body-lg;
+      color: $on-surface-variant;
       line-height: 1.6;
       margin-top: 0.4rem;
       opacity: 0;
       transform: translateY(12px);
-      animation: fadeUp 1s ease forwards;
-      animation-delay: 0.1s;
+      animation: fadeUp 1s $ease 0.1s forwards;
     }
   }
 
-  /* ==== Grid ==== */
+  // ── Grid ───────────────────────────────────────────────────────────────────
   .featured-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
     gap: 2.2rem;
     max-width: 1500px;
     margin-inline: auto;
-    position: relative;
   }
 
-  /* ==== Sin Destacados ==== */
   .no-featured {
-    font-size: 1.15rem;
-    opacity: 0.8;
+    font-size: $body-lg;
+    color: $on-surface-variant;
     margin-top: 2rem;
     grid-column: 1 / -1;
   }
 
-  /* =====================================
-          ★ Skeleton Loading Cards ★
-  ====================================== */
-
+  // ── Skeleton ───────────────────────────────────────────────────────────────
   .skeleton-card {
     height: 360px;
-    border-radius: 20px;
+    border-radius: $radius-lg;
     background: linear-gradient(
       110deg,
-      rgba(255, 255, 255, 0.08) 0%,
-      rgba(255, 255, 255, 0.18) 30%,
-      rgba(255, 255, 255, 0.08) 60%
+      rgba($on-surface, 0.04) 0%,
+      rgba($on-surface, 0.10) 30%,
+      rgba($on-surface, 0.04) 60%
     );
     background-size: 200% 100%;
     animation: skeletonLoading 1.4s ease infinite;
   }
 
-  @keyframes skeletonLoading {
-    from {
-      background-position: -200% 0;
-    }
-    to {
-      background-position: 200% 0;
-    }
-  }
-
-  /* =====================================
-             ★ Cards Destacadas ★
-  ====================================== */
-
+  // ── Featured Card ──────────────────────────────────────────────────────────
   .featured-card {
     position: relative;
-    background: rgba(255, 255, 255, 0.06);
-    border: 1px solid rgba(255, 215, 0, 0.18);
-    border-radius: 20px;
+    @include card-product;
     overflow: hidden;
-    backdrop-filter: blur(4px);
 
-    transition: 
-      transform 0.35s ease,
-      box-shadow 0.35s ease,
-      border-color 0.35s ease;
-
-    /* Spotlight */
     &::before {
       content: "";
       position: absolute;
       inset: 0;
       background: radial-gradient(
         circle at var(--x, 50%) var(--y, 50%),
-        rgba(255, 255, 255, 0.20),
+        rgba($primary, 0.07),
         transparent 60%
       );
       opacity: 0;
-      transition: opacity 0.3s ease;
+      transition: opacity $duration-base $ease;
       pointer-events: none;
     }
 
-    &:hover::before {
-      opacity: 0.35;
-    }
+    &:hover::before { opacity: 1; }
 
-    &:hover {
-      box-shadow: 0 20px 45px rgba(255, 215, 0, 0.27);
-      border-color: rgba(255, 215, 0, 0.35);
-    }
-
-    /* ==== Imagen ==== */
     .featured-img-wrapper {
       width: 100%;
       height: 260px;
@@ -128,74 +106,47 @@
         width: 100%;
         height: 100%;
         object-fit: cover;
-        transition: transform 0.55s ease;
+        transition: transform $duration-crawl $ease;
       }
     }
 
-    &:hover .featured-img {
-      transform: scale(1.08);
-    }
+    &:hover .featured-img { transform: scale(1.08); }
 
-    /* ==== Info ===== */
     .featured-info {
       padding: 1.8rem 1.5rem 2.2rem;
 
       .featured-name {
-        font-size: 1.25rem;
+        font-family: $font-headline;
+        font-size: $title-lg;
         font-weight: 600;
+        color: $on-surface;
         margin-bottom: 0.4rem;
-        letter-spacing: 0.3px;
+        letter-spacing: 0.02em;
       }
 
       .price {
         display: block;
-        color: #ffd700;
-        font-size: 1.15rem;
-        font-weight: 600;
+        color: $primary;
+        font-size: $title-md;
+        font-weight: 700;
         margin-bottom: 1.4rem;
       }
 
       .featured-btn {
         width: 100%;
-        padding: 0.9rem;
-        border-radius: 15px;
-        font-size: 1rem;
-        letter-spacing: 0.4px;
-        background: #ffd700;
-        color: #000;
-        font-weight: 600;
-        cursor: pointer;
-        transition: background 0.3s ease;
-
-        &:hover {
-          background: #ffea73;
-        }
+        @include btn-primary;
+        border-radius: $radius-sm;
+        font-size: $label-md;
       }
     }
   }
-
-  /* ========= Animación Fade Up ========= */
-
-  @keyframes fadeUp {
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
 }
-
-/* ===== RESPONSIVE ===== */
 
 @media (max-width: 600px) {
   .featured-products {
     padding: 4rem 1.5rem;
 
-    .featured-header .featured-title {
-      font-size: 2.3rem;
-    }
-
-    .featured-grid {
-      gap: 1.6rem;
-    }
+    .featured-header .featured-title { font-size: $headline-md; }
+    .featured-grid { gap: 1.6rem; }
   }
 }

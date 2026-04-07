@@ -1,0 +1,111 @@
+// ============================================================
+// NOIR ATELIER — _mixins.scss
+// ============================================================
+
+@use "variables" as v;
+
+// ── Glassmorphism (navbars, modals, dropdowns) ───────────────
+@mixin glass-surface($opacity: 0.9) {
+  background: rgba(v.$surface, $opacity);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+// ── Signature Gold Gradient (CTAs, hero backgrounds) ─────────
+@mixin gold-gradient($angle: 135deg) {
+  background: linear-gradient($angle, v.$primary, v.$primary-container);
+}
+
+// ── Ghost Border (accessibility fallback, 15% opacity) ───────
+@mixin ghost-border($side: null) {
+  $value: 1px solid rgba(v.$outline-variant, 0.15);
+  @if $side {
+    border-#{$side}: $value;
+  } @else {
+    border: $value;
+  }
+}
+
+// ── Ambient Shadow (floating elements) ───────────────────────
+@mixin ambient-shadow {
+  box-shadow: v.$shadow-ambient, v.$shadow-gold-glow;
+}
+
+// ── Cinematic Radial Light (background layer accent) ─────────
+@mixin cinematic-light($position: bottom right) {
+  background-image: radial-gradient(
+    ellipse at $position,
+    rgba(v.$primary, 0.05) 0%,
+    transparent 70%
+  );
+}
+
+// ── Editorial Label (tiny all-caps tracking) ─────────────────
+@mixin label-uppercase($size: v.$label-md) {
+  font-family: v.$font-label;
+  font-size: $size;
+  font-weight: 700;
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+}
+
+// ── Lense Overlay (signature eyewear component) ──────────────
+@mixin lense-overlay {
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  background: rgba(v.$surface-variant, 0.10);
+}
+
+// ── Primary Button (gold CTA) ────────────────────────────────
+@mixin btn-primary {
+  @include gold-gradient;
+  color: v.$on-primary;
+  font-family: v.$font-label;
+  font-weight: 700;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  padding: 0.75rem 2rem;
+  border-radius: v.$radius-sm;
+  transition: box-shadow v.$duration-base v.$ease, transform v.$duration-fast v.$ease;
+  overflow: hidden;
+
+  &:hover {
+    box-shadow: v.$shadow-gold-glow;
+    transform: scale(1.02);
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
+}
+
+// ── Secondary Button (ghost) ─────────────────────────────────
+@mixin btn-secondary {
+  background: transparent;
+  @include ghost-border;
+  color: v.$primary-fixed;
+  font-family: v.$font-label;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  padding: 0.75rem 2rem;
+  border-radius: v.$radius-sm;
+  transition: border-color v.$duration-base v.$ease, color v.$duration-base v.$ease;
+
+  &:hover {
+    border-color: rgba(v.$primary, 0.4);
+    color: v.$primary;
+  }
+}
+
+// ── Product Card ──────────────────────────────────────────────
+@mixin card-product {
+  background: v.$surface-container-low;
+  border-radius: v.$radius-lg;
+  transition: background v.$duration-base v.$ease, box-shadow v.$duration-base v.$ease;
+
+  &:hover {
+    background: v.$surface-container-high;
+    @include ambient-shadow;
+  }
+}

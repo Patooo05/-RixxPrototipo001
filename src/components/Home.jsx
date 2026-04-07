@@ -1,16 +1,63 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import "../styles/Home.scss";
 import bannerVideo from "../assets/img/Bannervideo.mp4";
+// TODO: importar segundo video cuando esté disponible
+// import bannerVideo2 from "../assets/img/Bannervideo2.mp4";
 import underCardImage from "../assets/img/fotomontaje3.jpg";
 import { fadeInOnScroll } from "../js/home";
 
 import FeaturedProducts from "../components/FeaturedProducts.jsx";
 
+import { FaInstagram, FaFacebookF, FaWhatsapp, FaChevronLeft, FaChevronRight } from "react-icons/fa";
 
-// Importar iconos
-import { FaInstagram, FaFacebookF, FaWhatsapp } from "react-icons/fa";
+const SLIDES = [
+  {
+    video: bannerVideo,
+    title: "Nuestra Esencia",
+    subtitle: "Elegancia, precisión y estilo se combinan para tu experiencia visual única.",
+    cta: "Descubrir colección",
+  },
+  {
+    // Reemplazar `bannerVideo` por el segundo video cuando esté disponible
+    video: bannerVideo,
+    title: "Nueva Temporada",
+    subtitle: "Los lentes que definen tu estilo. Diseño atemporal para cada momento.",
+    cta: "Ver Colección",
+  },
+];
+
+const INTERVAL = 7000;
 
 const Home = () => {
+  const [activeSlide, setActiveSlide] = useState(0);
+  const [prevSlide, setPrevSlide] = useState(null);
+  const timerRef = useRef(null);
+
+  const goTo = useCallback((index) => {
+    setPrevSlide(activeSlide);
+    setActiveSlide(index);
+    clearInterval(timerRef.current);
+    timerRef.current = setInterval(() => {
+      setActiveSlide((s) => {
+        setPrevSlide(s);
+        return (s + 1) % SLIDES.length;
+      });
+    }, INTERVAL);
+  }, [activeSlide]);
+
+  const next = useCallback(() => goTo((activeSlide + 1) % SLIDES.length), [goTo, activeSlide]);
+  const prev = useCallback(() => goTo((activeSlide - 1 + SLIDES.length) % SLIDES.length), [goTo, activeSlide]);
+
+  useEffect(() => {
+    timerRef.current = setInterval(() => {
+      setActiveSlide((s) => {
+        setPrevSlide(s);
+        return (s + 1) % SLIDES.length;
+      });
+    }, INTERVAL);
+    return () => clearInterval(timerRef.current);
+  }, []);
+
   // Estado para reseñas dinámicas
   const [reviews, setReviews] = useState([
     "Excelente calidad y atención ⭐⭐⭐⭐⭐",
@@ -23,13 +70,10 @@ const Home = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-
     if (newReview.trim().length < 5) return;
-
     setReviews([newReview, ...reviews]);
     setNewReview("");
     setSent(true);
-
     setTimeout(() => setSent(false), 1500);
   };
 
@@ -53,26 +97,58 @@ const Home = () => {
         </a>
       </div>
 
-      {/* ——— BANNER PRINCIPAL ——— */}
-      <section className="banner banner--home fade-in-on-scroll">
-        <video className="banner-video" autoPlay loop muted playsInline>
-          <source src={bannerVideo} type="video/mp4" />
-        </video>
+      {/* ——— VIDEO CAROUSEL BANNER ——— */}
+      <section className="banner banner--carousel">
 
-        <div className="banner-overlay"></div>
-
-        <div className="banner-text fade-in-on-scroll">
-          <div className="presentation-card presentation-card--over-banner">
-            <h2 className="presentation-card__title">Nuestra Esencia</h2>
-            <p className="presentation-card__text">
-              Elegancia, precisión y estilo se combinan para tu experiencia visual única.
-            </p>
+        {/* ——— Capas de video (crossfade) ——— */}
+        {SLIDES.map((slide, i) => (
+          <div
+            key={i}
+            className={`banner__slide ${i === activeSlide ? "banner__slide--active" : ""}`}
+          >
+            <video autoPlay loop muted playsInline>
+              <source src={slide.video} type="video/mp4" />
+            </video>
           </div>
+        ))}
+
+        {/* ——— Overlay oscuro ——— */}
+        <div className="banner-overlay" />
+
+        {/* ——— Contenido del slide activo ——— */}
+        {SLIDES.map((slide, i) => (
+          <div
+            key={i}
+            className={`banner__content ${i === activeSlide ? "banner__content--active" : ""}`}
+          >
+            <div className="presentation-card">
+              <h2 className="presentation-card__title">{slide.title}</h2>
+              <p className="presentation-card__text">{slide.subtitle}</p>
+            </div>
+            <button className="primary-btn banner__cta">{slide.cta}</button>
+          </div>
+        ))}
+
+        {/* ——— Flechas de navegación ——— */}
+        <button className="banner__arrow banner__arrow--prev" onClick={prev} aria-label="Anterior">
+          <FaChevronLeft />
+        </button>
+        <button className="banner__arrow banner__arrow--next" onClick={next} aria-label="Siguiente">
+          <FaChevronRight />
+        </button>
+
+        {/* ——— Indicadores de puntos ——— */}
+        <div className="banner__dots">
+          {SLIDES.map((_, i) => (
+            <button
+              key={i}
+              className={`banner__dot ${i === activeSlide ? "banner__dot--active" : ""}`}
+              onClick={() => goTo(i)}
+              aria-label={`Slide ${i + 1}`}
+            />
+          ))}
         </div>
 
-        <div className="banner-button fade-in-on-scroll">
-          <button className="primary-btn">Descubrir colección</button>
-        </div>
       </section>
 
       {/* ——— FRASE CENTRAL ——— */}

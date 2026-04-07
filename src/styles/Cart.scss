@@ -1,26 +1,22 @@
-$color-gold: #d4af37;
-$color-black: #000;
-$color-white: #fff;
-
-
+@use "variables" as *;
+@use "mixins" as *;
 
 .cart-container {
   position: relative;
-  
 
   .cart-button {
     background: none;
     border: none;
     cursor: pointer;
     position: relative;
-    color: $color-gold;
+    color: $primary;
     display: flex;
     align-items: center;
-    transition: transform 0.2s ease;
+    transition: transform $duration-fast $ease, color $duration-fast $ease;
 
     &:hover {
       transform: scale(1.1);
-      color: $color-white;
+      color: $on-surface;
     }
 
     .cart-icon {
@@ -32,43 +28,45 @@ $color-white: #fff;
       position: absolute;
       top: -5px;
       right: -8px;
-      background-color: $color-gold;
-      color: $color-black;
-      border-radius: 50%;
+      background-color: $primary;
+      color: $on-primary;
+      border-radius: $radius-full;
       padding: 0 6px;
-      font-size: 0.8rem;
+      font-size: $label-sm;
       font-weight: bold;
+      font-family: $font-body;
     }
   }
 
   .cart-dropdown {
     position: absolute;
     right: 0;
-
-    /* 🔥 Aquí está aplicado: baja el carrito debajo del navbar */
     top: calc(110% + 14px);
-
     width: 300px;
     max-height: 400px;
-    background-color: $color-black;
-    border: 2px solid $color-gold;
+    @include glass-surface(0.95);
+    background-color: $surface-container;
+    @include ghost-border;
+    border-radius: $radius-lg;
     padding: 1rem;
     z-index: 100;
     display: flex;
     flex-direction: column;
     gap: 1rem;
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.5);
+    @include ambient-shadow;
 
     .empty {
-      color: $color-gold;
+      color: $on-surface-variant;
       text-align: center;
+      font-size: $body-lg;
+      padding: 1rem 0;
     }
 
     .cart-items {
       list-style: none;
       display: flex;
       flex-direction: column;
-      gap: 0.8rem;
+      gap: 1.5rem; // blackspace rule — no divider lines
 
       .cart-item {
         display: flex;
@@ -79,20 +77,23 @@ $color-white: #fff;
           width: 50px;
           height: 50px;
           object-fit: cover;
+          border-radius: $radius-sm;
         }
 
         .item-info {
           display: flex;
           flex-direction: column;
-          color: $color-gold;
+          color: $on-surface;
 
           p {
             margin: 0;
-            font-weight: 500;
+            font-weight: 600;
+            font-size: $body-md;
           }
 
           span {
-            font-size: 0.9rem;
+            font-size: $body-sm;
+            color: $primary;
           }
         }
       }
@@ -101,19 +102,13 @@ $color-white: #fff;
     .cart-footer {
       display: flex;
       justify-content: center;
+      padding-top: 0.5rem;
 
       .checkout-btn {
-        background-color: $color-gold;
-        border: none;
-        padding: 0.5rem 1rem;
-        cursor: pointer;
-        font-weight: bold;
-        transition: background 0.2s ease;
-
-        &:hover {
-          background-color: $color-white;
-          color: $color-black;
-        }
+        @include btn-primary;
+        width: 100%;
+        font-size: $label-md;
+        border-radius: $radius-sm;
       }
     }
   }

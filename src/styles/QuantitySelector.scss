@@ -1,25 +1,33 @@
+@use "variables" as *;
+
 .quantity-selector {
   display: flex;
   align-items: center;
   gap: 0.5rem;
 
   button {
-    background: #d4af37;
+    background: $primary;
     border: none;
-    color: #000;
-    width: 30px;
-    height: 30px;
+    color: $on-primary;
+    width: 28px;
+    height: 28px;
     font-weight: bold;
     cursor: pointer;
-    border-radius: 3px;
-    transition: transform 0.2s;
+    border-radius: $radius-sm;
+    font-family: $font-body;
+    transition: transform $duration-fast $ease, box-shadow $duration-fast $ease;
+
     &:hover {
       transform: scale(1.1);
+      box-shadow: 0 0 8px rgba($primary, 0.3);
     }
   }
 
   span {
-    min-width: 20px;
+    min-width: 24px;
     text-align: center;
+    color: $on-surface;
+    font-family: $font-body;
+    font-weight: 600;
   }
 }
