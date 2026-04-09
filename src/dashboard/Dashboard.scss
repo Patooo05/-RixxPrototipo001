@@ -1,0 +1,526 @@
+@use "../styles/variables" as *;
+
+// ── CEO Dashboard wrapper ─────────────────────────────────────────
+.ceo-dashboard {
+  min-height: 100vh;
+  background: $background;
+  padding: 2rem 2.5rem 4rem;
+  color: $on-surface;
+  font-family: $font-body;
+
+  @media (max-width: 768px) {
+    padding: 1.5rem 1rem 3rem;
+  }
+}
+
+// ── Header ────────────────────────────────────────────────────────
+.ceo-dashboard__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+  padding-bottom: 2rem;
+  border-bottom: 1px solid $outline-variant;
+
+  @media (max-width: 640px) {
+    flex-direction: column;
+  }
+}
+
+.ceo-dashboard__eyebrow {
+  font-size: $label-md;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: $primary;
+  margin-bottom: 0.5rem;
+}
+
+.ceo-dashboard__title {
+  font-family: $font-headline;
+  font-size: $headline-lg;
+  font-weight: 300;
+  color: $on-surface;
+  margin: 0 0 0.25rem;
+}
+
+.ceo-dashboard__subtitle {
+  font-size: $body-sm;
+  color: $on-surface-variant;
+}
+
+.ceo-dashboard__stale-badge {
+  display: inline-block;
+  margin-top: 0.5rem;
+  font-size: $label-sm;
+  font-weight: 600;
+  color: #b8860b;
+  background: rgba(184, 134, 11, 0.12);
+  border: 1px solid rgba(184, 134, 11, 0.3);
+  border-radius: 20px;
+  padding: 3px 10px;
+  letter-spacing: 0.02em;
+}
+
+// ── CTA Button ────────────────────────────────────────────────────
+.ceo-dashboard__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: $primary;
+  color: $on-primary;
+  border: none;
+  border-radius: $radius-md;
+  font-family: $font-label;
+  font-size: $label-lg;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: opacity $duration-fast $ease, transform $duration-fast $ease;
+  white-space: nowrap;
+  flex-shrink: 0;
+
+  &:hover:not(:disabled) {
+    opacity: 0.9;
+    transform: translateY(-1px);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  &--loading {
+    background: $surface-container-high;
+    color: $on-surface-variant;
+  }
+}
+
+.ceo-dashboard__spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+// ── KPI Strip ─────────────────────────────────────────────────────
+.ceo-dashboard__strip {
+  display: flex;
+  gap: 0;
+  background: $surface-container;
+  border: 1px solid $outline-variant;
+  border-radius: $radius-lg;
+  overflow: hidden;
+  margin-bottom: 2rem;
+
+  @media (max-width: 768px) {
+    flex-wrap: wrap;
+  }
+}
+
+.ceo-kpi {
+  flex: 1;
+  padding: 1.25rem 1.5rem;
+  border-right: 1px solid $outline-variant;
+  min-width: 120px;
+
+  &:last-child {
+    border-right: none;
+  }
+
+  @media (max-width: 768px) {
+    flex: 1 1 calc(50% - 1px);
+    &:nth-child(2n) { border-right: none; }
+    border-bottom: 1px solid $outline-variant;
+  }
+}
+
+.ceo-kpi__label {
+  display: block;
+  font-size: $label-sm;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: $on-surface-variant;
+  margin-bottom: 0.4rem;
+}
+
+.ceo-kpi__value {
+  display: block;
+  font-family: $font-headline;
+  font-size: $headline-sm;
+  font-weight: 500;
+  color: $on-surface;
+
+  &--muted  { color: $on-surface-variant; }
+  &--gold   { color: $primary; }
+  &--green  { color: $success; }
+  &--yellow { color: $primary; }
+  &--red    { color: $error; }
+}
+
+// ── Error state ───────────────────────────────────────────────────
+.ceo-dashboard__error {
+  display: flex;
+  gap: 1rem;
+  padding: 1.25rem 1.5rem;
+  background: rgba($error-container, 0.2);
+  border: 1px solid $error-container;
+  border-radius: $radius-lg;
+  margin-bottom: 2rem;
+  color: $error;
+
+  strong { display: block; margin-bottom: 0.25rem; }
+  p { font-size: $body-sm; color: $on-error-container; margin: 0; }
+}
+
+.ceo-dashboard__error-icon {
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+// ── Empty state ───────────────────────────────────────────────────
+.ceo-dashboard__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 5rem 2rem;
+  gap: 1rem;
+
+  h2 {
+    font-family: $font-headline;
+    font-size: $headline-sm;
+    font-weight: 300;
+    color: $on-surface;
+  }
+
+  p {
+    font-size: $body-md;
+    color: $on-surface-variant;
+    max-width: 400px;
+    line-height: 1.6;
+  }
+
+  code {
+    font-family: monospace;
+    font-size: $body-sm;
+    background: $surface-container;
+    padding: 0.2em 0.5em;
+    border-radius: $radius-sm;
+    color: $primary;
+  }
+}
+
+.ceo-dashboard__empty-icon {
+  font-size: 3rem;
+  color: $primary;
+  opacity: 0.3;
+  margin-bottom: 0.5rem;
+}
+
+.ceo-dashboard__empty-note {
+  font-size: $body-sm !important;
+  color: $on-surface-variant !important;
+}
+
+// ── Loading state ─────────────────────────────────────────────────
+.ceo-dashboard__loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 5rem 2rem;
+  gap: 1rem;
+  color: $on-surface-variant;
+
+  p { margin: 0; }
+}
+
+.ceo-dashboard__loading-ring {
+  width: 48px;
+  height: 48px;
+  border: 3px solid $outline-variant;
+  border-top-color: $primary;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 0.5rem;
+}
+
+.ceo-dashboard__loading-sub {
+  font-size: $body-sm;
+  color: rgba($on-surface-variant, 0.6);
+}
+
+// ── Results layout ────────────────────────────────────────────────
+.ceo-dashboard__results {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.ceo-dashboard__row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+
+  @media (max-width: 900px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+// ── Panel base ────────────────────────────────────────────────────
+.dash-panel {
+  background: $surface-container;
+  border: 1px solid $outline-variant;
+  border-radius: $radius-lg;
+  padding: 1.75rem;
+
+  &--finance    { border-top: 2px solid $primary; }
+  &--operations { border-top: 2px solid $tertiary; }
+  &--growth     { border-top: 2px solid $success; }
+  &--decisions  {
+    border-top: 2px solid $on-surface-variant;
+    .dash-decisions {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 1rem;
+    }
+  }
+}
+
+.dash-panel__title {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-family: $font-headline;
+  font-size: $title-lg;
+  font-weight: 400;
+  color: $on-surface;
+  margin: 0 0 1.5rem;
+  letter-spacing: 0.05em;
+}
+
+.dash-panel__icon {
+  color: $primary;
+  font-size: 0.85em;
+}
+
+// ── Finance KPIs ──────────────────────────────────────────────────
+.dash-kpis {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.dash-kpi {
+  background: $surface-container-high;
+  border-radius: $radius-md;
+  padding: 1rem 1.25rem;
+}
+
+.dash-kpi__label {
+  display: block;
+  font-size: $label-sm;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: $on-surface-variant;
+  margin-bottom: 0.35rem;
+}
+
+.dash-kpi__value {
+  font-family: $font-headline;
+  font-size: $headline-sm;
+  font-weight: 500;
+  color: $on-surface;
+
+  &--gold   { color: $primary; }
+  &--muted  { color: $on-surface-variant; }
+  &--green  { color: $success; }
+  &--yellow { color: $primary; }
+  &--red    { color: $error; }
+}
+
+// ── Insight block ─────────────────────────────────────────────────
+.dash-insight {
+  background: rgba($primary, 0.06);
+  border-left: 3px solid $primary;
+  border-radius: $radius-sm;
+  padding: 1rem 1.25rem;
+}
+
+.dash-insight__label {
+  font-size: $label-sm;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: $primary;
+  margin-bottom: 0.5rem;
+}
+
+.dash-insight__text {
+  font-size: $body-md;
+  color: $on-surface;
+  line-height: 1.65;
+  margin: 0;
+}
+
+// ── Operations ────────────────────────────────────────────────────
+.dash-section {
+  margin-bottom: 1.25rem;
+  &:last-child { margin-bottom: 0; }
+}
+
+.dash-section__label {
+  font-size: $label-sm;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: $on-surface-variant;
+  margin-bottom: 0.75rem;
+}
+
+.dash-stock-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.dash-stock-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 1rem;
+  border-radius: $radius-md;
+  font-size: $body-sm;
+
+  &--critical {
+    background: rgba($error-container, 0.15);
+    border: 1px solid rgba($error, 0.3);
+    .dash-stock-item__badge { background: $error; color: $on-error; }
+  }
+
+  &--warning {
+    background: rgba($primary, 0.06);
+    border: 1px solid rgba($primary, 0.2);
+    .dash-stock-item__badge { background: $primary; color: $on-primary; }
+  }
+}
+
+.dash-stock-item__badge {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  padding: 0.2em 0.55em;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.dash-stock-item__name {
+  flex: 1;
+  color: $on-surface;
+}
+
+.dash-stock-item__qty {
+  color: $on-surface-variant;
+  font-variant-numeric: tabular-nums;
+}
+
+.dash-alerts {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.dash-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  font-size: $body-sm;
+  color: $on-surface-variant;
+  line-height: 1.5;
+}
+
+.dash-alert__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: $tertiary;
+  flex-shrink: 0;
+  margin-top: 0.45em;
+}
+
+.dash-empty {
+  color: $on-surface-variant;
+  font-size: $body-sm;
+  text-align: center;
+  padding: 1.5rem 0;
+}
+
+// ── Growth ────────────────────────────────────────────────────────
+.dash-growth-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.dash-growth-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  font-size: $body-md;
+  color: $on-surface;
+  line-height: 1.6;
+}
+
+.dash-growth-item__num {
+  font-family: monospace;
+  font-size: $label-md;
+  color: $success;
+  flex-shrink: 0;
+  margin-top: 0.15em;
+}
+
+// ── Decisions ────────────────────────────────────────────────────
+.dash-decision {
+  background: $surface-container-high;
+  border-radius: $radius-md;
+  padding: 1rem 1.25rem;
+  border-left: 3px solid $outline-variant;
+
+  &--finance    { border-left-color: $primary; }
+  &--operations { border-left-color: $tertiary; }
+  &--growth     { border-left-color: $success; }
+  &--risk       { border-left-color: $error; }
+}
+
+.dash-decision__type {
+  display: block;
+  font-size: $label-sm;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: $on-surface-variant;
+  margin-bottom: 0.4rem;
+}
+
+.dash-decision__msg {
+  font-size: $body-md;
+  color: $on-surface;
+  line-height: 1.6;
+  margin: 0;
+}

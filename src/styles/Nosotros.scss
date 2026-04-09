@@ -1,0 +1,236 @@
+@use 'variables' as v;
+
+// ============================================================
+// NOSOTROS PAGE — Noir Atelier
+// ============================================================
+
+.nosotros-page {
+  background-color: v.$background;
+  color: v.$on-surface;
+  font-family: v.$font-body;
+  font-weight: 300;
+  padding-top: calc(#{v.$navbar-height} + v.$spacing-3xl);
+  min-height: 100vh;
+
+  // ── Hero ────────────────────────────────────────────────
+  &__hero {
+    padding: v.$section-padding-y-hero 0 5rem;
+    text-align: center;
+  }
+
+  &__hero-inner {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 0 v.$spacing-xl;
+  }
+
+  &__eyebrow {
+    font-family: v.$font-label;
+    font-size: v.$label-lg;
+    letter-spacing: 0.45em;
+    text-transform: uppercase;
+    color: v.$primary;
+    margin-bottom: 1.25rem;
+    font-weight: 300;
+  }
+
+  &__hero-title {
+    font-family: v.$font-headline;
+    font-size: clamp(2.5rem, 6vw, v.$display-lg);
+    font-weight: 300;
+    font-style: italic;
+    color: v.$on-surface;
+    line-height: 1.1;
+    margin: 0 0 2.5rem;
+    letter-spacing: 0.02em;
+  }
+
+  &__hero-line {
+    width: 80px;
+    height: 1px;
+    background: v.$primary;
+    margin: 0 auto;
+    opacity: 0.75;
+  }
+
+  // ── Sección titles ──────────────────────────────────────
+  &__section-title {
+    font-family: v.$font-headline;
+    font-size: v.$display-sm;
+    font-weight: 300;
+    font-style: italic;
+    color: v.$on-surface;
+    margin: 0 0 2.5rem;
+    letter-spacing: 0.02em;
+
+    &--centered {
+      text-align: center;
+    }
+  }
+
+  // ── Historia ────────────────────────────────────────────
+  &__historia {
+    padding: 5rem 0;
+  }
+
+  &__historia-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 v.$spacing-xl;
+    display: grid;
+    grid-template-columns: 60% 40%;
+    gap: v.$spacing-3xl;
+    align-items: center;
+  }
+
+  &__historia-text {
+    // intentionally left-weighted
+  }
+
+  &__historia-body {
+    font-size: v.$body-lg;
+    line-height: 1.85;
+    color: v.$on-surface-variant;
+    font-weight: 300;
+    max-width: 560px;
+  }
+
+  &__historia-space {
+    // elegant negative space — intentionally empty
+  }
+
+  // ── Valores ─────────────────────────────────────────────
+  &__valores {
+    padding: 5rem 0;
+  }
+
+  &__valores-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 v.$spacing-xl;
+  }
+
+  &__valores-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0 v.$spacing-2xl;
+
+    @media (max-width: 768px) {
+      grid-template-columns: 1fr;
+      gap: 0;
+    }
+  }
+
+  &__valor-card {
+    border-top: 1px solid rgba(v.$primary, 0.2);
+    padding: v.$spacing-xl 0;
+  }
+
+  &__valor-titulo {
+    font-family: v.$font-label;
+    font-size: v.$label-lg;
+    letter-spacing: 0.35em;
+    text-transform: uppercase;
+    color: v.$primary;
+    margin: 0 0 1rem;
+    font-weight: 300;
+  }
+
+  &__valor-desc {
+    font-size: v.$body-md;
+    line-height: 1.75;
+    color: v.$on-surface-variant;
+    font-weight: 300;
+    margin: 0;
+  }
+
+  // ── Ubicaciones ─────────────────────────────────────────
+  &__ubicaciones {
+    padding: 5rem 0;
+  }
+
+  &__ubicaciones-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 v.$spacing-xl;
+  }
+
+  &__ubicaciones-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: v.$gap-grid;
+
+    @media (max-width: 640px) {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  &__ubicacion-card {
+    border: 1px solid rgba(v.$primary, 0.15);
+    padding: 2.5rem;
+    background-color: v.$surface-variant;
+    transition: border-color v.$duration-base v.$ease;
+
+    &:hover {
+      border-color: rgba(v.$primary, 0.4);
+    }
+  }
+
+  &__ubicacion-pais {
+    font-family: v.$font-label;
+    font-size: v.$label-md;
+    letter-spacing: 0.35em;
+    text-transform: uppercase;
+    color: v.$primary;
+    margin: 0 0 0.5rem;
+    font-weight: 300;
+    text-align: center;
+  }
+
+  &__ubicacion-ciudad {
+    font-family: v.$font-headline;
+    font-size: v.$headline-lg;
+    font-weight: 300;
+    font-style: italic;
+    color: v.$on-surface;
+    margin: 0 0 1.5rem;
+    text-align: center;
+  }
+
+  &__ubicacion-dir {
+    font-size: v.$body-md;
+    color: v.$on-surface-variant;
+    margin: 0 0 0.5rem;
+    font-weight: 300;
+    text-align: left;
+  }
+
+  &__ubicacion-horario {
+    font-size: v.$body-sm;
+    color: v.$on-surface-variant;
+    margin: 0;
+    font-weight: 300;
+    opacity: 0.75;
+    text-align: left;
+  }
+
+  // ── CTA ─────────────────────────────────────────────────
+  &__cta {
+    padding: 5rem v.$spacing-xl 7rem;
+    text-align: center;
+  }
+}
+
+// ── Fade-in animation ──────────────────────────────────────
+.nosotros-page {
+  .fade-in-on-scroll {
+    opacity: 0;
+    transform: translateY(28px);
+    transition: opacity 0.65s v.$ease, transform 0.65s v.$ease;
+
+    &.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}

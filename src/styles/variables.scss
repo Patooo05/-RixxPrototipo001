@@ -63,6 +63,11 @@ $error-container:    #93000a;
 $on-error:           #690005;
 $on-error-container: #ffdad6;
 
+// ── Gold Hierarchy ───────────────────────────────────────────
+$gold-light: #E8C96A;
+$gold-dark:  #B8962E;
+$gold-muted: #99907c;
+
 // ── Legacy Aliases (backward compatibility) ──────────────────
 $gold:        $primary;
 $text-color:  $on-surface;
@@ -75,9 +80,9 @@ $gold-glow:   rgba($primary, 0.22);
 $success:     #a5ff6c;  // kept as-is, not in Noir Atelier spec
 
 // ── Typography ───────────────────────────────────────────────
-$font-headline: 'Noto Serif', Georgia, serif;
-$font-body:     'Manrope', system-ui, sans-serif;
-$font-label:    'Manrope', system-ui, sans-serif;
+$font-headline: 'Cormorant Garamond', Georgia, serif;
+$font-body:     'DM Sans', system-ui, sans-serif;
+$font-label:    'DM Sans', system-ui, sans-serif;
 
 $display-lg:   3.5rem;    // 56px — hero titles
 $display-md:   2.75rem;   // 44px
@@ -114,3 +119,24 @@ $duration-fast: 150ms;
 $duration-base: 300ms;
 $duration-slow: 500ms;
 $duration-crawl: 1000ms;
+
+// ── Spacing Scale ────────────────────────────────────────────
+$spacing-xs:   0.25rem;   //  4px
+$spacing-sm:   0.5rem;    //  8px
+$spacing-md:   1rem;      // 16px
+$spacing-lg:   1.5rem;    // 24px
+$spacing-xl:   2rem;      // 32px
+$spacing-2xl:  3rem;      // 48px
+$spacing-3xl:  4rem;      // 64px
+
+// ── Layout ───────────────────────────────────────────────────
+$section-padding-y:         3rem;     // sección estándar
+$section-padding-y-hero:    6rem;     // hero, featured (generoso)
+$section-padding-x-mobile:  1.5rem;   // padding horizontal en mobile
+$gap-grid:                  2rem;     // gap en grids de productos
+$max-width-content:         1280px;   // contenido principal
+$max-width-grid:            1500px;   // grids amplios
+$navbar-height:             80px;     // altura navbar fixed
+
+// ── Border Subtle (alias semántico) ──────────────────────────
+$border-subtle: 1px solid rgba($outline-variant, 0.15);

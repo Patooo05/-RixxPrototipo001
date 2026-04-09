@@ -60,6 +60,8 @@
 @mixin btn-primary {
   @include gold-gradient;
   color: v.$on-primary;
+  border: none;
+  cursor: pointer;
   font-family: v.$font-label;
   font-weight: 700;
   letter-spacing: 0.3em;

@@ -1,0 +1,61 @@
+@use "../styles/variables" as *;
+
+.social-float {
+  position: fixed;
+  right: 1.25rem;
+  bottom: calc(#{$spacing-xl} + 3rem);
+  z-index: 1200;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+
+  &__link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    background: rgba($surface-container-high, 0.8);
+    border: 1px solid rgba($primary, 0.18);
+    border-radius: 50%;
+    color: rgba($primary, 0.7);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    transition:
+      color $duration-base $ease,
+      border-color $duration-base $ease,
+      background $duration-base $ease,
+      transform $duration-fast $ease;
+
+    svg {
+      width: 0.95rem;
+      height: 0.95rem;
+      display: block;
+    }
+
+    &:hover {
+      color: $primary;
+      border-color: rgba($primary, 0.55);
+      background: rgba($surface-container-highest, 0.95);
+      transform: scale(1.1);
+    }
+  }
+}
+
+@media (max-width: 600px) {
+  .social-float {
+    right: 0.6rem;
+    bottom: 1.25rem;
+    gap: 0.45rem;
+
+    &__link {
+      width: 2rem;
+      height: 2rem;
+
+      svg {
+        width: 0.85rem;
+        height: 0.85rem;
+      }
+    }
+  }
+}

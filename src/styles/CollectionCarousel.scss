@@ -1,0 +1,371 @@
+@use "variables" as *;
+@use "mixins" as *;
+
+// ── SECTION ──────────────────────────────────────────────────────
+.cc {
+  position: relative;
+  background: $background;
+  overflow: hidden;
+  padding: 0;
+  min-height: 580px;
+  display: flex;
+  flex-direction: column;
+}
+
+// ── NÚMERO DECORATIVO DE FONDO ────────────────────────────────────
+.cc__bg-num {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-family: $font-headline;
+  font-size: clamp(14rem, 28vw, 26rem);
+  font-weight: 300;
+  font-style: italic;
+  color: $on-surface;
+  opacity: 0.025;
+  line-height: 1;
+  user-select: none;
+  pointer-events: none;
+  z-index: 0;
+  transition: opacity 0.6s $ease;
+  letter-spacing: -0.05em;
+}
+
+// ── INNER GRID ────────────────────────────────────────────────────
+.cc__inner {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  flex: 1;
+  position: relative;
+  z-index: 1;
+  min-height: 560px;
+}
+
+// ── PANEL IZQUIERDO ───────────────────────────────────────────────
+.cc__text-panel {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 5rem 4rem 4rem 6vw;
+  border-right: 1px solid rgba($primary, 0.08);
+  position: relative;
+
+  // Línea vertical decorativa
+  &::before {
+    content: "";
+    position: absolute;
+    top: 3rem;
+    left: 6vw;
+    width: 1px;
+    height: 48px;
+    background: rgba($primary, 0.4);
+  }
+}
+
+// ── CONTENIDO DE TEXTO ────────────────────────────────────────────
+.cc__text-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding-top: 1.5rem;
+}
+
+// Animaciones fade + slide
+@keyframes ccTextIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes ccTextOut {
+  from { opacity: 1; transform: translateY(0); }
+  to   { opacity: 0; transform: translateY(-12px); }
+}
+
+.cc__text-content--in  { animation: ccTextIn  0.65s $ease forwards; }
+.cc__text-content--out { animation: ccTextOut 0.3s  $ease forwards; }
+
+// ── EYEBROW ───────────────────────────────────────────────────────
+.cc__eyebrow {
+  display: block;
+  font-family: $font-label;
+  font-size: 10px;
+  font-weight: 300;
+  letter-spacing: 0.45em;
+  text-transform: uppercase;
+  color: $primary;
+  margin-bottom: 1.75rem;
+}
+
+// ── TÍTULO ────────────────────────────────────────────────────────
+.cc__title {
+  font-family: $font-headline;
+  font-size: clamp(2.75rem, 5vw, 5.5rem);
+  font-weight: 300;
+  line-height: 1.0;
+  color: $on-surface;
+  margin: 0 0 1.75rem;
+  letter-spacing: -0.01em;
+}
+
+.cc__title-italic {
+  font-style: italic;
+  color: $primary;
+}
+
+// ── SUBTÍTULO ─────────────────────────────────────────────────────
+.cc__sub {
+  font-family: $font-body;
+  font-size: 13px;
+  font-weight: 300;
+  color: $on-surface-variant;
+  line-height: 1.7;
+  letter-spacing: 0.04em;
+  max-width: 360px;
+  margin-bottom: 2.5rem;
+}
+
+// ── CTA ───────────────────────────────────────────────────────────
+.cc__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-family: $font-label;
+  font-size: 10px;
+  font-weight: 400;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  color: $on-surface;
+  background: transparent;
+  border: 1px solid rgba($on-surface, 0.2);
+  padding: 0.85rem 1.5rem;
+  cursor: pointer;
+  transition:
+    color $duration-base $ease,
+    border-color $duration-base $ease,
+    gap $duration-fast $ease;
+
+  svg { transition: transform $duration-fast $ease; opacity: 0.6; }
+
+  &:hover {
+    color: $primary;
+    border-color: rgba($primary, 0.5);
+    gap: 1rem;
+    svg { transform: translateX(4px); opacity: 1; }
+  }
+}
+
+// ── NAVEGACIÓN ────────────────────────────────────────────────────
+.cc__nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 2.5rem;
+  border-top: 1px solid rgba($on-surface, 0.06);
+}
+
+.cc__counter {
+  font-family: $font-label;
+  font-size: 11px;
+  letter-spacing: 0.25em;
+  color: $on-surface-variant;
+  opacity: 0.5;
+
+  strong {
+    color: $primary;
+    font-weight: 400;
+    opacity: 1;
+    font-size: 14px;
+  }
+}
+
+.cc__nav-btns {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.cc__nav-btn {
+  width: 44px;
+  height: 44px;
+  border: 1px solid rgba($on-surface, 0.1);
+  background: transparent;
+  color: rgba($on-surface, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition:
+    border-color $duration-fast $ease,
+    color $duration-fast $ease,
+    background $duration-fast $ease;
+
+  &:hover {
+    border-color: rgba($primary, 0.45);
+    color: $primary;
+    background: rgba($primary, 0.06);
+  }
+}
+
+// ── PANEL DERECHO ─────────────────────────────────────────────────
+.cc__visual-panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 4rem 3rem;
+  overflow: hidden;
+  background: $surface-container-lowest;
+}
+
+// ── CONTENIDO VISUAL ──────────────────────────────────────────────
+@keyframes ccVisualIn {
+  from { opacity: 0; transform: scale(0.94); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes ccVisualOut {
+  from { opacity: 1; transform: scale(1); }
+  to   { opacity: 0; transform: scale(1.04); }
+}
+
+.cc__visual-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  width: 100%;
+  position: relative;
+}
+
+.cc__visual-content--in  { animation: ccVisualIn  0.65s $ease forwards; }
+.cc__visual-content--out { animation: ccVisualOut 0.3s  $ease forwards; }
+
+// ── GLOW ─────────────────────────────────────────────────────────
+.cc__glow {
+  position: absolute;
+  inset: -20%;
+  pointer-events: none;
+  z-index: 0;
+  transition: background 0.8s $ease;
+}
+
+// ── SVG LENTE ─────────────────────────────────────────────────────
+.cc__svg-wrap {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 480px;
+  animation: ccFloat 5s ease-in-out infinite;
+
+  svg {
+    width: 100%;
+    height: auto;
+    filter: drop-shadow(0 0 30px rgba(212, 175, 55, 0.15));
+  }
+}
+
+@keyframes ccFloat {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-12px); }
+}
+
+// ── LÍNEAS DE GRILLA DECORATIVAS ──────────────────────────────────
+.cc__grid-lines {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  display: flex;
+  justify-content: space-around;
+
+  span {
+    width: 1px;
+    height: 100%;
+    background: rgba($on-surface, 0.03);
+  }
+}
+
+// ── DOTS ──────────────────────────────────────────────────────────
+.cc__dots {
+  display: flex;
+  gap: 8px;
+  margin-top: 2.5rem;
+  position: relative;
+  z-index: 2;
+}
+
+.cc__dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 0;
+  background: rgba($on-surface, 0.18);
+  border: none;
+  cursor: pointer;
+  transition: width $duration-base $ease, background $duration-base $ease;
+  padding: 0;
+
+  &--active {
+    width: 32px;
+  }
+}
+
+// ── BARRA DE PROGRESO ─────────────────────────────────────────────
+.cc__progress-bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: rgba($on-surface, 0.06);
+  z-index: 10;
+}
+
+@keyframes ccProgress {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+
+.cc__progress-fill {
+  height: 100%;
+  transform-origin: left center;
+  animation: ccProgress var(--duration, 6000ms) linear forwards;
+}
+
+// ── RESPONSIVE ────────────────────────────────────────────────────
+@media (max-width: 900px) {
+  .cc__inner {
+    grid-template-columns: 1fr;
+    min-height: auto;
+  }
+
+  .cc__text-panel {
+    padding: 4rem 2rem 2.5rem;
+    border-right: none;
+    border-bottom: 1px solid rgba($primary, 0.08);
+
+    &::before { left: 2rem; }
+  }
+
+  .cc__visual-panel {
+    padding: 3rem 2rem 2.5rem;
+    min-height: 280px;
+  }
+
+  .cc__svg-wrap { max-width: 340px; }
+}
+
+@media (max-width: 480px) {
+  .cc__bg-num { font-size: 45vw; }
+
+  .cc__title { font-size: clamp(2.25rem, 9vw, 3.5rem); }
+
+  .cc__text-panel { padding: 3rem 1.5rem 2rem; }
+
+  .cc__visual-panel { padding: 2rem 1.5rem 2rem; min-height: 220px; }
+
+  .cc__svg-wrap { max-width: 280px; }
+
+  .cc__nav { flex-wrap: wrap; gap: 1rem; }
+}

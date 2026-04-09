@@ -1,0 +1,235 @@
+@use 'variables' as v;
+
+// ============================================================
+// CONTACTO PAGE — Noir Atelier
+// ============================================================
+
+.contacto-page {
+  background-color: v.$background;
+  color: v.$on-surface;
+  font-family: v.$font-body;
+  font-weight: 300;
+  padding-top: calc(#{v.$navbar-height} + v.$spacing-3xl);
+  min-height: 100vh;
+
+  // ── Hero ────────────────────────────────────────────────
+  &__hero {
+    padding: v.$section-padding-y-hero 0 5rem;
+    text-align: center;
+  }
+
+  &__hero-inner {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 0 v.$spacing-xl;
+  }
+
+  &__eyebrow {
+    font-family: v.$font-label;
+    font-size: v.$label-lg;
+    letter-spacing: 0.45em;
+    text-transform: uppercase;
+    color: v.$primary;
+    margin-bottom: 1.25rem;
+    font-weight: 300;
+  }
+
+  &__hero-title {
+    font-family: v.$font-headline;
+    font-size: clamp(2.5rem, 6vw, v.$display-lg);
+    font-weight: 300;
+    font-style: italic;
+    color: v.$on-surface;
+    line-height: 1.1;
+    margin: 0 0 2.5rem;
+    letter-spacing: 0.02em;
+  }
+
+  &__hero-line {
+    width: 80px;
+    height: 1px;
+    background: v.$primary;
+    margin: 0 auto;
+    opacity: 0.75;
+  }
+
+  // ── Body ────────────────────────────────────────────────
+  &__body {
+    padding: v.$spacing-3xl 0 7rem;
+  }
+
+  &__body-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 v.$spacing-xl;
+    display: grid;
+    grid-template-columns: 60% 40%;
+    gap: 5rem; // intentional 5-col editorial gap
+    align-items: start;
+
+    @media (max-width: 900px) {
+      grid-template-columns: 1fr;
+      gap: 3rem;
+    }
+  }
+
+  // ── Form ────────────────────────────────────────────────
+  &__form {
+    display: flex;
+    flex-direction: column;
+    gap: v.$spacing-xl;
+  }
+
+  &__field {
+    display: flex;
+    flex-direction: column;
+    gap: v.$spacing-sm;
+  }
+
+  &__label {
+    font-family: v.$font-label;
+    font-size: v.$label-md;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: v.$on-surface-variant;
+    font-weight: 300;
+  }
+
+  &__input {
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid rgba(v.$primary, 0.3);
+    border-radius: 0;
+    color: v.$on-surface;
+    font-family: v.$font-body;
+    font-size: v.$body-lg;
+    font-weight: 300;
+    padding: 0.75rem 0;
+    outline: none;
+    transition: border-bottom-color v.$duration-base v.$ease;
+    width: 100%;
+    appearance: none;
+    -webkit-appearance: none;
+
+    &::placeholder {
+      color: v.$on-surface-variant;
+      opacity: 0.5;
+    }
+
+    &:focus {
+      border-bottom-color: v.$primary;
+      outline: none;
+    }
+
+    // Select overrides
+    &--select {
+      cursor: pointer;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23D4AF37' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 0.25rem center;
+      padding-right: 1.5rem;
+
+      option {
+        background-color: v.$surface-container;
+        color: v.$on-surface;
+      }
+    }
+
+    // Textarea overrides
+    &--textarea {
+      resize: vertical;
+      min-height: 120px;
+      line-height: 1.7;
+    }
+  }
+
+  &__success {
+    font-family: v.$font-label;
+    font-size: 11px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: v.$primary;
+    margin: 0;
+    animation: contacto-fade-in 0.4s v.$ease;
+  }
+
+  &__submit {
+    width: 100%;
+    justify-content: center;
+    margin-top: 0.5rem;
+  }
+
+  // ── Info column ─────────────────────────────────────────
+  &__info-col {
+    display: flex;
+    flex-direction: column;
+    gap: 2.25rem; // intentional fine-tuned info spacing
+    padding-top: 0.5rem;
+  }
+
+  &__info-block {
+    display: flex;
+    gap: v.$spacing-md;
+    align-items: flex-start;
+
+    &--horario {
+      // same layout, clock SVG wrapped below
+    }
+  }
+
+  &__info-icon,
+  &__horario-icon svg {
+    color: v.$primary;
+    flex-shrink: 0;
+    margin-top: 0.1rem;
+    opacity: 0.85;
+  }
+
+  &__info-label {
+    font-family: v.$font-label;
+    font-size: v.$label-md;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: v.$on-surface-variant;
+    margin: 0 0 0.35rem;
+    font-weight: 300;
+  }
+
+  &__info-value {
+    font-size: v.$body-md;
+    color: v.$on-surface;
+    margin: 0 0 0.15rem;
+    font-weight: 300;
+    text-decoration: none;
+    transition: color v.$duration-fast v.$ease;
+
+    &[href]:hover {
+      color: v.$primary;
+    }
+  }
+}
+
+// ── Animations ──────────────────────────────────────────────
+@keyframes contacto-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.contacto-page {
+  .fade-in-on-scroll {
+    opacity: 0;
+    transform: translateY(28px);
+    transition: opacity 0.65s v.$ease, transform 0.65s v.$ease;
+
+    &.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}

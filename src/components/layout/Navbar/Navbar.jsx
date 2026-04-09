@@ -1,166 +1,217 @@
-import React, { useState, useEffect, useContext } from "react";
+import { useState, useEffect, useContext } from "react";
 import "./Navbar.scss";
-import logoIntro from "../../../assets/img/logoIntro.png";
 import logoNavbar from "../../../assets/img/logoNabvar.png";
 
-import { setupNavbarSequence } from "../../../js/Navbar.js";
-
-import cartIcon from "../../../assets/img/carrito.png";
-import adminIcon from "../../../assets/img/Admin.svg";
-import userIcon from "../../../assets/img/User.svg";
-
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { AuthContext } from "../../AuthContext.jsx";
 import { useCart } from "../../CartContext.jsx";
 import LoginModal from "../../LoginModal.jsx";
 import RegisterModal from "../../RegisterModal.jsx";
 
 const Navbar = ({ onCartClick }) => {
-  const [showLogoSolo, setShowLogoSolo] = useState(false);
-  const [showNavbar, setShowNavbar] = useState(false);
-  const [showLoginModal, setShowLoginModal] = useState(false);
-  const [showRegisterModal, setShowRegisterModal] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [scrolled, setScrolled]        = useState(false);
+  const [menuOpen, setMenuOpen]        = useState(false);
+  const [showLoginModal, setShowLogin] = useState(false);
+  const [showRegisterModal, setShowReg]= useState(false);
 
-  const { isLoggedIn, username, isAdmin, logout } = useContext(AuthContext);
-  const { count } = useCart();
+  const { isLoggedIn, isAdmin, logout, username } = useContext(AuthContext);
+  const { count }  = useCart();
+  const navigate   = useNavigate();
+  const location   = useLocation();
 
-  const [welcomeFragments, setWelcomeFragments] = useState([]);
-  const [justLoggedIn, setJustLoggedIn] = useState(false);
-
-  const navigate = useNavigate();
-
-  // Mini barra bienvenida y secuencia navbar
+  // Scroll listener
   useEffect(() => {
-    setWelcomeFragments(
-      isAdmin
-        ? [{ text: "Administrador Online", highlight: "blink-slow" }]
-        : [{ text: "Bienvenido a Rixx: estilo y visión es tuya.", highlight: false }]
-    );
+    const onScroll = () => setScrolled(window.scrollY > 40);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
-    let timerText;
-    if (!isAdmin) {
-      timerText = setTimeout(() => {
-        setWelcomeFragments([
-          { text: "¡Estas de ", highlight: false },
-          { text: "SUERTE", highlight: "blink-slow" },
-          { text: ": 2 de cada 20 clientes obtienen: Envío ", highlight: false },
-          { text: "GRATIS", highlight: "blink-medium" },
-          { text: " estas 24hs + ", highlight: false },
-          { text: "15% de Descuento", highlight: "blink-fast" },
-          { text: "!", highlight: false },
-        ]);
-      }, 10000);
-    }
+  // Cerrar menu al cambiar de ruta
+  useEffect(() => { setMenuOpen(false); }, [location.pathname]);
 
-    const cleanupSequence = setupNavbarSequence(() => {}, setShowLogoSolo, setShowNavbar);
 
-    return () => {
-      timerText && clearTimeout(timerText);
-      cleanupSequence && cleanupSequence();
-    };
-  }, [isAdmin]);
+  // Helper: link activo
+  const isActive = (path) =>
+    path === "/" ? location.pathname === "/" : location.pathname.startsWith(path);
 
-  // Redirección al admin solo al iniciar sesión
-  useEffect(() => {
-    if (isLoggedIn && isAdmin && !justLoggedIn) {
-      setJustLoggedIn(true);
-
-      const redirectTimer = setTimeout(() => {
-        navigate("/admin", { replace: true });
-      }, 1500);
-
-      return () => clearTimeout(redirectTimer);
-    }
-  }, [isLoggedIn, isAdmin, navigate, justLoggedIn]);
+  const closeMenu = () => setMenuOpen(false);
 
   return (
     <>
-      {/* Mini barra bienvenida */}
-      <div className="navbar__welcome">
-        {welcomeFragments.map((frag, index) => (
-          <span
-            key={index}
-            className={frag.highlight ? `highlight-welcome ${frag.highlight}` : ""}
-          >
-            {frag.text}
-          </span>
-        ))}
-      </div>
+      <nav className={`navbar${scrolled ? " navbar--scrolled" : ""}`}>
+        <div className="navbar__container">
 
-      {/* Logo solo */}
-      {showLogoSolo && (
-        <div className="logo-solo fade-in">
-          <img src={logoIntro} alt="Rixx Logo" />
-        </div>
-      )}
-
-      {/* Navbar principal */}
-      {showNavbar && (
-        <nav className="navbar fade-in-navbar">
-          <div className="navbar__container">
-            <Link to="/" className="navbar__logo logo-nav visible">
-              <img src={logoNavbar} alt="Rixx Lentes" className="navbar__logo-img" />
-            </Link>
-
-            <button className="navbar__toggle" onClick={() => setMenuOpen(o => !o)} aria-label="Menú">
-              <span className="bar"></span>
-              <span className="bar"></span>
-              <span className="bar"></span>
-            </button>
-
-            <ul className={`navbar__links links-visible ${menuOpen ? "active" : ""}`}>
-              <li><Link to="/" onClick={() => setMenuOpen(false)}>Inicio</Link></li>
-              <li><Link to="/productos" onClick={() => setMenuOpen(false)}>Productos</Link></li>
-              <li><Link to="/about" onClick={() => setMenuOpen(false)}>Nosotros</Link></li>
-              <li><Link to="/contacto" onClick={() => setMenuOpen(false)}>Contacto</Link></li>
+          {/* ── IZQUIERDA: links 1 y 2 ── */}
+          <div className="navbar__left">
+            <ul className={`navbar__links${menuOpen ? " navbar__links--open" : ""}`}>
+              <li>
+                <Link to="/" className={isActive("/") ? "navbar__link--active" : ""}>
+                  Inicio
+                </Link>
+              </li>
+              <li>
+                <Link to="/productos" className={isActive("/productos") ? "navbar__link--active" : ""}>
+                  Productos
+                </Link>
+              </li>
+              <li className="navbar__link-mobile-only">
+                <Link to="/about" className={isActive("/about") ? "navbar__link--active" : ""}>
+                  Nosotros
+                </Link>
+              </li>
+              <li className="navbar__link-mobile-only">
+                <Link to="/contacto" className={isActive("/contacto") ? "navbar__link--active" : ""}>
+                  Contacto
+                </Link>
+              </li>
             </ul>
 
-            <div className="navbar__actions actions-visible">
-              {/* Usuario no logueado */}
+            {/* Iconos en mobile (junto al toggle) */}
+            <div className="navbar__mobile-icons">
               {!isLoggedIn && (
-                <>
-                  <button className="user-text" onClick={() => setShowLoginModal(true)}>Iniciar sesión</button>
-                  <button className="register-btn" onClick={() => setShowRegisterModal(true)}>Registrarse</button>
-                </>
-              )}
-
-              {/* Usuario logueado */}
-              {isLoggedIn && (
-                <>
-                  <Link to="/perfil" className="profile-icon">
-                    <img src={userIcon} alt="Perfil" />
-                  </Link>
-
-                  <span className="username">{username}</span>
-                  <button onClick={logout} className="user-btn">Cerrar sesión</button>
-                </>
-              )}
-
-              {/* Admin */}
-              {isAdmin && (
-                <Link to="/admin" className="admin">
-                  <img src={adminIcon} alt="Admin" className="icon" />
-                </Link>
-              )}
-
-              {/* Carrito solo usuarios normales */}
-              {!isAdmin && isLoggedIn && (
-                <button className="cart1" onClick={onCartClick}>
-                  <img src={cartIcon} alt="Carrito" className="icon" />
-                  {count > 0 && <span className="cart-badge">{count}</span>}
+                <button className="nav-icon-btn" onClick={() => setShowLogin(true)} aria-label="Cuenta">
+                  <IconUser />
                 </button>
+              )}
+              {isLoggedIn && !isAdmin && (
+                <>
+                  <Link to="/perfil" className="nav-icon-btn" aria-label="Perfil" onClick={closeMenu}>
+                    <IconUser />
+                  </Link>
+                  <button className="nav-icon-btn nav-cart" onClick={onCartClick} aria-label="Carrito">
+                    <IconCart />
+                    {count > 0 && <span className="nav-badge">{count}</span>}
+                  </button>
+                </>
+              )}
+              {isAdmin && (
+                <Link to="/admin" className="nav-icon-btn" aria-label="Admin" onClick={closeMenu}>
+                  <IconGrid />
+                </Link>
               )}
             </div>
           </div>
-        </nav>
-      )}
 
-      {/* Modales */}
-      <LoginModal show={showLoginModal} onClose={() => setShowLoginModal(false)} />
-      <RegisterModal show={showRegisterModal} onClose={() => setShowRegisterModal(false)} />
+          {/* ── CENTRO: logo ── */}
+          <Link to="/" className="navbar__logo" onClick={closeMenu}>
+            <img src={logoNavbar} alt="Rixx" className="navbar__logo-img" />
+          </Link>
+
+          {/* ── DERECHA: links 3 y 4 + acciones ── */}
+          <div className="navbar__right">
+            <ul className="navbar__links navbar__links-right">
+              <li>
+                <Link to="/about" className={isActive("/about") ? "navbar__link--active" : ""}>
+                  Nosotros
+                </Link>
+              </li>
+              <li>
+                <Link to="/contacto" className={isActive("/contacto") ? "navbar__link--active" : ""}>
+                  Contacto
+                </Link>
+              </li>
+            </ul>
+
+            <div className="navbar__actions">
+              {!isLoggedIn && (
+                <div className="navbar__auth-btns">
+                  <button className="navbar__btn-login" onClick={() => setShowLogin(true)}>
+                    Iniciar sesión
+                  </button>
+                  <button className="navbar__btn-register" onClick={() => setShowReg(true)}>
+                    Registrarse
+                  </button>
+                </div>
+              )}
+              {isLoggedIn && !isAdmin && (
+                <>
+                  <span className="navbar__greeting">Hola, {username}</span>
+                  <Link to="/perfil" className="nav-icon-btn" aria-label="Perfil" onClick={closeMenu}>
+                    <IconUser />
+                  </Link>
+                  <button className="nav-icon-btn nav-cart" onClick={onCartClick} aria-label="Carrito">
+                    <IconCart />
+                    {count > 0 && <span className="nav-badge">{count}</span>}
+                  </button>
+                </>
+              )}
+              {isAdmin && (
+                <>
+                  <span className="navbar__greeting">Hola, {username}</span>
+                  <Link to="/admin" className="nav-icon-btn" aria-label="Admin" onClick={closeMenu}>
+                    <IconGrid />
+                  </Link>
+                  <button className="nav-icon-btn" onClick={logout} aria-label="Cerrar sesión">
+                    <IconLogout />
+                  </button>
+                </>
+              )}
+            </div>
+
+            {/* Toggle mobile */}
+            <button
+              className={`navbar__toggle${menuOpen ? " navbar__toggle--open" : ""}`}
+              onClick={() => setMenuOpen(o => !o)}
+              aria-label="Menú"
+            >
+              <span className="bar" />
+              <span className="bar" />
+              <span className="bar" />
+            </button>
+          </div>
+
+        </div>
+      </nav>
+
+      <LoginModal
+        show={showLoginModal}
+        onClose={() => setShowLogin(false)}
+        onSwitchToRegister={() => setShowReg(true)}
+      />
+      <RegisterModal
+        show={showRegisterModal}
+        onClose={() => setShowReg(false)}
+        onSwitchToLogin={() => setShowLogin(true)}
+      />
     </>
   );
 };
+
+/* ── SVG Icons ── */
+const IconUser = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+    stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="8" r="4" />
+    <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
+  </svg>
+);
+
+const IconCart = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+    stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" />
+    <line x1="3" y1="6" x2="21" y2="6" />
+    <path d="M16 10a4 4 0 01-8 0" />
+  </svg>
+);
+
+const IconGrid = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+    stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="3" y="3" width="7" height="7" />
+    <rect x="14" y="3" width="7" height="7" />
+    <rect x="3" y="14" width="7" height="7" />
+    <rect x="14" y="14" width="7" height="7" />
+  </svg>
+);
+
+const IconLogout = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+    stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
+    <polyline points="16 17 21 12 16 7" />
+    <line x1="21" y1="12" x2="9" y2="12" />
+  </svg>
+);
 
 export default Navbar;

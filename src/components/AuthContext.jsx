@@ -2,21 +2,44 @@ import React, { createContext, useState } from "react";
 
 export const AuthContext = createContext();
 
+// Hash simple — protege contraseñas en localStorage contra lectura casual
+const hashPwd = (pwd) => `h:${btoa(unescape(encodeURIComponent(String(pwd))))}`;
+const checkPwd = (plain, stored) =>
+  stored?.startsWith("h:") ? stored === hashPwd(plain) : plain === stored;
+
+// Migra usuarios con contraseñas en texto plano al formato hasheado
+const migrateUsers = (users) =>
+  users.map((u) =>
+    u.password && !u.password.startsWith("h:")
+      ? { ...u, password: hashPwd(u.password) }
+      : u
+  );
+
 export const AuthProvider = ({ children }) => {
   // Estado del usuario actual
   const [currentUser, setCurrentUser] = useState(() => {
-    const stored = localStorage.getItem("currentUser");
-    return stored ? JSON.parse(stored) : null;
+    try {
+      const stored = localStorage.getItem("currentUser");
+      if (!stored) return null;
+      const parsed = JSON.parse(stored);
+      // Sanitize legacy sessions that may have stored password
+      const { password: _omit, ...safe } = parsed;
+      return safe;
+    } catch { return null; }
   });
 
-  // Lista de usuarios
+  // Lista de usuarios — migra contraseñas plain-text al arranque
   const [users, setUsers] = useState(() => {
     const stored = localStorage.getItem("users");
-    if (stored) return JSON.parse(stored);
-    // Usuario inicial: admin
-    return [
-      { id: 1, name: "Admin", email: "admin@admin.com", password: "1234", role: "Administrador" }
-    ];
+    const base = stored
+      ? JSON.parse(stored)
+      : [{ id: 1, name: "Admin", email: "admin@admin.com", password: "1234", role: "Administrador" }];
+    const migrated = migrateUsers(base);
+    // Si hubo migración, persistir de inmediato
+    if (migrated.some((u, i) => u.password !== base[i]?.password)) {
+      localStorage.setItem("users", JSON.stringify(migrated));
+    }
+    return migrated;
   });
 
   const saveUsers = (newUsers) => {
@@ -24,13 +47,20 @@ export const AuthProvider = ({ children }) => {
     localStorage.setItem("users", JSON.stringify(newUsers));
   };
 
+  // Strip password before storing in state/localStorage
+  const safeUser = (user) => {
+    const { password: _omit, ...safe } = user;
+    return safe;
+  };
+
   // Login
   const login = (email, password) => {
-    const user = users.find(u => u.email === email && u.password === password);
+    const user = users.find(u => u.email === email && checkPwd(password, u.password));
     if (!user) return false;
 
-    setCurrentUser(user);
-    localStorage.setItem("currentUser", JSON.stringify(user));
+    const safe = safeUser(user);
+    setCurrentUser(safe);
+    localStorage.setItem("currentUser", JSON.stringify(safe));
     return true;
   };
 
@@ -53,13 +83,14 @@ export const AuthProvider = ({ children }) => {
       id: Date.now(),
       name,
       email,
-      password,
+      password: hashPwd(password),
       role: "Cliente"
     };
     const newList = [...users, newUser];
     saveUsers(newList);
-    setCurrentUser(newUser);
-    localStorage.setItem("currentUser", JSON.stringify(newUser));
+    const safe = safeUser(newUser);
+    setCurrentUser(safe);
+    localStorage.setItem("currentUser", JSON.stringify(safe));
     return true;
   };
 
@@ -97,7 +128,7 @@ export const AuthProvider = ({ children }) => {
       id: Date.now(),
       name,
       email,
-      password,
+      password: hashPwd(password),
       role
     };
 

@@ -1,132 +1,303 @@
 @use "variables" as *;
 @use "mixins" as *;
 
-// ── Product Detail Page ───────────────────────────────────────────────────────
 .product-detail {
-  background-color: $background;
+  background: $background;
   color: $on-surface;
-  font-family: $font-body;
   min-height: 100vh;
-  padding: 8rem 2rem 4rem;
-  box-sizing: border-box;
+  padding-top: calc(#{$navbar-height} + 5rem);
+  padding-bottom: 8rem;
 
+  // ── Not found ───────────────────────────────────────────
+  &--not-found {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: $spacing-xl;
+  }
+
+  &__not-found-msg {
+    font-family: $font-headline;
+    font-size: $headline-sm;
+    font-weight: 300;
+    font-style: italic;
+    color: $on-surface-variant;
+  }
+
+  // ── Container: 55/45 split ──────────────────────────────
   &__container {
-    display: flex;
-    flex-direction: row;
-    gap: 4rem;
+    display: grid;
+    grid-template-columns: 55% 1fr;
+    gap: $section-padding-y-hero;
     max-width: 1200px;
-    margin-inline: auto;
-    align-items: flex-start;
+    margin: 0 auto;
+    padding: 0 $spacing-xl;
+    align-items: start;
   }
 
-  // ── Galería ─────────────────────────────────────────────────────────────────
-  &__gallery {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
+  // ── Galería ─────────────────────────────────────────────
+  &__gallery { position: sticky; top: calc(#{$navbar-height} + $spacing-xl); }
 
-    .main-image {
+  .main-image {
+    width: 100%;
+    aspect-ratio: 4 / 5;
+    background: $surface-container;
+    overflow: hidden;
+
+    img {
       width: 100%;
-      aspect-ratio: 4 / 5;
-      background: $surface-container-low;
-      border-radius: $radius-lg;
-      overflow: hidden;
-
-      img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        transition: transform $duration-crawl $ease;
-        &:hover { transform: scale(1.04); }
-      }
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: transform $duration-crawl $ease;
+      &:hover { transform: scale(1.03); }
     }
 
-    .thumbnails {
-      display: flex;
-      gap: 0.75rem;
-
-      img {
-        width: 72px;
-        height: 72px;
-        object-fit: cover;
-        border-radius: $radius-sm;
-        background: $surface-container;
-        cursor: pointer;
-        opacity: 0.6;
-        border: 1px solid transparent;
-        transition: opacity $duration-fast $ease, border-color $duration-fast $ease;
-
-        &:hover { opacity: 1; }
-        &.active {
-          opacity: 1;
-          border-color: rgba($primary, 0.6);
-        }
-      }
+    &__placeholder {
+      width: 100%;
+      height: 100%;
+      background: $surface-container;
     }
   }
 
-  // ── Info ────────────────────────────────────────────────────────────────────
+  // ── Imagen principal con zoom ────────────────────────────
+  &__main-img {
+    cursor: zoom-in;
+  }
+
+  // ── Info ────────────────────────────────────────────────
   &__info {
-    flex: 1;
     display: flex;
     flex-direction: column;
-    gap: 1.5rem;
+    gap: $spacing-xl;
+    padding-top: $spacing-md;
   }
 
   &__category {
-    @include label-uppercase($label-sm);
+    font-family: $font-label;
+    font-size: 10px;
+    font-weight: 300;
+    letter-spacing: 0.4em;
+    text-transform: uppercase;
     color: $on-surface-variant;
-    padding-bottom: 1rem;
-    border-bottom: 1px solid rgba($primary, 0.15);
+    padding-bottom: $spacing-lg;
+    border-bottom: 1px solid rgba($primary, 0.1);
   }
 
   &__name {
     font-family: $font-headline;
-    font-size: $display-sm;
-    font-weight: 700;
-    color: $on-surface;
+    font-size: clamp(2.5rem, 4vw, 3.8rem);
+    font-weight: 300;
     line-height: 1.05;
-    letter-spacing: -0.02em;
+    letter-spacing: 0.01em;
+    color: $on-surface;
+    margin: 0;
+
+    em { font-style: italic; }
   }
 
+  // ── Precio base ─────────────────────────────────────────
   &__price {
+    font-family: $font-headline;
     font-size: $headline-md;
-    font-weight: 700;
+    font-weight: 300;
     color: $primary;
+    letter-spacing: 0.06em;
+    margin: 0;
+  }
+
+  // ── Precio con descuento ─────────────────────────────────
+  &__price-group {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  &__price--original {
+    font-family: $font-headline;
+    font-size: $headline-sm;
+    font-weight: 300;
+    color: $on-surface-variant;
+    letter-spacing: 0.06em;
+    text-decoration: line-through;
+  }
+
+  &__price--discount {
+    font-family: $font-headline;
+    font-size: $headline-md;
+    font-weight: 300;
+    color: $primary;
+    letter-spacing: 0.06em;
   }
 
   &__description {
+    font-family: $font-body;
     font-size: $body-lg;
+    font-weight: 300;
     color: $on-surface-variant;
-    line-height: 1.7;
+    line-height: 1.8;
+    letter-spacing: 0.01em;
+    margin: 0;
   }
 
+  // ── Características ─────────────────────────────────────
+  &__chars {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    border-top: 1px solid rgba($on-surface, 0.06);
+  }
+
+  &__char {
+    font-family: $font-body;
+    font-size: $body-sm;
+    font-weight: 300;
+    color: rgba($on-surface, 0.55);
+    letter-spacing: 0.04em;
+    padding: 0.7rem 0;
+    border-bottom: 1px solid rgba($on-surface, 0.06);
+
+    &::before {
+      content: "—  ";
+      color: rgba($primary, 0.5);
+    }
+  }
+
+  // ── Stock ───────────────────────────────────────────────
+  &__stock {
+    font-family: $font-label;
+    font-size: 10px;
+    font-weight: 300;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: rgba($on-surface, 0.35);
+
+    &--out { color: rgba($error, 0.6); }
+  }
+
+  // ── Botones ─────────────────────────────────────────────
   &__add-btn {
-    @include btn-primary;
-    font-size: $label-md;
-    border-radius: $radius-sm;
     width: 100%;
+    font-size: 11px;
+    letter-spacing: 0.35em;
+    padding: 1.1rem $spacing-xl;
+    border-radius: 0;
   }
 
   &__sold-out {
     @include btn-secondary;
     width: 100%;
     cursor: not-allowed;
-    opacity: 0.5;
+    opacity: 0.4;
+    border-radius: 0;
+    font-size: 11px;
+    letter-spacing: 0.35em;
+  }
+
+  // ── Back link ───────────────────────────────────────────
+  &__back {
+    font-family: $font-body;
+    font-size: $body-sm;
+    font-weight: 300;
+    letter-spacing: 0.08em;
+    color: $on-surface-variant;
+    text-decoration: none;
+    transition: color $duration-base $ease;
+    align-self: flex-start;
+
+    &:hover { color: $primary; }
   }
 }
 
-// ── Responsive ───────────────────────────────────────────────────────────────
-@media (max-width: 768px) {
-  .product-detail {
-    padding: 6rem 1rem 3rem;
+// ── Zoom Overlay ────────────────────────────────────────────
+.img-zoom-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba($background, 0.92);
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: zoom-out;
 
+  &__img {
+    max-width: 90vw;
+    max-height: 90vh;
+    object-fit: contain;
+    cursor: zoom-out;
+    display: block;
+  }
+}
+
+// ── Discount Badge ──────────────────────────────────────────
+.discount-badge {
+  display: inline-flex;
+  align-items: center;
+  background: rgba($error-container, 0.15);
+  color: $error;
+  border: 1px solid rgba($error-container, 0.3);
+  font-family: $font-label;
+  font-size: 10px;
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  padding: 0.2rem 0.5rem;
+  align-self: center;
+}
+
+// ── Stock Countdown ─────────────────────────────────────────
+.stock-countdown {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: $gold-dark;
+  font-family: $font-label;
+  font-size: 11px;
+  font-weight: 300;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  margin: 0;
+
+  &::before {
+    content: "";
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: $gold-dark;
+    flex-shrink: 0;
+    animation: pulse-dot 1.5s ease-in-out infinite;
+  }
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.4; transform: scale(0.7); }
+}
+
+// ── Responsive ──────────────────────────────────────────────
+@media (max-width: 900px) {
+  .product-detail {
     &__container {
-      flex-direction: column;
-      gap: 2rem;
+      grid-template-columns: 1fr;
+      gap: $spacing-2xl;
     }
 
-    &__name { font-size: $headline-lg; }
+    &__gallery { position: static; }
+
+    .main-image { aspect-ratio: 1 / 1; }
+
+    &__name { font-size: clamp(2rem, 7vw, 3rem); }
+  }
+}
+
+@media (max-width: 540px) {
+  .product-detail {
+    padding-top: calc(#{$navbar-height} + $spacing-2xl);
+    &__container { padding: 0 1.2rem; }
   }
 }

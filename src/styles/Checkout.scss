@@ -1,0 +1,692 @@
+@use "variables" as *;
+@use "mixins" as *;
+
+// ── Shared animation ──────────────────────────────────────────
+@keyframes fadeEnter {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.fade-enter {
+  animation: fadeEnter 0.3s $ease forwards;
+}
+
+// ── Page wrapper ──────────────────────────────────────────────
+.checkout {
+  min-height: 100vh;
+  background: $background;
+  padding: calc(#{$navbar-height} + $spacing-2xl) $section-padding-x-mobile 5rem;
+  font-family: $font-body;
+  color: $on-surface;
+
+  &--empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+.checkout__inner {
+  max-width: 680px;
+  margin: 0 auto;
+}
+
+// ── Empty state ───────────────────────────────────────────────
+.checkout__empty-box {
+  text-align: center;
+  padding: $spacing-3xl $spacing-xl;
+
+  h2 {
+    font-family: $font-headline;
+    font-size: $headline-sm;
+    font-weight: 300;
+    margin: 0 0 0.75rem;
+  }
+
+  p {
+    color: $on-surface-variant;
+    font-size: $body-md;
+    margin-bottom: 2rem;
+  }
+}
+
+.checkout__empty-icon {
+  font-size: 2.5rem;
+  color: $primary;
+  opacity: 0.25;
+  margin-bottom: 1.5rem;
+}
+
+// ── Stepper ───────────────────────────────────────────────────
+.checkout__stepper {
+  display: flex;
+  align-items: center;
+  margin-bottom: $spacing-2xl;
+  gap: 0;
+}
+
+.stepper-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+
+  &__num {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 1px solid $outline-variant;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: $label-md;
+    color: $on-surface-variant;
+    transition: all $duration-base $ease;
+    flex-shrink: 0;
+  }
+
+  &__label {
+    font-size: $label-md;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: $on-surface-variant;
+    white-space: nowrap;
+  }
+
+  &__line {
+    flex: 1;
+    height: 1px;
+    background: $outline-variant;
+    margin: 0 0.75rem;
+    min-width: 24px;
+  }
+
+  &--active {
+    .stepper-item__num {
+      border-color: $primary;
+      background: $primary;
+      color: $on-primary;
+      font-weight: 700;
+    }
+    .stepper-item__label {
+      color: $on-surface;
+    }
+  }
+
+  &--done {
+    .stepper-item__num {
+      border-color: $success;
+      background: transparent;
+      color: $success;
+      font-size: $body-sm;
+    }
+    .stepper-item__label {
+      color: $on-surface-variant;
+    }
+  }
+}
+
+// ── Section wrapper ───────────────────────────────────────────
+.checkout__section {
+  &--confirm {
+    text-align: center;
+    padding: $spacing-2xl $spacing-xl;
+  }
+}
+
+.checkout__heading {
+  font-family: $font-headline;
+  font-size: $headline-sm;
+  font-weight: 300;
+  letter-spacing: 0.05em;
+  color: $on-surface;
+  margin: 0 0 $spacing-xl;
+}
+
+// ── Form grid ─────────────────────────────────────────────────
+.checkout__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem 1.5rem;
+  margin-bottom: 1.25rem;
+
+  @media (max-width: 540px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.checkout__field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+
+  &--full {
+    margin-bottom: 1.25rem;
+  }
+}
+
+.checkout__label {
+  font-size: $label-sm;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: $on-surface-variant;
+}
+
+.checkout__optional {
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: $label-sm;
+  color: rgba($on-surface-variant, 0.5);
+}
+
+.checkout__input {
+  background: $surface-container;
+  border: 1px solid $outline-variant;
+  border-radius: $radius-none;
+  color: $on-surface;
+  font-family: $font-body;
+  font-size: $body-md;
+  padding: 0.65rem 0.9rem;
+
+  @media (max-width: 480px) {
+    font-size: 16px; // Evita zoom automático en iOS
+    padding: 0.85rem 1rem;
+  }
+  transition: border-color $duration-fast $ease;
+  outline: none;
+  width: 100%;
+  box-sizing: border-box;
+  -webkit-appearance: none;
+
+  &::placeholder { color: rgba($on-surface-variant, 0.45); }
+
+  &:focus { border-color: $primary; }
+
+  &--error { border-color: $error !important; }
+
+  &--select {
+    cursor: pointer;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2399907c' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.9rem center;
+    padding-right: 2.5rem;
+
+    option {
+      background: $surface-container-high;
+      color: $on-surface;
+    }
+  }
+
+  &--textarea {
+    resize: vertical;
+    min-height: 80px;
+    line-height: 1.55;
+  }
+}
+
+// ── Field error ───────────────────────────────────────────────
+.field-error {
+  color: $error;
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  margin: 0;
+  line-height: 1.4;
+}
+
+// ── Actions row ───────────────────────────────────────────────
+.checkout__actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 2.5rem;
+  padding-top: $spacing-lg;
+  border-top: 1px solid $outline-variant;
+
+  @media (max-width: 440px) {
+    flex-direction: column-reverse;
+
+    .checkout__btn { width: 100%; justify-content: center; }
+  }
+}
+
+// ── Buttons ───────────────────────────────────────────────────
+.checkout__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.75rem;
+  font-family: $font-label;
+  font-size: $label-lg;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border: none;
+  border-radius: $radius-none;
+  cursor: pointer;
+  text-decoration: none;
+  transition: opacity $duration-fast $ease, transform $duration-fast $ease, background $duration-fast $ease;
+
+  &:hover:not(:disabled) {
+    opacity: 0.88;
+    transform: translateY(-1px);
+  }
+
+  &--primary {
+    background: $primary;
+    color: $on-primary;
+  }
+
+  &--ghost {
+    background: transparent;
+    color: $on-surface-variant;
+    border: 1px solid $outline-variant;
+
+    &:hover { color: $on-surface; border-color: rgba($on-surface, 0.3); }
+  }
+
+  &--whatsapp {
+    background: #25D366;
+    color: #fff;
+    gap: 0.6rem;
+
+    svg { flex-shrink: 0; }
+
+    &:hover { background: #1ebe5c; }
+  }
+}
+
+// ── Paso 2: resumen ───────────────────────────────────────────
+.checkout__summary-card {
+  background: $surface-container;
+  border: 1px solid $outline-variant;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.5rem;
+  border-left: 3px solid $primary;
+}
+
+.checkout__summary-label {
+  font-size: $label-sm;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: $primary;
+  margin-bottom: 0.5rem;
+}
+
+.checkout__summary-line {
+  font-size: $body-sm;
+  color: $on-surface-variant;
+  margin: 0.2rem 0;
+
+  strong { color: $on-surface; font-weight: 600; }
+}
+
+// ── Items list ────────────────────────────────────────────────
+.checkout__items {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border: 1px solid $outline-variant;
+  margin-bottom: 0;
+}
+
+.checkout__item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.9rem 1.1rem;
+  border-bottom: 1px solid $outline-variant;
+
+  &:last-child { border-bottom: none; }
+}
+
+.checkout__item-img {
+  width: 52px;
+  height: 52px;
+  object-fit: cover;
+  flex-shrink: 0;
+  background: $surface-container-high;
+}
+
+.checkout__item-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.checkout__item-name {
+  font-size: $body-md;
+  color: $on-surface;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin: 0 0 0.2rem;
+}
+
+.checkout__item-qty {
+  font-size: $body-sm;
+  color: $on-surface-variant;
+  margin: 0;
+}
+
+.checkout__item-sub {
+  font-family: $font-headline;
+  font-size: $title-md;
+  font-weight: 500;
+  color: $on-surface;
+  white-space: nowrap;
+  margin: 0;
+}
+
+// ── Total ─────────────────────────────────────────────────────
+.checkout__total {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 1.1rem 1.1rem;
+  background: $surface-container-high;
+  margin-bottom: 0;
+}
+
+.checkout__total-label {
+  font-size: $label-sm;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: $on-surface-variant;
+}
+
+.checkout__total-value {
+  font-family: $font-headline;
+  font-size: $headline-sm;
+  font-weight: 500;
+  color: $primary;
+}
+
+// ── Shipping banner ───────────────────────────────────────────
+.checkout__shipping-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65rem 1rem;
+  margin-top: $spacing-md;
+  border: 1px solid $outline-variant;
+  background: $surface-container;
+  font-size: $body-sm;
+  color: $on-surface-variant;
+  line-height: 1.4;
+
+  strong { color: $on-surface; font-weight: 600; }
+
+  &--free {
+    border-color: rgba($success, 0.35);
+    background: rgba($success, 0.06);
+    color: $success;
+  }
+}
+
+// ── Price breakdown (subtotal + envío + total) ────────────────
+.checkout__price-breakdown {
+  border: 1px solid $outline-variant;
+  border-top: none;
+}
+
+.checkout__price-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.65rem 1.1rem;
+  border-bottom: 1px solid $outline-variant;
+  font-size: $body-sm;
+  color: $on-surface-variant;
+}
+
+.checkout__price-label {
+  display: flex;
+  align-items: center;
+}
+
+.checkout__price-val {
+  font-variant-numeric: tabular-nums;
+  color: $on-surface;
+
+  &--free {
+    color: $success;
+    font-weight: 600;
+    font-size: $label-md;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+}
+
+// ── Payment section ───────────────────────────────────────────
+.payment-section {
+  margin-top: $spacing-xl;
+
+  &__title {
+    font-size: $label-sm;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: $on-surface-variant;
+    margin-bottom: $spacing-md;
+  }
+}
+
+.payment-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+
+  &__option {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.25rem;
+    background: $surface-container;
+    border: 1px solid $outline-variant;
+    border-radius: $radius-none;
+    cursor: pointer;
+    text-align: left;
+    width: 100%;
+    transition: border-color $duration-base $ease, background $duration-base $ease;
+
+    &:hover {
+      border-color: rgba($primary, 0.35);
+      background: $surface-container-high;
+    }
+
+    &--active {
+      border-color: $primary;
+      background: $surface-container-high;
+      box-shadow: inset 3px 0 0 $primary;
+    }
+  }
+
+  &__icon {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #25D366;
+    border-radius: $radius-sm;
+    color: #fff;
+    flex-shrink: 0;
+
+    &--card {
+      background: $surface-container-highest;
+      color: $primary;
+    }
+  }
+
+  &__info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+  }
+
+  &__name {
+    font-size: $body-md;
+    font-weight: 600;
+    color: $on-surface;
+    font-family: $font-label;
+    letter-spacing: 0.02em;
+  }
+
+  &__desc {
+    font-size: $body-sm;
+    color: $on-surface-variant;
+  }
+
+  &__check {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 1px solid $outline-variant;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    color: $primary;
+    background: transparent;
+    transition: border-color $duration-base $ease;
+
+    .payment-picker__option--active & {
+      border-color: $primary;
+      background: rgba($primary, 0.12);
+    }
+  }
+}
+
+// ── Card form ─────────────────────────────────────────────────
+.card-form {
+  margin-top: $spacing-lg;
+  padding: 1.25rem;
+  background: $surface-container-low;
+  border: 1px solid $outline-variant;
+  border-top: 2px solid $primary;
+
+  &__badges {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1.25rem;
+  }
+
+  &__badge {
+    font-family: $font-label;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    padding: 0.2rem 0.5rem;
+    border: 1px solid $outline-variant;
+    color: $on-surface-variant;
+    background: $surface-container;
+    transition: border-color $duration-fast $ease, color $duration-fast $ease, background $duration-fast $ease, opacity $duration-fast $ease;
+    opacity: 0.45;
+
+    &--active {
+      border-color: $primary;
+      color: $primary;
+      background: rgba($primary, 0.08);
+      opacity: 1;
+    }
+
+    &--lock {
+      margin-left: auto;
+      color: $primary;
+      border-color: rgba($primary, 0.3);
+      background: rgba($primary, 0.06);
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+      opacity: 1;
+    }
+  }
+
+  &__field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    margin-bottom: 1rem;
+
+    &--full { width: 100%; }
+  }
+
+  &__row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1rem;
+
+    @media (max-width: 380px) {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  &__input-wrap {
+    position: relative;
+
+    .checkout__input { padding-right: 2.5rem; }
+  }
+
+  &__card-icon {
+    position: absolute;
+    right: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: $on-surface-variant;
+    pointer-events: none;
+    display: flex;
+  }
+
+  &__notice {
+    font-size: $body-sm;
+    color: rgba($on-surface-variant, 0.65);
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding-top: $spacing-sm;
+    border-top: 1px solid $outline-variant;
+    margin: 0;
+    line-height: 1.5;
+  }
+}
+
+// ── Spinner ───────────────────────────────────────────────────
+.checkout__spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba($on-primary, 0.3);
+  border-top-color: $on-primary;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+// ── Paso 3: confirmación ──────────────────────────────────────
+.checkout__confirm-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  border: 2px solid $success;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  color: $success;
+  margin: 0 auto 1.5rem;
+}
+
+.checkout__confirm-text {
+  font-size: $body-md;
+  color: $on-surface-variant;
+  max-width: 420px;
+  margin: 0 auto $spacing-xl;
+  line-height: 1.7;
+}

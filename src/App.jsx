@@ -1,66 +1,94 @@
-import React, { useState, useContext } from "react";
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { useState, useContext, useEffect, lazy, Suspense } from "react";
+import { useCart } from "./components/CartContext.jsx";
+import ErrorBoundary from "./components/ErrorBoundary.jsx";
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import Navbar from "./components/layout/Navbar/Navbar";
 import Footer from "./components/layout/Footer/Footer";
+import CustomCursor     from "./components/CustomCursor.jsx";
+import AnnouncementBar  from "./components/AnnouncementBar.jsx";
+import SocialFloat      from "./components/SocialFloat.jsx";
+import Home             from "./components/Home.jsx";
 
-import CartDrawer from "./components/CartDrawer.jsx";
-import ProductsGrid from "./components/ProductsGrid.jsx";
-import ProductDetail from "./components/ProductDetail.jsx";
-import Home from "./components/Home.jsx";
+const CartDrawer    = lazy(() => import("./components/CartDrawer.jsx"));
+const ProductsGrid  = lazy(() => import("./components/ProductsGrid.jsx"));
+const ProductDetail = lazy(() => import("./components/ProductDetail.jsx"));
+const Admin         = lazy(() => import("./components/Admin.jsx"));
+const Profile       = lazy(() => import("./components/Profile.jsx"));
+const Dashboard     = lazy(() => import("./dashboard/Dashboard.jsx"));
+const Nosotros      = lazy(() => import("./components/Nosotros.jsx"));
+const Contacto      = lazy(() => import("./components/Contacto.jsx"));
+const Checkout      = lazy(() => import("./components/Checkout.jsx"));
 
-import Admin from "./components/Admin.jsx";
-import Profile from "./components/Profile.jsx";
-
-// Páginas informativas simples
-const PlaceholderPage = ({ title }) => (
-  <main style={{ minHeight: "80vh", display: "flex", alignItems: "center", justifyContent: "center",
-    background: "#0a0a0a", color: "#99907c", flexDirection: "column", gap: "1rem", paddingTop: "8rem" }}>
-    <h1 style={{ color: "#D4AF37", fontFamily: "Noto Serif, serif" }}>{title}</h1>
-    <p>Esta sección estará disponible próximamente.</p>
-  </main>
+const PageLoader = () => (
+  <div style={{ minHeight: "60vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
+    <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "11px", letterSpacing: "0.4em", color: "#D4AF37", textTransform: "uppercase", opacity: 0.6 }}>Cargando</span>
+  </div>
 );
 
-import { AuthProvider, AuthContext } from "./components/AuthContext.jsx";
-import { ProductsProvider } from "./components/ProductsContext.jsx";
-import { CartProvider } from "./components/CartContext.jsx";
+import { AuthContext } from "./components/AuthContext.jsx";
 
-// Ruta protegida admin
+// ── Ruta protegida admin ──────────────────────────────────────
 const ProtectedAdminRoute = ({ children }) => {
   const { isLoggedIn, isAdmin } = useContext(AuthContext);
   if (!isLoggedIn || !isAdmin) return <Navigate to="/" replace />;
   return children;
 };
 
-function App() {
-  const [isCartOpen, setIsCartOpen] = useState(false);
+// ── Page transition wrapper ───────────────────────────────────
+const PageWrapper = ({ children }) => {
+  const location = useLocation();
+  const [key, setKey] = useState(location.pathname);
+
+  useEffect(() => {
+    setKey(location.pathname);
+    window.scrollTo({ top: 0, behavior: "instant" });
+  }, [location.pathname]);
 
   return (
-    <AuthProvider>
-      <ProductsProvider>
-        <CartProvider>
+    <div key={key} className="page-transition">
+      {children}
+    </div>
+  );
+};
+
+function App() {
+  const { isCartOpen, openCart, closeCart } = useCart();
+
+  return (
+    <ErrorBoundary>
           <Router>
-            <Navbar onCartClick={()=>setIsCartOpen(true)} />
-            <CartDrawer isOpen={isCartOpen} onClose={()=>setIsCartOpen(false)} />
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/productos" element={<ProductsGrid />} />
-              <Route path="/producto/:id" element={<ProductDetail />} />
-              <Route path="/admin" element={<ProtectedAdminRoute><Admin /></ProtectedAdminRoute>} />
-              <Route path="/perfil" element={<Profile />} />
-              <Route path="/about" element={<PlaceholderPage title="Nosotros" />} />
-              <Route path="/contacto" element={<PlaceholderPage title="Contacto" />} />
-              <Route path="/colecciones" element={<PlaceholderPage title="Colecciones" />} />
-              <Route path="/envios" element={<PlaceholderPage title="Envíos" />} />
-              <Route path="/cambios" element={<PlaceholderPage title="Cambios & Devoluciones" />} />
-              <Route path="/preguntas" element={<PlaceholderPage title="Preguntas Frecuentes" />} />
-              <Route path="/terminos" element={<PlaceholderPage title="Términos y Condiciones" />} />
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
+            <CustomCursor />
+            <SocialFloat />
+            <AnnouncementBar />
+            <Navbar onCartClick={openCart} />
+            <Suspense fallback={null}>
+              <CartDrawer isOpen={isCartOpen} onClose={closeCart} />
+            </Suspense>
+            <PageWrapper>
+              <Suspense fallback={<PageLoader />}>
+              <Routes>
+                <Route path="/"             element={<Home />} />
+                <Route path="/productos"    element={<ProductsGrid />} />
+                <Route path="/producto/:id" element={<ProductDetail />} />
+                <Route path="/admin"        element={<ProtectedAdminRoute><Admin /></ProtectedAdminRoute>} />
+                <Route path="/dashboard"   element={<ProtectedAdminRoute><Dashboard /></ProtectedAdminRoute>} />
+                <Route path="/perfil"       element={<Profile />} />
+                {/* Páginas de contenido */}
+                <Route path="/checkout"     element={<Checkout />} />
+                <Route path="/about"        element={<Nosotros />} />
+                <Route path="/contacto"     element={<Contacto />} />
+                <Route path="/colecciones"  element={<Navigate to="/productos" replace />} />
+                <Route path="/envios"       element={<Navigate to="/" replace />} />
+                <Route path="/cambios"      element={<Navigate to="/" replace />} />
+                <Route path="/preguntas"    element={<Navigate to="/" replace />} />
+                <Route path="/terminos"     element={<Navigate to="/" replace />} />
+                <Route path="*"             element={<Navigate to="/" replace />} />
+              </Routes>
+              </Suspense>
+            </PageWrapper>
             <Footer />
           </Router>
-        </CartProvider>
-      </ProductsProvider>
-    </AuthProvider>
+    </ErrorBoundary>
   );
 }
 

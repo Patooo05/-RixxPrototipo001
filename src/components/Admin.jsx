@@ -1,4 +1,5 @@
 import React, { useState, useContext, useMemo, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { ProductsContext } from "./ProductsContext";
 import { AuthContext } from "./AuthContext";
 import "../styles/Admin.scss";
@@ -14,6 +15,8 @@ const Admin = () => {
   const {
     products, addProduct, removeProduct, toggleFeatured,
     updateProduct, markProductsExported,
+    changeLog, hasUnsavedChanges, lastSavedAt, clearChangeLog,
+    updateProductStatus,
   } = useContext(ProductsContext);
   const { users, createUser, toggleUserStatus, togglePermission } = useContext(AuthContext);
 
@@ -21,7 +24,7 @@ const Admin = () => {
   const [activeTab, setActiveTab] = useState("Dashboard");
 
   // ── Producto form / drawer ───────────────────────────────────
-  const [form, setForm] = useState({ name: "", price: "", image: "", category: "", description: "", stock: 0 });
+  const [form, setForm] = useState({ name: "", price: "", precioCosto: "", image: "", category: "", description: "", stock: 0 });
   const [editingProduct, setEditingProduct] = useState(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [imageMode, setImageMode] = useState("url");
@@ -33,6 +36,7 @@ const Admin = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterCategory, setFilterCategory] = useState("Todas");
   const [criticalFilter, setCriticalFilter] = useState(false);
+  const [marginFilter, setMarginFilter] = useState("all");
   const [debouncedSearch, setDebouncedSearch] = useState(searchTerm);
   const [flashExcel, setFlashExcel] = useState(false);
   const [flashFilters, setFlashFilters] = useState(false);
@@ -72,8 +76,9 @@ const Admin = () => {
     const topExpensive = [...products].sort((a, b) => b.price - a.price).slice(0, 3);
     const recentProducts = [...products].sort((a, b) => b.id - a.id).slice(0, 5);
     const noImage = products.filter((p) => !p.image || p.image === "").length;
+    const noCosto = products.filter((p) => !p.precioCosto).length;
     const exhaustedRate = Math.round((productsOut / (totalProducts || 1)) * 100);
-    return { totalProducts, lowStock, productsOut, categories, totalValue, topExpensive, recentProducts, noImage, exhaustedRate };
+    return { totalProducts, lowStock, productsOut, categories, totalValue, topExpensive, recentProducts, noImage, noCosto, exhaustedRate };
   }, [products]);
 
   const chartData = useMemo(() => {
@@ -88,9 +93,16 @@ const Admin = () => {
         p.name.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
         (p.description || "").toLowerCase().includes(debouncedSearch.toLowerCase());
       const matchesCategory = filterCategory === "Todas" || p.category === filterCategory;
-      return matchesSearch && matchesCategory;
+      let matchesMargin = true;
+      if (marginFilter !== "all" && p.precioCosto && p.price) {
+        const margin = Math.round((1 - p.precioCosto / p.price) * 100);
+        if (marginFilter === "low")  matchesMargin = margin < 20;
+        if (marginFilter === "mid")  matchesMargin = margin >= 20 && margin <= 40;
+        if (marginFilter === "good") matchesMargin = margin > 40;
+      }
+      return matchesSearch && matchesCategory && matchesMargin;
     });
-  }, [products, debouncedSearch, filterCategory]);
+  }, [products, debouncedSearch, filterCategory, marginFilter]);
 
   const sortedFilteredProducts = useMemo(() => {
     let result = criticalFilter
@@ -154,7 +166,7 @@ const Admin = () => {
 
   const handleOpenDrawer = () => {
     setEditingProduct(null);
-    setForm({ name: "", price: "", image: "", category: "", description: "", stock: 0 });
+    setForm({ name: "", price: "", precioCosto: "", image: "", category: "", description: "", stock: 0 });
     setImageMode("url");
     setImagePreview("");
     setShowNewCat(false);
@@ -164,7 +176,7 @@ const Admin = () => {
   const handleCloseDrawer = () => {
     setDrawerOpen(false);
     setEditingProduct(null);
-    setForm({ name: "", price: "", image: "", category: "", description: "", stock: 0 });
+    setForm({ name: "", price: "", precioCosto: "", image: "", category: "", description: "", stock: 0 });
     setImageMode("url");
     setImagePreview("");
     setShowNewCat(false);
@@ -175,6 +187,7 @@ const Admin = () => {
     setForm({
       name: product.name,
       price: product.price,
+      precioCosto: product.precioCosto || "",
       image: product.image || "",
       category: product.category || "",
       description: product.description || "",
@@ -191,13 +204,20 @@ const Admin = () => {
     e.preventDefault();
     if (!form.name || form.price === "") return;
 
+    const parsedForm = {
+      ...form,
+      price: Number(form.price),
+      stock: Number(form.stock),
+      precioCosto: form.precioCosto !== "" ? Number(form.precioCosto) : undefined,
+    };
+
     if (editingProduct) {
-      updateProduct({ ...form, id: editingProduct.id, price: Number(form.price), stock: Number(form.stock) });
+      updateProduct({ ...parsedForm, id: editingProduct.id });
       const id = editingProduct.id;
       setFlashRow(id);
       setTimeout(() => setFlashRow(null), 1000);
     } else {
-      addProduct({ ...form, price: Number(form.price), stock: Number(form.stock) });
+      addProduct(parsedForm);
     }
 
     handleCloseDrawer();
@@ -275,11 +295,151 @@ const Admin = () => {
     ws3["!cols"] = [{ wch: 20 }, { wch: 10 }, { wch: 12 }, { wch: 18 }, { wch: 10 }];
     XLSX.utils.book_append_sheet(workbook, ws3, "Resumen categorías");
 
+    // Hoja 4: Rentabilidad
+    const rentabilidadData = products.map((p) => {
+      const margen = p.precioCosto ? Math.round((1 - p.precioCosto / p.price) * 100) : null;
+      const gananciaUnit = p.precioCosto ? p.price - p.precioCosto : null;
+      return {
+        ID: p.id,
+        Nombre: p.name,
+        "Precio Costo (UYU)": p.precioCosto || "—",
+        "Precio Venta (UYU)": p.price,
+        "Margen %": margen !== null ? margen + "%" : "—",
+        "Ganancia por unidad": gananciaUnit !== null ? gananciaUnit : "—",
+        "Stock actual": p.stock,
+        "Ganancia total en stock": gananciaUnit !== null ? gananciaUnit * p.stock : "—",
+      };
+    });
+    const ws4 = XLSX.utils.json_to_sheet(rentabilidadData);
+    ws4["!cols"] = [{ wch: 6 }, { wch: 28 }, { wch: 18 }, { wch: 18 }, { wch: 10 }, { wch: 20 }, { wch: 12 }, { wch: 22 }];
+    XLSX.utils.book_append_sheet(workbook, ws4, "Rentabilidad");
+
+    // Hoja 5: IVA Uruguay (22%)
+    const ivaData = products.map((p) => {
+      const precioSinIva = Math.round(p.price / 1.22 * 100) / 100;
+      const ivaAmount   = Math.round((p.price - precioSinIva) * 100) / 100;
+      return {
+        Nombre: p.name,
+        "Precio final (con IVA)": p.price,
+        "Base imponible (sin IVA)": precioSinIva,
+        "IVA 22%": ivaAmount,
+        "Stock": p.stock,
+        "IVA total en stock": Math.round(ivaAmount * p.stock * 100) / 100,
+        "Base imponible total en stock": Math.round(precioSinIva * p.stock * 100) / 100,
+      };
+    });
+    const ws5 = XLSX.utils.json_to_sheet(ivaData);
+    ws5["!cols"] = [{ wch: 28 }, { wch: 20 }, { wch: 22 }, { wch: 12 }, { wch: 8 }, { wch: 20 }, { wch: 28 }];
+    XLSX.utils.book_append_sheet(workbook, ws5, "IVA Uruguay");
+
+    // Hoja 6: Valor de inventario
+    const inventarioData = products.map((p) => ({
+      Nombre: p.name,
+      Stock: p.stock,
+      "Costo unitario": p.precioCosto || "—",
+      "Valor al costo": p.precioCosto ? p.precioCosto * p.stock : "—",
+      "Valor al precio venta": p.price * p.stock,
+      "Diferencia (ganancia potencial)": p.precioCosto ? (p.price - p.precioCosto) * p.stock : "—",
+    }));
+    const ws6 = XLSX.utils.json_to_sheet(inventarioData);
+    ws6["!cols"] = [{ wch: 28 }, { wch: 8 }, { wch: 16 }, { wch: 16 }, { wch: 20 }, { wch: 28 }];
+    XLSX.utils.book_append_sheet(workbook, ws6, "Valor inventario");
+
     const excelBuffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
     const blob = new Blob([excelBuffer], { type: "application/octet-stream" });
     saveAs(blob, `rixx_inventario_${timestamp}.xlsx`);
     markProductsExported();
     triggerFlash();
+  };
+
+  // ── Guardar cambios en Excel (inventario + historial) ────────
+  const saveChangesToExcel = () => {
+    const timestamp = new Date().toISOString().slice(0, 10);
+    const workbook = XLSX.utils.book_new();
+
+    // Hoja 1: Inventario actual
+    const allData = products.map((p) => ({
+      ID: p.id,
+      Nombre: p.name,
+      Categoría: p.category || "Sin categoría",
+      "Precio (UYU)": p.price,
+      "Stock actual": p.stock,
+      "Estado stock": p.stock === 0 ? "AGOTADO" : p.stock <= 5 ? "CRÍTICO" : p.stock <= 15 ? "BAJO" : "OK",
+      Destacado: p.featured ? "Sí" : "No",
+      "Tiene imagen": p.image ? "Sí" : "No",
+    }));
+    const ws1 = XLSX.utils.json_to_sheet(allData);
+    ws1["!cols"] = [{ wch: 6 }, { wch: 28 }, { wch: 16 }, { wch: 14 }, { wch: 12 }, { wch: 14 }, { wch: 10 }, { wch: 12 }];
+    XLSX.utils.book_append_sheet(workbook, ws1, "Inventario");
+
+    // Hoja 2: Historial de cambios
+    if (changeLog.length > 0) {
+      const ws2 = XLSX.utils.json_to_sheet(
+        changeLog.map((c) => ({
+          "Fecha y hora": c.timestamp,
+          Tipo: c.tipo,
+          ID: c.id,
+          Producto: c.nombre,
+          Detalle: c.detalle || "",
+        }))
+      );
+      ws2["!cols"] = [{ wch: 20 }, { wch: 14 }, { wch: 6 }, { wch: 26 }, { wch: 50 }];
+      XLSX.utils.book_append_sheet(workbook, ws2, "Historial de cambios");
+    } else {
+      const ws2 = XLSX.utils.json_to_sheet([{ Mensaje: "Sin cambios registrados en esta sesión" }]);
+      XLSX.utils.book_append_sheet(workbook, ws2, "Historial de cambios");
+    }
+
+    // Hoja 3: Resumen — cambios por tipo
+    const countByType = changeLog.reduce((acc, c) => {
+      acc[c.tipo] = (acc[c.tipo] || 0) + 1;
+      return acc;
+    }, {});
+    const ws3 = XLSX.utils.json_to_sheet(
+      Object.entries(countByType).map(([tipo, cantidad]) => ({ "Tipo de cambio": tipo, Cantidad: cantidad }))
+    );
+    ws3["!cols"] = [{ wch: 20 }, { wch: 10 }];
+    XLSX.utils.book_append_sheet(workbook, ws3, "Resumen cambios");
+
+    const excelBuffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
+    const blob = new Blob([excelBuffer], { type: "application/octet-stream" });
+    saveAs(blob, `rixx_cambios_${timestamp}.xlsx`);
+    markProductsExported();
+    clearChangeLog();
+    triggerFlash();
+  };
+
+  // ── Imprimir etiquetas de precio ─────────────────────────────
+  const escapeHtml = (str) =>
+    String(str)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+
+  const printLabels = () => {
+    const win = window.open("", "_blank");
+    const rows = products.map((p) => `
+      <div class="label">
+        <div class="label-name">${escapeHtml(p.name)}</div>
+        <div class="label-price">$ ${Number(p.price).toLocaleString("es-UY")}</div>
+        <div class="label-id">ID: ${escapeHtml(String(p.id))} · ${escapeHtml(p.category || "")}</div>
+      </div>`).join("");
+    win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Etiquetas RIXX</title>
+      <style>
+        body { font-family: 'DM Sans', sans-serif; background: #fff; margin: 0; padding: 1rem; }
+        .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+        .label { border: 1px solid #ccc; padding: 1rem; text-align: center; page-break-inside: avoid; }
+        .label-name { font-size: 13px; font-weight: 600; margin-bottom: 0.5rem; color: #111; }
+        .label-price { font-size: 22px; font-weight: 700; color: #B8962E; margin-bottom: 0.25rem; }
+        .label-id { font-size: 9px; color: #888; letter-spacing: 0.1em; text-transform: uppercase; }
+        @media print { @page { margin: 1cm; } }
+      </style></head><body>
+      <div style="text-align:center;margin-bottom:1rem;font-size:11px;color:#888;letter-spacing:.2em;text-transform:uppercase">RIXX — Etiquetas de precio</div>
+      <div class="grid">${rows}</div>
+      <script>window.onload = () => window.print();<\/script>
+    </body></html>`);
+    win.document.close();
   };
 
   // ── Usuarios ─────────────────────────────────────────────────
@@ -371,6 +531,15 @@ const Admin = () => {
             </button>
           ))}
         </nav>
+        <div className="admin-sidebar__ai">
+          <Link to="/dashboard" className="sidebar-ai-btn">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="1.5"/>
+              <path d="M5 8h6M8 5v6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+            </svg>
+            CEO AI Dashboard
+          </Link>
+        </div>
         <div className="admin-sidebar__footer">
           <span className="admin-sidebar__version">v1.0 · RIXX Lentes</span>
         </div>
@@ -466,6 +635,17 @@ const Admin = () => {
                 </div>
                 <div className="stat-card__number">{stats.noImage}</div>
                 <div className="stat-card__label">Sin imagen</div>
+              </div>
+
+              <div className={`stat-card ${stats.noCosto > 0 ? "alert-amber" : ""}`}>
+                <div className="stat-card__icon">
+                  <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                    <path d="M10 2v16M6.5 5.5C6.5 4.12 7.62 3 9 3h2c1.38 0 2.5 1.12 2.5 2.5S12.38 8 11 8H9C7.62 8 6.5 9.12 6.5 10.5S7.62 13 9 13h2c1.38 0 2.5 1.12 2.5 2.5S12.38 18 11 18H9c-1.38 0-2.5-1.12-2.5-2.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                    <line x1="3" y1="3" x2="17" y2="17" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                  </svg>
+                </div>
+                <div className={`stat-card__number ${stats.noCosto > 0 ? "amber" : ""}`}>{stats.noCosto}</div>
+                <div className="stat-card__label">Sin precio costo</div>
               </div>
 
               <div className="stat-card">
@@ -570,6 +750,32 @@ const Admin = () => {
               >
                 ↓ Exportar Excel (3 hojas)
               </button>
+              <button
+                className={`save-changes-btn ${hasUnsavedChanges ? "has-changes" : "no-changes"}`}
+                onClick={saveChangesToExcel}
+                title={lastSavedAt ? `Último guardado: ${lastSavedAt}` : "Sin guardado previo"}
+              >
+                {hasUnsavedChanges
+                  ? `● Guardar cambios (${changeLog.length})`
+                  : "✓ Todo guardado"}
+              </button>
+              <select
+                value={marginFilter}
+                onChange={(e) => setMarginFilter(e.target.value)}
+                title="Filtrar por margen"
+              >
+                <option value="all">Todos los márgenes</option>
+                <option value="low">Margen &lt; 20% (bajo)</option>
+                <option value="mid">Margen 20–40% (medio)</option>
+                <option value="good">Margen &gt; 40% (bueno)</option>
+              </select>
+              <button
+                className="print-labels-btn"
+                onClick={printLabels}
+                disabled={products.length === 0}
+              >
+                ⎙ Imprimir etiquetas
+              </button>
               <button className="btn-new-product" onClick={handleOpenDrawer}>
                 + Nuevo producto
               </button>
@@ -586,8 +792,11 @@ const Admin = () => {
                     </th>
                     <th>Categoría</th>
                     <th className="sortable" onClick={() => handleSort("price")}>
-                      Precio UYU{getSortIcon("price")}
+                      Venta UYU{getSortIcon("price")}
                     </th>
+                    <th>Costo UYU</th>
+                    <th>Margen %</th>
+                    <th>Estado</th>
                     <th className="sortable" onClick={() => handleSort("stock")}>
                       Stock{getSortIcon("stock")}
                     </th>
@@ -598,7 +807,7 @@ const Admin = () => {
                 <tbody>
                   {sortedFilteredProducts.length === 0 ? (
                     <tr>
-                      <td colSpan="8" className="table-empty-cell">
+                      <td colSpan="11" className="table-empty-cell">
                         <div className="table-empty-state">
                           <span>No se encontraron productos</span>
                           <button
@@ -628,11 +837,34 @@ const Admin = () => {
                           }
                         </td>
                         <td className="col-name">
-                          <div className="p-name">{p.name}</div>
+                          <div className="p-name">
+                            {p.name}
+                            {p.isNew && <span className="badge-new">NUEVO</span>}
+                          </div>
                           <div className="p-desc">{p.description}</div>
                         </td>
                         <td>{p.category || "—"}</td>
                         <td>{formatPrice(p.price)}</td>
+                        <td>{p.precioCosto ? formatPrice(p.precioCosto) : <span className="badge-no-costo" title="Sin precio de costo — el margen de la IA será incorrecto">! Sin costo</span>}</td>
+                        <td>
+                          {p.precioCosto ? (() => {
+                            const m = Math.round((1 - p.precioCosto / p.price) * 100);
+                            const cls = m > 40 ? "margin-good" : m >= 20 ? "margin-mid" : "margin-bad";
+                            return <span className={cls}>{m}%</span>;
+                          })() : "—"}
+                        </td>
+                        <td className="col-status" onClick={(e) => e.stopPropagation()}>
+                          <select
+                            className={`status-badge status-badge--${p.status || "activo"}`}
+                            value={p.status || "activo"}
+                            onChange={(e) => updateProductStatus(p.id, e.target.value)}
+                          >
+                            <option value="activo">Activo</option>
+                            <option value="borrador">Borrador</option>
+                            <option value="descontinuado">Descontinuado</option>
+                            <option value="oculto">Oculto</option>
+                          </select>
+                        </td>
                         <td
                           className="col-stock"
                           onDoubleClick={(e) => { e.stopPropagation(); setEditingStock(p.id); }}
@@ -735,7 +967,7 @@ const Admin = () => {
                 <select value={userRoleFilter} onChange={(e) => setUserRoleFilter(e.target.value)}>
                   <option value="Todos">Todos</option>
                   <option value="Administrador">Administradores</option>
-                  <option value="Empleado">Empleados</option>
+                  <option value="Cliente">Clientes</option>
                 </select>
               </div>
               <table className="users-table">
@@ -832,8 +1064,13 @@ const Admin = () => {
             </div>
 
             <div className="drawer-field">
-              <label>Precio (UYU) *</label>
+              <label>Precio venta (UYU) *</label>
               <input type="number" name="price" value={form.price} onChange={handleChange} placeholder="0" required min="0" />
+            </div>
+
+            <div className="drawer-field">
+              <label>Precio costo (UYU)</label>
+              <input type="number" name="precioCosto" value={form.precioCosto} onChange={handleChange} placeholder="0" min="0" />
             </div>
 
             <div className="drawer-field">

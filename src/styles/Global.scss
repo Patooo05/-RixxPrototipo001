@@ -7,7 +7,7 @@
 @use './mixins' as *;
 
 // ── Google Fonts ─────────────────────────────────────────────
-@import url('https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,400;0,700;1,400&family=Manrope:wght@200;400;600;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&family=DM+Sans:wght@300;400;500&display=swap');
 
 // ── Reset ────────────────────────────────────────────────────
 *,
@@ -34,6 +34,59 @@ body {
   color: $on-surface;
   line-height: 1.6;
   min-height: 100vh;
+  cursor: none;
+}
+
+// ── Custom Cursor ─────────────────────────────────────────────
+// Managed by <CustomCursor /> component
+.cursor-dot,
+.cursor-ring {
+  position: fixed;
+  top: 0; left: 0;
+  pointer-events: none;
+  z-index: 9999;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: opacity 0.3s ease;
+}
+.cursor-dot {
+  width: 6px; height: 6px;
+  background: $primary;
+  box-shadow: 0 0 8px rgba($primary, 0.6);
+}
+.cursor-ring {
+  width: 32px; height: 32px;
+  border: 1px solid rgba($primary, 0.5);
+  background: transparent;
+}
+
+// ── Page Transition ───────────────────────────────────────────
+@keyframes pageFadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.page-transition {
+  animation: pageFadeIn 0.4s cubic-bezier(.22, .61, .36, 1) forwards;
+}
+
+// ── Section Divider editorial ─────────────────────────────────
+.section-divider {
+  width: 1px;
+  height: 80px;
+  background: linear-gradient(to bottom, transparent, rgba($primary, 0.4), transparent);
+  margin: 0 auto;
+  display: block;
+}
+
+// ── Primary button — gold CTA + rectangular luxury ────────────
+.primary-btn {
+  @include btn-primary;
+  display: inline-block;
+  border-radius: 0 !important;
+  letter-spacing: 0.35em;
+  padding: $spacing-md $spacing-2xl;
+  text-align: center;
+  text-decoration: none;
 }
 
 // ── Typography ───────────────────────────────────────────────
@@ -87,10 +140,43 @@ img {
   color: $on-surface;
 }
 
+// ── Skip link (keyboard navigation) ─────────────────────
+.skip-link {
+  position: absolute;
+  top: -100%;
+  left: 0;
+  padding: $spacing-sm $spacing-lg;
+  background: $primary;
+  color: $background;
+  font-family: $font-body;
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  text-decoration: none;
+  z-index: 9999;
+  &:focus { top: 0; }
+}
+
 // ── Focus Visible (keyboard nav) ─────────────────────────
 :focus-visible {
-  outline: 1px solid rgba($primary, 0.5);
-  outline-offset: 2px;
+  outline: 2px solid rgba($primary, 0.8);
+  outline-offset: 3px;
+}
+
+// ── Reduced motion ───────────────────────────────────────
+@media (prefers-reduced-motion: reduce) {
+  .cursor-dot,
+  .cursor-ring { display: none !important; }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .page-transition { animation: none !important; }
 }
 
 // ── Scrollbar ────────────────────────────────────────────────

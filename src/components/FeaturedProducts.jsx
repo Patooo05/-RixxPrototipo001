@@ -1,99 +1,70 @@
-import React, { useContext, useEffect, useState } from "react";
+import { useContext } from "react";
 import { ProductsContext } from "../components/ProductsContext";
 import { useCart } from "../components/CartContext";
 import "../styles/FeaturedProducts.scss";
 
+// Formato de precio luxury: $ 2.400
+const formatPrice = (price) =>
+  "$ " + Number(price).toLocaleString("es-UY");
+
 const FeaturedProducts = () => {
   const { products } = useContext(ProductsContext);
-  const { add } = useCart();
+  const { add, openCart } = useCart();
 
-  const [loading, setLoading] = useState(true);
+  const featuredProducts = products.filter(
+    (p) => p.featured === true && (!p.status || p.status === "activo")
+  );
 
-  // SIMULAR LOADING
-  useEffect(() => {
-    const t = setTimeout(() => setLoading(false), 1200);
-    return () => clearTimeout(t);
-  }, []);
-
-  const featuredProducts = products.filter((p) => p.featured === true);
-
-  // ---- Parallax 3D ----
   const handleParallax = (e) => {
     const card = e.currentTarget;
-    const rect = card.getBoundingClientRect();
-    const x = e.clientX - rect.left - rect.width / 2;
-    const y = e.clientY - rect.top - rect.height / 2;
-
-    card.style.transform = `
-      perspective(900px)
-      rotateY(${x / 30}deg)
-      rotateX(${-y / 30}deg)
-      scale(1.06)
-    `;
+    const rect  = card.getBoundingClientRect();
+    const x = e.clientX - rect.left - rect.width  / 2;
+    const y = e.clientY - rect.top  - rect.height / 2;
+    card.style.transform = `perspective(900px) rotateY(${x / 35}deg) rotateX(${-y / 35}deg) scale(1.03)`;
   };
 
   const resetParallax = (e) => {
     e.currentTarget.style.transform = "perspective(900px) scale(1)";
   };
 
-  // ---- Spotlight ----
   const handleSpotlight = (e) => {
     const card = e.currentTarget;
-    const rect = card.getBoundingClientRect();
-
-    const x = ((e.clientX - rect.left) / rect.width) * 100 + "%";
-    const y = ((e.clientY - rect.top) / rect.height) * 100 + "%";
-
-    card.style.setProperty("--x", x);
-    card.style.setProperty("--y", y);
+    const rect  = card.getBoundingClientRect();
+    card.style.setProperty("--x", ((e.clientX - rect.left) / rect.width  * 100) + "%");
+    card.style.setProperty("--y", ((e.clientY - rect.top)  / rect.height * 100) + "%");
   };
 
   return (
     <section className="featured-products fade-in-on-scroll">
       <header className="featured-header">
+        <span className="featured-eyebrow">Selección editorial</span>
         <h2 className="featured-title">Productos Destacados</h2>
-        <p className="featured-subtitle">
-          Seleccionados para mostrar lo mejor del diseño premium.
-        </p>
       </header>
 
       <div className="featured-grid">
-
-        {/* LOADING SKELETON */}
-        {loading &&
-          [...Array(4)].map((_, i) => (
-            <div key={i} className="skeleton-card"></div>
-          ))}
-
-        {!loading &&
-          featuredProducts.map((p) => (
-            <article
-              key={p.id}
-              className="featured-card"
-              onMouseMove={(e) => {
-                handleParallax(e);
-                handleSpotlight(e);
-              }}
-              onMouseLeave={resetParallax}
-            >
-              <div className="featured-img-wrapper">
-                <img src={p.image} alt={p.name} className="featured-img" />
-              </div>
-
-              <div className="featured-info">
-                <h3 className="featured-name">{p.name}</h3>
-                <span className="price">${p.price}</span>
-
-                <button
-                  className="featured-btn"
-                  onClick={() => add(p, 1)}
-                  disabled={p.stock <= 0}
-                >
-                  {p.stock <= 0 ? "Sin stock" : "Agregar al carrito"}
-                </button>
-              </div>
-            </article>
-          ))}
+        {featuredProducts.map((p, index) => (
+          <article
+            key={p.id}
+            className={`featured-card${index === 0 ? " featured-card--hero" : ""}`}
+            onMouseMove={(e) => { handleParallax(e); handleSpotlight(e); }}
+            onMouseLeave={resetParallax}
+          >
+            <div className="featured-img-wrapper">
+              <img src={p.image} alt={p.name} className="featured-img" />
+            </div>
+            <div className="featured-info">
+              <h3 className="featured-name">{p.name}</h3>
+              <span className="price">{formatPrice(p.price)}</span>
+              <button
+                className="featured-btn primary-btn"
+                onClick={() => { add(p, 1); openCart(); }}
+                disabled={p.stock <= 0}
+              >
+                {p.stock <= 0 ? "Sin stock" : "Agregar al carrito"}
+              </button>
+            </div>
+          </article>
+        ))}
       </div>
     </section>
   );

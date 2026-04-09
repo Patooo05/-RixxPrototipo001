@@ -1,0 +1,124 @@
+@use "variables" as *;
+
+.related-products {
+  background: transparent;
+  padding-top: 4rem;
+  padding-bottom: 6rem;
+
+  &__inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 2rem;
+  }
+
+  // ── Título editorial ──────────────────────────────────────
+  &__title {
+    font-family: $font-headline;
+    font-size: 1.8rem;
+    font-weight: 300;
+    font-style: italic;
+    color: $on-surface;
+    letter-spacing: 0.02em;
+    margin: 0 0 2.5rem 0;
+
+    em { font-style: italic; }
+  }
+
+  // ── Grid de 3 columnas ────────────────────────────────────
+  &__grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: $surface-container; // el gap en fondo surface crea las líneas separadoras
+  }
+
+  // ── Card ──────────────────────────────────────────────────
+  &__card {
+    background: $background;
+    display: flex;
+    flex-direction: column;
+    text-decoration: none;
+    color: inherit;
+    overflow: hidden;
+    transition: background $duration-base $ease;
+
+    &:hover {
+      background: $surface-variant;
+
+      .related-products__card-img {
+        transform: scale(1.03);
+      }
+    }
+  }
+
+  // ── Imagen cuadrada ───────────────────────────────────────
+  &__card-img-wrap {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    overflow: hidden;
+    background: $surface-container;
+  }
+
+  &__card-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform $duration-slow $ease;
+  }
+
+  &__card-placeholder {
+    width: 100%;
+    height: 100%;
+    background: $surface-container;
+  }
+
+  // ── Info de la card ───────────────────────────────────────
+  &__card-body {
+    padding: 1rem 1.25rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+
+  &__card-name {
+    font-family: $font-body;
+    font-size: $body-md;
+    font-weight: 300;
+    color: $on-surface;
+    letter-spacing: 0.04em;
+    margin: 0;
+  }
+
+  &__card-price {
+    font-family: $font-headline;
+    font-size: $title-md;
+    font-weight: 300;
+    color: $primary;
+    letter-spacing: 0.06em;
+    margin: 0;
+  }
+}
+
+// ── Responsive ──────────────────────────────────────────────
+@media (max-width: 768px) {
+  .related-products {
+    &__grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .related-products {
+    padding-top: 3rem;
+
+    &__inner {
+      padding: 0 1.2rem;
+    }
+
+    &__grid {
+      grid-template-columns: 1fr;
+    }
+  }
+}

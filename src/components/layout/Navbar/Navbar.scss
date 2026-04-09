@@ -1,337 +1,284 @@
-/* ==========================
-   VARIABLES
-========================== */
-$gold: #d4af37;
-$text-color: #fff;
-$text-muted: rgba(255,255,255,.65);
-$error: #ff4d4d;
+@use "../../../styles/variables" as *;
+@use "../../../styles/mixins" as *;
 
-/* ==========================
-   MINI NAV BIENVENIDA FIJA
-========================== */
-.navbar__welcome {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  background-color: rgba(0, 0, 0, 0.45);
-  backdrop-filter: blur(6px);
-  padding: 0.6rem 2rem;
-  font-weight: 600;
-  font-size: 0.8rem;
-  text-align: center;
-  color: rgba(255, 255, 255, 0.75);
-  z-index: 250;
+// ── ENTRADA ──────────────────────────────────────────────────
+@keyframes navbarEnter {
+  from { opacity: 0; transform: translateY(-10px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
-.highlight-welcome {
-  color: $gold;
-  font-weight: 700;
-  font-size: 0.9rem;
-  text-shadow: 0 0 5px rgba(255, 215, 0, 0.7);
-  transition: all 1s ease;
-}
-
-/* ==========================
-   ANIMACIONES DE TINTINEO
-========================== */
-@keyframes blink-slow { 0%,100%{opacity:1;} 50%{opacity:0.3;} }
-@keyframes blink-medium { 0%,100%{opacity:1;} 50%{opacity:0.1;} }
-@keyframes blink-fast { 0%,100%{opacity:1;} 50%{opacity:0.2;} }
-
-.blink-slow { animation: blink-slow 1.8s infinite; }
-.blink-medium { animation: blink-medium 1.2s infinite; }
-.blink-fast { animation: blink-fast 0.8s infinite; }
-
-/* ==========================
-   NAVBAR PRINCIPAL
-========================== */
-@keyframes navbarSlowAppear {
-  0% { opacity: 0; transform: translateY(-50px); }
-  100% { opacity: 1; transform: translateY(0); }
-}
+// ── NAVBAR BASE ──────────────────────────────────────────────
+$announcement-bar-height: 32px;
 
 .navbar {
   position: fixed;
-  top: 1.8rem;
+  top: $announcement-bar-height;
+  left: 0;
   width: 100%;
-  padding: 8px 2rem;
-  background-color: rgba(0,0,0,0.45);
-  border-bottom: 1px solid rgba($gold, 0.4);
-  backdrop-filter: blur(6px);
-  z-index: 100;
-  opacity: 0;
-  transform: translateY(-50px);
-  &.fade-in-navbar { animation: navbarSlowAppear 2s ease-in-out forwards; }
+  height: $navbar-height;
+  background: transparent;
+  border-bottom: 1px solid transparent;
+  z-index: 200;
+  animation: navbarEnter 0.9s $ease forwards;
+  transition:
+    background     0.5s $ease,
+    border-color   0.5s $ease,
+    backdrop-filter 0.5s $ease;
 
-  &.scrolled {
-    background-color: rgba(0,0,0,0.7);
-    padding: 5px 2rem;
-    border-bottom: 1px solid rgba($gold,0.7);
-    box-shadow: 0 2px 10px rgba(0,0,0,0.25);
-  }
-
-  &__container {
-    display: grid;
-    grid-template-columns: 1fr auto 1fr;
-    align-items: center;
-    width: 100%;
-    position: relative;
+  &--scrolled {
+    background: rgba($background, 0.88);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba($primary, 0.1);
   }
 }
 
-/* ==========================
-   LOGO NAVBAR
-========================== */
+// ── CONTAINER: 3 columnas simétricas ─────────────────────────
+// [links izq]  [LOGO]  [links der + acciones]
+.navbar__container {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  height: $navbar-height;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 2.5rem;
+}
+
+// ── LOGO — siempre centrado ───────────────────────────────────
 .navbar__logo {
-  margin-top: 0.3rem; // ajuste fino visual
+  justify-self: center;
   display: flex;
-  align-items: center;   // 🔥 centra verticalmente
-  justify-self: start;   // izquierda
+  align-items: center;
 }
 
 .navbar__logo-img {
-  width: 60px;
+  width: 46px;
   height: auto;
-
-  opacity: 0.8;
-  transition: 
-    width 0.4s ease,
-    opacity 0.7s ease;
-
-  &.visible {
-    opacity: 1;
-  }
+  opacity: 0.9;
+  transition: opacity $duration-base $ease;
+  &:hover { opacity: 1; }
 }
 
-/* ==========================
-   LOGO SOLO
-========================== */
-.logo-solo {
-  position: fixed;
-  bottom: 40px;
-  right: 90px;
-  opacity: 0.1;
-  z-index: 150;
-  transition: opacity 3s ease;
-
-  &.fade-in { opacity: 1; }
-
-  img { width: 200px; }
-}
-
-/* ==========================
-   LINKS
-========================== */
-.navbar__links {
-  list-style: none;
+// ── IZQUIERDA ─────────────────────────────────────────────────
+.navbar__left {
   display: flex;
-  gap: 1.5rem;
+  align-items: center;
   justify-self: start;
-  opacity: 0;
-  transform: translateY(-15px);
-  transition: opacity 0.4s ease, transform 0.4s ease;
-
-  &.links-visible {
-    opacity: 1;
-    transform: translateY(0);
-  }
-
-  li a {
-    color: #fff;
-    text-decoration: none;
-    font-weight: 500;
-    position: relative;
-    transition: color 0.3s ease;
-
-    &::after {
-      content: "";
-      position: absolute;
-      bottom: -3px;
-      left: 0;
-      width: 0%;
-      height: 2px;
-      background-color: $gold;
-      transition: width 0.3s ease;
-    }
-    &:hover::after { width: 100%; }
-  }
+  // mobile icons ocultos en desktop
+  .navbar__mobile-icons { display: none; }
 }
 
-/* ==========================
-   ACCIONES NAVBAR
-========================== */
-.navbar__actions {
+// ── DERECHA ───────────────────────────────────────────────────
+.navbar__right {
   display: flex;
   align-items: center;
   justify-self: end;
-  gap: 0.5rem;
-  padding-right: 1rem;
-  position: relative;
-  z-index: 100;
-
-  .user-text, .user-btn {
-    font-weight: 600;
-    border-radius: 6px;
-    padding: 4px 10px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-  }
-
-  .user-text {
-    background-color: rgba(0,0,0,0.3);
-    color: #fff;
-    &:hover {
-      background-color: rgba($gold,0.2);
-      color: $gold;
-      transform: scale(1.05);
-    }
-  }
-
-  .user-btn {
-    background-color: rgba($gold,0.2);
-    border: 1px solid rgba($gold,0.5);
-    color: #fff;
-    &:hover {
-      background-color: rgba($gold,0.4);
-      transform: scale(1.05);
-      box-shadow: 0 2px 6px rgba($gold,0.4);
-    }
-  }
-
-  /* ==========================
-     ICONOS: Carrito, Perfil, Admin
-  ========================== */
-  .icon {
-    width: 23px;
-    height: 23px;
-    object-fit: contain;
-    /* Fuerza todos los iconos a blanco */
-    filter: brightness(0) invert(1);
-  }
-
-  .cart1 {
-    position: relative;
-    padding: 2px;
-    border-radius: 4px;
-    background: none;
-    border: none;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: transform 0.2s ease, background 0.3s ease;
-
-    &:hover { transform: scale(1.1); background: rgba(255,255,255,0.1); }
-
-    .cart-badge {
-      position: absolute;
-      top: -6px;
-      right: -6px;
-      background-color: $gold;
-      color: #0a0a0a;
-      font-size: 0.7rem;
-      font-weight: 700;
-      border-radius: 50%;
-      width: 18px;
-      height: 18px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-  }
-
-  .profile-icon {
-    width: 25px;
-    height: 25px;
-    cursor: pointer;
-    margin-right: 0.5rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: azure;
-  }
-
-  .admin {
-    background: none;
-    border: none;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 2px 4px;
-    margin-left: 1rem;
-  }
-
-  .username { color: #fff; font-weight: 600; margin-right: 0.5rem; }
+  gap: 0;
 }
 
-/* ==========================
-   TOGGLE MOBILE
-========================== */
+// ── LINKS (compartidos) ───────────────────────────────────────
+.navbar__links {
+  list-style: none;
+  display: flex;
+  gap: 2.4rem;
+  margin: 0;
+  padding: 0;
+
+  // links derechos tienen margen derecho antes de los iconos
+  &.navbar__links-right { margin-right: 2rem; }
+
+  li a {
+    font-family: $font-body;
+    font-size: 11px;
+    font-weight: 300;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: rgba($on-surface, 0.55);
+    text-decoration: none;
+    transition: color $duration-base $ease;
+
+    &:hover { color: rgba($on-surface, 0.9); }
+  }
+}
+
+// ── LINK ACTIVO ───────────────────────────────────────────────
+.navbar__link--active {
+  color: $primary !important;
+}
+
+// ── ACTIONS ──────────────────────────────────────────────────
+.navbar__actions {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+}
+
+.nav-icon-btn {
+  background: none;
+  border: none;
+  color: rgba($on-surface, 0.55);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  min-width: 44px;
+  min-height: 44px;
+  position: relative;
+  transition: color $duration-base $ease;
+  text-decoration: none;
+
+  &:hover { color: $primary; }
+}
+
+.nav-cart { position: relative; }
+
+.nav-badge {
+  position: absolute;
+  top: -4px;
+  right: -5px;
+  background: $primary;
+  color: $on-primary;
+  font-size: 9px;
+  font-weight: 700;
+  border-radius: 50%;
+  width: 14px;
+  height: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  letter-spacing: 0;
+  line-height: 1;
+}
+
+// ── AUTH BUTTONS (desktop only) ──────────────────────────────
+.navbar__auth-btns {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+}
+
+.navbar__btn-login {
+  @include btn-secondary;
+  padding: 0.5rem 1.25rem;
+  font-size: 0.6875rem;
+}
+
+.navbar__btn-register {
+  @include btn-primary;
+  padding: 0.5rem 1.25rem;
+  font-size: 0.6875rem;
+}
+
+// ── GREETING ─────────────────────────────────────────────────
+.navbar__greeting {
+  font-family: $font-body;
+  font-size: $body-md;
+  color: $on-surface-variant;
+  font-weight: 400;
+  white-space: nowrap;
+}
+
+// ── TOGGLE MOBILE ─────────────────────────────────────────────
 .navbar__toggle {
   display: none;
   flex-direction: column;
-  gap: 5px;
+  justify-content: center;
+  align-items: center;
+  width: 44px;
+  height: 44px;
+  gap: 6px;
   cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
+  margin-left: $spacing-md;
 
-  .bar { width: 26px; height: 3px; background-color: white; }
+  .bar {
+    width: 22px;
+    height: 1px;
+    background: rgba($on-surface, 0.75);
+    transition: transform $duration-base $ease, opacity $duration-base $ease;
+    transform-origin: center;
+  }
+
+  &--open {
+    .bar:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+    .bar:nth-child(2) { opacity: 0; transform: scaleX(0); }
+    .bar:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+  }
 }
 
-/* ==========================
-   RESPONSIVE
-========================== */
+// ── MOBILE ───────────────────────────────────────────────────
 @media (max-width: 768px) {
 
-  /* ==========================
-     LOGO
-  ========================== */
-  .navbar__logo-img {
-    width: 60px; // mantiene tamaño fijo
+  // Container: [iconos]  [LOGO]  [toggle]
+  .navbar__container {
+    grid-template-columns: 1fr auto 1fr;
+    padding: 0 1.2rem;
   }
 
-  /* ==========================
-     TOGGLE VISIBLE
-  ========================== */
-  .navbar__toggle {
-    display: flex;
+  // Ocultar links izquierda (en desktop)
+  .navbar__left .navbar__links { display: none; }
+
+  // Mostrar iconos mobile junto al logo izquierdo
+  .navbar__left {
+    .navbar__mobile-icons {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+  }
+
+  // Ocultar links y acciones de la derecha desktop
+  .navbar__right {
     justify-self: end;
-    z-index: 300;
+
+    .navbar__links-right { display: none; }
+    .navbar__actions     { display: none; }
   }
 
-  /* ==========================
-     LINKS MOBILE DROPDOWN
-  ========================== */
-  .navbar__links {
-    position: absolute;
-    top: 100%;
+  // Ocultar elementos solo-desktop en mobile
+  .navbar__auth-btns { display: none; }
+  .navbar__greeting  { display: none; }
+
+  // Mostrar toggle
+  .navbar__toggle { display: flex; }
+
+  // Menu mobile fullscreen
+  .navbar__links--open {
+    display: flex !important;
+    position: fixed;
+    top: calc(#{$announcement-bar-height} + #{$navbar-height});
     left: 0;
     width: 100%;
-    background-color: #000;
+    height: calc(100vh - #{$announcement-bar-height} - #{$navbar-height});
+    background: rgba($background, 0.97);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
     flex-direction: column;
     align-items: center;
-    gap: 1.5rem;
-    padding: 2rem 0;
+    justify-content: center;
+    gap: $spacing-2xl;
+    z-index: 199;
+    animation: navbarEnter 0.35s $ease forwards;
 
-    opacity: 0;
-    pointer-events: none;
-    transform: translateY(-10px);
-    transition: all 0.3s ease;
-  }
+    // En mobile el menú muestra todos los links
+    li.navbar__link-mobile-only { display: list-item; }
 
-  /* 🔥 cuando tenga clase active desde React */
-  .navbar__links.active {
-    opacity: 1;
-    pointer-events: auto;
-    transform: translateY(0);
-  }
+    li a {
+      font-size: 14px;
+      letter-spacing: 0.4em;
+      color: rgba($on-surface, 0.7);
 
-  /* Ajustes finos */
-  .navbar__actions {
-    padding-right: 1rem;
-    gap: 0.4rem;
+      &:hover { color: $primary; }
+    }
   }
+}
 
-  .navbar {
-    top: 2.4rem;
-  }
+// ── DESKTOP: ocultar elementos solo-mobile ────────────────────
+@media (min-width: 769px) {
+  .navbar__toggle           { display: none; }
+  .navbar__link-mobile-only { display: none; }
 }

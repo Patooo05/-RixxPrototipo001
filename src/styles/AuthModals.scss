@@ -1,0 +1,217 @@
+// ============================================================
+// AUTH MODALS — Noir Atelier design system
+// ============================================================
+@use './variables' as *;
+@use './mixins' as *;
+
+// ── Overlay ──────────────────────────────────────────────────
+.auth-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba($background, 0.85);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: $spacing-lg;
+  animation: authFadeIn $duration-base $ease;
+}
+
+@keyframes authFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+// ── Modal card ───────────────────────────────────────────────
+.auth-modal {
+  background: $surface-container;
+  border: 1px solid rgba($outline-variant, 0.2);
+  border-radius: $radius-lg;
+  box-shadow: 0 0 120px rgba($primary, 0.07), $shadow-ambient;
+  padding: $spacing-2xl;
+  width: 100%;
+  max-width: 420px;
+  position: relative;
+  animation: authSlideUp $duration-base $ease;
+}
+
+@keyframes authSlideUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+// ── Botón cerrar ─────────────────────────────────────────────
+.auth-modal__close {
+  position: absolute;
+  top: $spacing-md;
+  right: $spacing-md;
+  background: none;
+  border: none;
+  color: $on-surface-variant;
+  cursor: pointer;
+  padding: $spacing-xs;
+  line-height: 1;
+  transition: color $duration-base $ease;
+
+  &:hover { color: $on-surface; }
+
+  svg {
+    display: block;
+  }
+}
+
+// ── Header ───────────────────────────────────────────────────
+.auth-modal__logo {
+  font-family: $font-headline;
+  font-size: 1.5rem;
+  color: $primary;
+  letter-spacing: 0.2em;
+  text-align: center;
+  margin-bottom: $spacing-lg;
+}
+
+.auth-modal__title {
+  font-family: $font-headline;
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: $primary;
+  text-align: center;
+  letter-spacing: -0.02em;
+  margin: 0 0 $spacing-xs;
+}
+
+.auth-modal__subtitle {
+  font-size: 0.875rem;
+  color: $on-surface-variant;
+  text-align: center;
+  margin: 0 0 $spacing-2xl;
+}
+
+// ── Form ─────────────────────────────────────────────────────
+.auth-modal__form {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+}
+
+.auth-modal__field {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xs;
+}
+
+.auth-modal__label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: $on-surface-variant;
+}
+
+.auth-modal__input {
+  background: $surface-container-low;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: $on-surface;
+  font-family: $font-body;
+  font-size: 0.9375rem;
+  padding: $spacing-sm $spacing-md;
+  outline: none;
+  border-radius: $radius-sm $radius-sm 0 0;
+  transition: border-color $duration-base $ease;
+  width: 100%;
+  box-sizing: border-box;
+
+  &::placeholder {
+    color: rgba($on-surface-variant, 0.5);
+  }
+
+  &:focus {
+    border-bottom-color: $primary;
+  }
+
+  &--error {
+    border-bottom-color: $error;
+  }
+}
+
+.auth-modal__error-msg {
+  font-size: 0.75rem;
+  color: $error;
+  margin-top: 2px;
+}
+
+// ── Forgot password ──────────────────────────────────────────
+.auth-modal__forgot {
+  font-size: 0.75rem;
+  color: $on-surface-variant;
+  text-align: right;
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
+  align-self: flex-end;
+  transition: color $duration-base $ease;
+
+  &:hover { color: $on-surface; }
+}
+
+// ── Submit button ────────────────────────────────────────────
+.auth-modal__submit {
+  @include btn-primary;
+  width: 100%;
+  margin-top: $spacing-sm;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none !important;
+    box-shadow: none !important;
+  }
+}
+
+// ── API-level error ──────────────────────────────────────────
+.auth-modal__api-error {
+  font-size: 0.8125rem;
+  color: $error;
+  text-align: center;
+  padding: $spacing-sm;
+  background: rgba($error, 0.08);
+  border-radius: $radius-sm;
+}
+
+// ── Switch link ──────────────────────────────────────────────
+.auth-modal__switch {
+  margin-top: $spacing-lg;
+  text-align: center;
+  font-size: 0.875rem;
+  color: $on-surface-variant;
+
+  button {
+    background: none;
+    border: none;
+    color: $primary;
+    cursor: pointer;
+    font-weight: 600;
+    padding: 0 $spacing-xs;
+    transition: opacity $duration-fast $ease;
+
+    &:hover { opacity: 0.8; }
+  }
+}
+
+// ── 2-column row (for future use) ────────────────────────────
+.auth-modal__row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: $spacing-md;
+
+  @media (max-width: 480px) {
+    grid-template-columns: 1fr;
+  }
+}

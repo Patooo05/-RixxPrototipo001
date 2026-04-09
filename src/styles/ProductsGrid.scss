@@ -1,126 +1,271 @@
 @use "variables" as *;
 @use "mixins" as *;
 
-html, body {
-  margin: 0;
-  padding: 0;
-  width: 100%;
-  background-color: $background;
-}
-
-// ── Página completa ───────────────────────────────────────────────────────────
 .products-grid {
-  padding: 3rem 2rem;
-  margin-top: 6rem;
+  padding: 0 $spacing-xl 8rem;
+  padding-top: calc(#{$navbar-height} + $spacing-3xl); // navbar + breathing
   width: 100%;
-  background-color: $background;
-  font-family: $font-body;
+  background: $background;
   display: flex;
   flex-direction: column;
-  box-sizing: border-box;
+  min-height: 100vh;
 
-  // ── Header ─────────────────────────────────────────────────────────────────
+  // ── Header editorial ──────────────────────────────────────
   &__header {
-    text-align: center;
-    margin-bottom: 2.5rem;
+    max-width: 1200px;
+    margin: 0 auto 5rem;
+    padding-top: $spacing-3xl;
+    border-bottom: 1px solid rgba($primary, 0.08);
+    padding-bottom: $spacing-2xl;
+  }
+
+  &__eyebrow {
+    display: block;
+    font-family: $font-label;
+    font-size: 10px;
+    font-weight: 300;
+    letter-spacing: 0.4em;
+    text-transform: uppercase;
+    color: $primary;
+    margin-bottom: 1.2rem;
   }
 
   &__title {
     font-family: $font-headline;
-    font-size: $display-sm;
-    font-weight: 700;
-    color: $primary;
-    margin: 0 0 0.75rem;
-    letter-spacing: -0.02em;
+    font-size: clamp(2.5rem, 5vw, 5rem);
+    font-weight: 300;
+    font-style: italic;
+    color: $on-surface;
+    letter-spacing: 0.01em;
+    line-height: 1.05;
+    margin: 0 0 1rem;
   }
 
   &__description {
+    font-family: $font-body;
+    font-size: $body-md;
+    font-weight: 300;
     color: $on-surface-variant;
-    max-width: 600px;
-    margin: 0 auto;
-    line-height: 1.6;
-    font-size: $body-lg;
+    max-width: 480px;
+    line-height: 1.7;
+    letter-spacing: 0.01em;
   }
 
-  // ── Cuerpo: sidebar + contenido ────────────────────────────────────────────
+  // ── Body: sidebar + grid ──────────────────────────────────
   &__body {
     display: flex;
-    flex-direction: row;
+    gap: $spacing-3xl;
+    max-width: 1200px;
+    margin: 0 auto;
+    width: 100%;
     align-items: flex-start;
-    gap: 2rem;
   }
 
   &__sidebar {
-    width: 260px;
+    width: 220px;
     flex-shrink: 0;
     position: sticky;
-    top: 7rem;
+    top: calc(#{$navbar-height} + $spacing-xl);
   }
 
-  &__content {
-    flex: 1;
-    min-width: 0;
-  }
+  &__content { flex: 1; min-width: 0; }
 
-  // ── Contador ───────────────────────────────────────────────────────────────
+  // ── Contador — minimalista ────────────────────────────────
   &__counter {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 1rem;
-    background: rgba($on-surface, 0.03);
-    border-radius: $radius-sm;
-    margin-bottom: 2rem;
+    font-family: $font-label;
+    font-size: 10px;
+    font-weight: 300;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
     color: $on-surface-variant;
-    font-size: $body-sm;
-
-    strong { color: $primary; }
+    margin-bottom: 2.5rem;
+    opacity: 0.6;
   }
 
-  // ── Grid ───────────────────────────────────────────────────────────────────
+  // ── Grid ─────────────────────────────────────────────────
   &__items {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 2rem;
+    gap: 1px;               // gap de 1px = efecto masonry editorial
+    background: rgba($on-surface, 0.05); // el 1px de separación en tono
   }
 
-  // ── Estado vacío ───────────────────────────────────────────────────────────
+  // cada card sobre fondo background para tapar el gap color
+  .product-card { background: $background; }
+
+  // ── Estado vacío ─────────────────────────────────────────
   &__empty {
     text-align: center;
-    color: $on-surface-variant;
-    padding: 4rem 1rem;
+    padding: 8rem $spacing-md;
 
     h2 {
       font-family: $font-headline;
+      font-size: $headline-md;
+      font-weight: 300;
+      font-style: italic;
       color: $on-surface;
-      font-size: $headline-sm;
-      margin-bottom: 0.5rem;
+      margin-bottom: 1rem;
     }
 
-    p { margin-bottom: 1.5rem; }
+    p {
+      font-size: $body-md;
+      color: $on-surface-variant;
+      margin-bottom: 2.5rem;
+    }
   }
 
   &__empty-btn {
     @include btn-primary;
-    font-size: $label-md;
+    font-size: 10px;
+    letter-spacing: 0.35em;
+    border-radius: 0;
+    padding: $spacing-md $spacing-2xl;
   }
 }
 
-// ── Responsive ────────────────────────────────────────────────────────────────
+// ── Price range slider ────────────────────────────────────────
+.price-range-slider {
+  margin-top: $spacing-xl;
+  padding-top: $spacing-lg;
+  border-top: 1px solid rgba($primary, 0.08);
+
+  &__label {
+    font-family: $font-label;
+    font-size: 10px;
+    font-weight: 300;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: $on-surface-variant;
+    margin: 0 0 1rem;
+  }
+
+  &__values {
+    color: $primary;
+  }
+
+  &__sr {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  &__track-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  &__input {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 2px;
+    background: rgba($primary, 0.2);
+    outline: none;
+    cursor: pointer;
+    border-radius: 0;
+
+    &::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 14px;
+      height: 14px;
+      background: $primary;
+      cursor: pointer;
+      border-radius: 0;
+      border: none;
+      transition: transform $duration-fast $ease;
+
+      &:hover { transform: scale(1.2); }
+    }
+
+    &::-moz-range-thumb {
+      width: 14px;
+      height: 14px;
+      background: $primary;
+      cursor: pointer;
+      border-radius: 0;
+      border: none;
+    }
+
+    @media (max-width: 480px) {
+      &::-webkit-slider-thumb {
+        width: 20px;
+        height: 20px;
+      }
+      &::-moz-range-thumb {
+        width: 20px;
+        height: 20px;
+      }
+    }
+
+    &::-webkit-slider-runnable-track {
+      height: 2px;
+      background: rgba($primary, 0.2);
+    }
+
+    &::-moz-range-track {
+      height: 2px;
+      background: rgba($primary, 0.2);
+    }
+
+    &:focus::-webkit-slider-thumb {
+      box-shadow: 0 0 0 3px rgba($primary, 0.2);
+    }
+  }
+}
+
+// ── Collection banner ─────────────────────────────────────────
+.collection-banner {
+  padding: $section-padding-y $spacing-xl;
+  border-bottom: 1px solid rgba($primary, 0.15);
+  margin-bottom: $spacing-xl;
+
+  &__title {
+    font-family: $font-headline;
+    font-size: clamp(2rem, 4vw, 3.5rem);
+    font-weight: 300;
+    font-style: italic;
+    color: $on-surface;
+    margin: 0 0 0.75rem;
+    letter-spacing: 0.01em;
+    line-height: 1.1;
+  }
+
+  &__description {
+    font-family: $font-body;
+    font-size: $body-md;
+    font-weight: 300;
+    color: $on-surface-variant;
+    margin: 0;
+    letter-spacing: 0.02em;
+    line-height: 1.6;
+  }
+}
+
+// ── Responsive ────────────────────────────────────────────────
 @media (max-width: 1024px) {
-  .products-grid__sidebar { width: 220px; }
-  .products-grid__items { grid-template-columns: repeat(2, 1fr); }
+  .products-grid {
+    &__sidebar { width: 180px; }
+    &__items   { grid-template-columns: repeat(2, 1fr); }
+  }
 }
 
 @media (max-width: 768px) {
   .products-grid {
-    padding: 2rem 1rem;
-    margin-top: 5rem;
+    padding: calc(#{$navbar-height} + $spacing-xl) $spacing-md $spacing-3xl;
+
+    &__body      { flex-direction: column; gap: $spacing-xl; }
+    &__sidebar   { width: 100%; position: static; }
+    &__items     { grid-template-columns: repeat(2, 1fr); }
+    &__title     { font-size: clamp(2rem, 8vw, 3rem); }
   }
-  .products-grid__title { font-size: $headline-lg; }
-  .products-grid__body { flex-direction: column; }
-  .products-grid__sidebar { width: 100%; position: static; }
-  .products-grid__items { grid-template-columns: repeat(2, 1fr); gap: 1rem; }
 }
 
 @media (max-width: 480px) {

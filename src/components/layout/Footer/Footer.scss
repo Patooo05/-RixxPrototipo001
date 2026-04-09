@@ -1,135 +1,140 @@
-/* ==========================
-   Footer.scss (FINAL COMPLETO)
-========================== */
+@use "../../../styles/variables" as *;
+@use "../../../styles/mixins" as *;
 
 .footer {
+  background: $surface-container-lowest;
+  border-top: 1px solid rgba($primary, 0.15);
+  padding: $section-padding-y-hero $spacing-xl $spacing-2xl;
   position: relative;
   overflow: hidden;
 
-  background-color: rgba(0, 0, 0, 0.85);
-  border-top: 2px solid #d4af37;
-  padding: 3rem 0 1.5rem;
-  color: #d4af37;
- 
+  // Logo watermark
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image: url("../../../assets/img/logo_vertical_invert.png");
+    background-repeat: no-repeat;
+    background-position: center 4rem;
+    background-size: 30%;
+    opacity: 0.04;
+    pointer-events: none;
+  }
+}
 
-  &__container {
-    max-width: 1200px;
-    margin: 0 auto;
-    
+// ── GRID 4 COLUMNAS ──────────────────────────────────────────
+.footer__grid {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr 1fr 1fr;
+  gap: $spacing-2xl;
+  max-width: 1200px;
+  margin: 0 auto $spacing-3xl;
+  position: relative;
+}
 
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+// ── COLUMNA BASE ─────────────────────────────────────────────
+.footer__col { display: flex; flex-direction: column; gap: 1.2rem; }
+
+// ── WORDMARK ─────────────────────────────────────────────────
+.footer__wordmark {
+  font-family: $font-headline;
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  color: $primary;
+  line-height: 1;
+}
+
+.footer__tagline {
+  font-family: $font-headline;
+  font-size: $body-md;
+  font-style: italic;
+  color: $on-surface-variant;
+  line-height: 1.5;
+  max-width: 220px;
+}
+
+// ── HEADINGS ─────────────────────────────────────────────────
+.footer__heading {
+  font-family: $font-label;
+  font-size: 10px;
+  font-weight: 400;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  color: $on-surface-variant;
+  margin-bottom: 0.4rem;
+}
+
+// ── LISTS ────────────────────────────────────────────────────
+.footer__list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+
+  li, a {
+    font-family: $font-body;
+    font-size: $label-md;
+    font-weight: 300;
+    letter-spacing: 0.08em;
+    color: rgba($on-surface, 0.5);
+    text-decoration: none;
+    transition: color $duration-base $ease;
+  }
+
+  a:hover { color: $primary; }
+
+  // Contacto — texto plain sin hover
+  &--plain li {
+    color: rgba($on-surface, 0.4);
+    cursor: default;
+  }
+}
+
+// Links de contacto dentro de lista plain
+.footer__phone-link {
+  color: rgba($on-surface, 0.4);
+  cursor: pointer;
+  &:hover { color: $primary; }
+}
+
+// ── BOTTOM ───────────────────────────────────────────────────
+.footer__bottom {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding-top: $spacing-xl;
+  border-top: 1px solid rgba($on-surface, 0.06);
+  text-align: center;
+  position: relative;
+
+  span {
+    font-family: $font-label;
+    font-size: 10px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: $on-surface-variant;
+    opacity: 0.5;
+  }
+}
+
+// ── RESPONSIVE ───────────────────────────────────────────────
+@media (max-width: 900px) {
+  .footer__grid {
+    grid-template-columns: 1fr 1fr;
     gap: 2.5rem;
   }
-
-  /* ----- BRAND ----- */
-  &__logo {
-    font-size: 2rem;
-    font-weight: bold;
-    color: #d4af37;
-    letter-spacing: 2px;
-  }
-
-  &__text {
-    margin-top: 1rem;
-    color: #ccc;
-    line-height: 1.5;
-    max-width: 250px;
-  }
-
-  /* ----- COLUMNAS ----- */
-  h3 {
-    color: #fff;
-    margin-bottom: 1rem;
-    font-size: 1.1rem;
-  }
-
-  ul {
-    list-style: none;
-    padding: 0;
-
-    li {
-      margin-bottom: 0.6rem;
-
-      a {
-        color: #d4af37;
-        transition: all 0.3s;
-
-        &:hover {
-          color: #fff;
-          padding-left: 4px;
-        }
-      }
-    }
-  }
-
-  /* ----- SOCIAL ICONS ----- */
-  &__social {
-    display: flex;
-    gap: 1rem;
-
-    a {
-      font-size: 1.5rem;
-      color: #d4af37;
-      transition: transform 0.3s, color 0.3s;
-
-      &:hover {
-        transform: scale(1.2);
-        color: #fff;
-      }
-    }
-  }
-
-  /* ----- BOTTOM ----- */
-  &__bottom {
-    text-align: center;
-    margin-top: 3rem;
-    padding-top: 1.5rem;
-    border-top: 1px solid #333;
-
-    p {
-      color: #aaa;
-      font-size: 0.9rem;
-    }
-  }
 }
 
-/* ==========================
-   LOGO PNG COMO FONDO (OPACIDAD + BAJADO)
-========================== */
-
-.footer::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-
-  background-image: url("../assets/img/logo_vertical_invert.png");
-  background-repeat: no-repeat;
-
-  /* 🔥 Logo bajado 10rem */
-  background-position: center 10rem;
-
-  background-size: 50%;
-  opacity: 0.12;
-  pointer-events: none;
-  z-index: 1;
-}
-
-/* Asegura que el contenido esté por encima */
-.footer * {
-  position: relative;
-  z-index: 2;
-}
-
-/* ==========================
-   RESPONSIVE
-========================== */
-@media (max-width: 600px) {
+@media (max-width: 540px) {
   .footer {
-    text-align: center;
-
-    &__social {
-      justify-content: center;
-    }
+    padding: $spacing-3xl $section-padding-x-mobile 2.5rem;
   }
+  .footer__grid {
+    grid-template-columns: 1fr;
+    gap: $gap-grid;
+    text-align: center;
+  }
+  .footer__tagline { max-width: 100%; }
 }
