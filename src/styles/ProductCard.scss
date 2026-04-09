@@ -107,7 +107,12 @@
   &__quick-overlay {
     position: absolute;
     inset: 0;
-    background: rgba($background, 0.5);
+    background: linear-gradient(
+      to top,
+      rgba($background, 0.82) 0%,
+      rgba($background, 0.38) 50%,
+      rgba($background, 0.08) 100%
+    );
     display: flex;
     align-items: center;
     justify-content: center;
@@ -142,6 +147,7 @@
       background: $primary;
       color: $on-primary;
       border-color: $primary;
+      box-shadow: 0 0 20px rgba($primary, 0.30);
     }
   }
 

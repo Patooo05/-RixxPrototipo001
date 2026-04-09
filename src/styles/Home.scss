@@ -170,7 +170,7 @@
   .middle-text {
     width: 100%;
     max-width: 900px;
-    margin: 10rem auto;
+    margin: 6rem auto;
     padding: 0 $spacing-xl;
     text-align: center;
     background: transparent;
@@ -189,7 +189,7 @@
 
   // ── EDITORIAL STRIP ─────────────────────────────────────────
   .editorial-strip {
-    padding: 10rem $spacing-xl;
+    padding: 6rem $spacing-xl;
     text-align: center;
 
     &__tag {
@@ -272,7 +272,7 @@
   .social-box {
     text-align: center;
     max-width: 480px;
-    margin: 8rem auto $section-padding-y-hero;
+    margin: 5rem auto $section-padding-y-hero;
     display: flex;
     flex-direction: column;
     gap: 0.6rem;

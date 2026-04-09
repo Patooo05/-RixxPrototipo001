@@ -64,6 +64,10 @@ $on-error:           #690005;
 $on-error-container: #ffdad6;
 
 // ── Gold Hierarchy ───────────────────────────────────────────
+// $primary    (#D4AF37) — acciones primarias, CTA, precios
+// $gold-light (#E8C96A) — hover states, precio en destaque, dot activo
+// $gold-dark  (#B8962E) — estado presionado, sombras cálidas
+// $gold-muted (#99907c) — texto secundario, on-surface-variant dorado
 $gold-light: #E8C96A;
 $gold-dark:  #B8962E;
 $gold-muted: #99907c;

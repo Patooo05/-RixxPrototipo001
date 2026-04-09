@@ -7,10 +7,13 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "render": "remotion render"
   },
   "dependencies": {
     "@faker-js/faker": "^10.1.0",
+    "@remotion/cli": "^4.0.447",
+    "@remotion/player": "^4.0.447",
     "body-parser": "^2.2.1",
     "cors": "^2.8.5",
     "express": "^5.1.0",
@@ -24,6 +27,7 @@
     "react-slick": "^0.31.0",
     "react-toastify": "^11.0.5",
     "recharts": "^3.5.1",
+    "remotion": "^4.0.447",
     "sass": "^1.94.2",
     "slick-carousel": "^1.8.1",
     "socket.io": "^4.8.1",

@@ -216,7 +216,11 @@
   justify-content: center;
   padding: 4rem 4rem 3rem;
   overflow: hidden;
-  background: $surface-container-lowest;
+  background: radial-gradient(
+    ellipse at 50% 60%,
+    rgba($primary, 0.04) 0%,
+    $surface-container-lowest 65%
+  );
 }
 
 // ── CONTENIDO VISUAL ──────────────────────────────────────────────
@@ -257,7 +261,7 @@
   z-index: 1;
   width: 100%;
   max-width: 480px;
-  animation: ccFloat 5s ease-in-out infinite;
+  animation: ccFloat 3.5s ease-in-out infinite;
 
   svg {
     width: 100%;
@@ -308,6 +312,7 @@
 
   &--active {
     width: 32px;
+    background: $gold-light;
   }
 }
 

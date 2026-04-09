@@ -2,7 +2,16 @@
   "permissions": {
     "allow": [
       "Bash(npm run:*)",
-      "Bash(grep -E \"\\\\.\\(md|js|json\\)$\")"
+      "Bash(grep -E \"\\\\.\\(md|js|json\\)$\")",
+      "Skill(claude-api)",
+      "Bash(mkdir -p C:/Users/user/Desktop/Maqueta01Rixx/rixx/server)",
+      "Bash(mkdir -p C:/Users/user/Desktop/Maqueta01Rixx/rixx/src/dashboard)",
+      "Bash(mkdir -p C:/Users/user/Desktop/Maqueta01Rixx/rixx/src/services)",
+      "Bash(npm install:*)",
+      "Bash(grep -E \"^\\\\\\\\\\\\$\\(success|tertiary|on-primary|error-container|on-error|on-error-container|surface-container-high|outline-variant|radius-lg|radius-md|radius-sm|label-sm|label-md|label-lg|body-sm|body-md|headline-sm|headline-lg|title-lg|duration-fast|ease|font-label|font-body|font-headline\\)\" src/styles/variables.scss)",
+      "Bash(node -e \"require\\('sharp'\\)\")",
+      "Bash(node scripts/compress-assets.js)",
+      "Bash(winget install:*)"
     ]
   }
 }
