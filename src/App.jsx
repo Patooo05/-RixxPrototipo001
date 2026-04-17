@@ -18,6 +18,9 @@ const Dashboard     = lazy(() => import("./dashboard/Dashboard.jsx"));
 const Nosotros      = lazy(() => import("./components/Nosotros.jsx"));
 const Contacto      = lazy(() => import("./components/Contacto.jsx"));
 const Checkout      = lazy(() => import("./components/Checkout.jsx"));
+const MyOrders      = lazy(() => import("./components/MyOrders.jsx"));
+const Favorites     = lazy(() => import("./components/Favorites.jsx"));
+const NotFound      = lazy(() => import("./components/NotFound.jsx"));
 
 const PageLoader = () => (
   <div style={{ minHeight: "60vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -73,6 +76,8 @@ function App() {
                 <Route path="/admin"        element={<ProtectedAdminRoute><Admin /></ProtectedAdminRoute>} />
                 <Route path="/dashboard"   element={<ProtectedAdminRoute><Dashboard /></ProtectedAdminRoute>} />
                 <Route path="/perfil"       element={<Profile />} />
+                <Route path="/mis-pedidos"  element={<MyOrders />} />
+                <Route path="/favoritos"    element={<Favorites />} />
                 {/* Páginas de contenido */}
                 <Route path="/checkout"     element={<Checkout />} />
                 <Route path="/about"        element={<Nosotros />} />
@@ -82,7 +87,7 @@ function App() {
                 <Route path="/cambios"      element={<Navigate to="/" replace />} />
                 <Route path="/preguntas"    element={<Navigate to="/" replace />} />
                 <Route path="/terminos"     element={<Navigate to="/" replace />} />
-                <Route path="*"             element={<Navigate to="/" replace />} />
+                <Route path="*"             element={<NotFound />} />
               </Routes>
               </Suspense>
             </PageWrapper>

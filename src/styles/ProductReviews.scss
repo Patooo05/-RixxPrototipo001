@@ -1,0 +1,572 @@
+// ============================================================
+// ProductReviews.scss — Noir Atelier Design System
+// ============================================================
+@use "variables" as *;
+@use "mixins" as *;
+
+// ── Section root ─────────────────────────────────────────────
+.reviews {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: $spacing-3xl $spacing-xl $spacing-2xl;
+  color: $on-surface;
+
+  @include respond-to(mobile) {
+    padding: $spacing-2xl $section-padding-x-mobile $spacing-xl;
+  }
+}
+
+// ── Header row ───────────────────────────────────────────────
+.reviews__header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: $spacing-md;
+  margin-bottom: $spacing-xl;
+  padding-bottom: $spacing-md;
+  border-bottom: 1px solid rgba($outline-variant, 0.18);
+
+  @include respond-to(mobile) {
+    flex-wrap: wrap;
+    gap: $spacing-sm;
+  }
+}
+
+.reviews__heading {
+  font-family: $font-headline;
+  font-size: $headline-sm;
+  font-weight: 300;
+  letter-spacing: 0.02em;
+  color: $on-surface;
+  margin: 0;
+
+  em { font-style: italic; }
+}
+
+// "Dejar reseña" CTA — ghost secondary style
+.reviews__cta {
+  @include btn-secondary;
+  font-size: 10px;
+  letter-spacing: 0.35em;
+  padding: 0.6rem 1.4rem;
+  border-radius: 0;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+// ── Summary block ────────────────────────────────────────────
+.reviews__summary {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: $spacing-2xl;
+  align-items: center;
+  margin-bottom: $spacing-2xl;
+  padding: $spacing-xl $spacing-xl;
+  background: $surface-container;
+  border: 1px solid rgba($outline-variant, 0.12);
+
+  @include respond-to(mobile) {
+    grid-template-columns: 1fr;
+    gap: $spacing-lg;
+    padding: $spacing-lg $spacing-md;
+  }
+}
+
+// Left: giant number
+.reviews__average {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: $spacing-xs;
+  min-width: 7rem;
+
+  @include respond-to(mobile) {
+    flex-direction: row;
+    align-items: center;
+    gap: $spacing-md;
+    min-width: unset;
+  }
+}
+
+.reviews__average-num {
+  font-family: $font-headline;
+  font-size: 4rem;
+  font-weight: 300;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  color: $primary;
+  @include tabular-nums;
+
+  @include respond-to(mobile) {
+    font-size: 3rem;
+  }
+}
+
+.reviews__average-total {
+  font-family: $font-body;
+  font-size: $body-sm;
+  font-weight: 300;
+  letter-spacing: 0.06em;
+  color: $on-surface-variant;
+  white-space: nowrap;
+}
+
+// Right: distribution bars
+.reviews__distribution {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xs;
+}
+
+.reviews__dist-row {
+  display: grid;
+  grid-template-columns: 1.8rem 1fr 2rem;
+  align-items: center;
+  gap: $spacing-sm;
+}
+
+.reviews__dist-label {
+  font-family: $font-body;
+  font-size: $body-sm;
+  font-weight: 400;
+  color: $on-surface-variant;
+  @include tabular-nums;
+  text-align: right;
+}
+
+.reviews__dist-track {
+  height: 4px;
+  background: rgba($primary, 0.12);
+  border-radius: $radius-full;
+  overflow: hidden;
+}
+
+.reviews__dist-fill {
+  height: 100%;
+  background: $primary;
+  border-radius: $radius-full;
+  transition: width $duration-slow $ease;
+}
+
+.reviews__dist-count {
+  font-family: $font-body;
+  font-size: $body-sm;
+  color: $on-surface-variant;
+  @include tabular-nums;
+}
+
+// Empty state
+.reviews__empty {
+  font-family: $font-body;
+  font-size: $body-md;
+  font-weight: 300;
+  color: $on-surface-variant;
+  line-height: 1.7;
+  margin: 0;
+  grid-column: 1 / -1;
+}
+
+.reviews__empty-link {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: 400;
+  color: $primary;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: color $duration-fast $ease;
+
+  &:hover { color: $gold-light; }
+}
+
+// ── Star row (static display) ────────────────────────────────
+.star-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  color: $primary;
+
+  &__star {
+    display: block;
+    color: $primary;
+    flex-shrink: 0;
+
+    &--empty {
+      color: rgba($primary, 0.2);
+    }
+
+    &--half {
+      color: $primary;
+    }
+  }
+}
+
+// Contextual sizes for average stars
+.reviews__average-stars {
+  .star-row__star { width: 20px; height: 20px; }
+}
+
+.reviews__item-stars {
+  .star-row__star { width: 14px; height: 14px; }
+  gap: 1px;
+}
+
+// ── Review list ──────────────────────────────────────────────
+.reviews__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.reviews__item {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+  padding: $spacing-lg 0;
+  border-bottom: 1px solid rgba($outline-variant, 0.10);
+
+  &:first-child {
+    border-top: 1px solid rgba($outline-variant, 0.10);
+  }
+}
+
+.reviews__item-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: $spacing-md;
+  flex-wrap: wrap;
+}
+
+.reviews__item-meta {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  flex-wrap: wrap;
+}
+
+.reviews__item-author {
+  font-family: $font-body;
+  font-size: $body-md;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+  color: $on-surface;
+}
+
+.reviews__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3em;
+  font-family: $font-label;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: $primary;
+  border: 1px solid rgba($primary, 0.25);
+  padding: 0.15rem 0.55rem;
+  border-radius: $radius-sm;
+  background: rgba($primary, 0.05);
+}
+
+.reviews__item-date {
+  font-family: $font-body;
+  font-size: $body-sm;
+  font-weight: 300;
+  color: $on-surface-variant;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.reviews__item-comment {
+  font-family: $font-body;
+  font-size: $body-md;
+  font-weight: 300;
+  color: rgba($on-surface, 0.82);
+  line-height: 1.75;
+  letter-spacing: 0.01em;
+  margin: 0;
+}
+
+// ── Load more ────────────────────────────────────────────────
+.reviews__load-more {
+  @include btn-secondary;
+  display: block;
+  margin: $spacing-xl auto 0;
+  font-size: 10px;
+  letter-spacing: 0.35em;
+  padding: 0.75rem 2rem;
+  border-radius: 0;
+  cursor: pointer;
+}
+
+// ── Skeleton loader ──────────────────────────────────────────
+@keyframes skeleton-shimmer {
+  0%   { background-position: -400px 0; }
+  100% { background-position:  400px 0; }
+}
+
+%skeleton-base {
+  border-radius: $radius-sm;
+  background: linear-gradient(
+    90deg,
+    $surface-container       0%,
+    $surface-container-high  50%,
+    $surface-container       100%
+  );
+  background-size: 800px 100%;
+  animation: skeleton-shimmer 1.6s ease-in-out infinite;
+}
+
+.reviews__skeleton-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.reviews__skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+  padding: $spacing-lg 0;
+  border-bottom: 1px solid rgba($outline-variant, 0.10);
+
+  &:first-child { border-top: 1px solid rgba($outline-variant, 0.10); }
+}
+
+.reviews__skeleton-line {
+  @extend %skeleton-base;
+  height: 14px;
+  width: 100%;
+
+  &--short  { width: 30%; height: 13px; }
+  &--stars  { width: 90px; height: 13px; }
+  &--long   { width: 75%; }
+}
+
+// ── Form wrapper ─────────────────────────────────────────────
+.reviews__form-wrap {
+  margin-top: $spacing-2xl;
+  border-top: 1px solid rgba($outline-variant, 0.18);
+  padding-top: $spacing-xl;
+}
+
+.reviews__form-inner {
+  max-width: 560px;
+}
+
+.reviews__form-title {
+  font-family: $font-headline;
+  font-size: $title-lg;
+  font-weight: 300;
+  font-style: italic;
+  letter-spacing: 0.02em;
+  color: $on-surface;
+  margin: 0 0 $spacing-xl;
+}
+
+.reviews__form {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-lg;
+}
+
+// Field wrapper
+.reviews__field {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xs;
+}
+
+.reviews__label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $spacing-sm;
+  font-family: $font-label;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  color: $on-surface-variant;
+}
+
+.reviews__char-count {
+  font-size: 10px;
+  font-weight: 400;
+  letter-spacing: 0.05em;
+  color: rgba($on-surface-variant, 0.65);
+  text-transform: none;
+}
+
+// Shared input styles
+%input-base {
+  width: 100%;
+  background: $surface-container;
+  border: 1px solid rgba($outline-variant, 0.2);
+  color: $on-surface;
+  font-family: $font-body;
+  font-size: $body-md;
+  font-weight: 300;
+  letter-spacing: 0.02em;
+  padding: 0.75rem 1rem;
+  border-radius: $radius-sm;
+  outline: none;
+  transition:
+    border-color $duration-base $ease,
+    background   $duration-base $ease,
+    box-shadow   $duration-base $ease;
+  box-sizing: border-box;
+
+  &::placeholder { color: rgba($on-surface-variant, 0.45); }
+
+  &:focus {
+    border-color: rgba($primary, 0.5);
+    background: $surface-container-high;
+    box-shadow: 0 0 0 3px rgba($primary, 0.08);
+  }
+}
+
+.reviews__input {
+  @extend %input-base;
+}
+
+.reviews__textarea {
+  @extend %input-base;
+  resize: vertical;
+  min-height: 6rem;
+  line-height: 1.6;
+}
+
+.reviews__input--error {
+  border-color: rgba($error, 0.55) !important;
+  background: rgba($error-container, 0.04) !important;
+}
+
+.reviews__error {
+  font-family: $font-body;
+  font-size: $body-sm;
+  font-weight: 400;
+  color: $error;
+  letter-spacing: 0.01em;
+
+  &--submit {
+    background: rgba($error-container, 0.12);
+    border: 1px solid rgba($error, 0.25);
+    padding: 0.6rem 0.85rem;
+    border-radius: $radius-sm;
+  }
+}
+
+// ── Star picker ──────────────────────────────────────────────
+.reviews__star-picker {
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+
+.reviews__star-btn {
+  background: none;
+  border: none;
+  padding: $spacing-xs;
+  cursor: pointer;
+  color: rgba($primary, 0.22);
+  line-height: 0;
+  transition: color $duration-fast $ease, transform $duration-fast $ease;
+
+  &--active {
+    color: $primary;
+  }
+
+  &:hover,
+  &:focus-visible {
+    color: $gold-light;
+    transform: scale(1.15);
+    outline: none;
+  }
+
+  &:active {
+    transform: scale(0.92);
+  }
+}
+
+// ── Form actions ─────────────────────────────────────────────
+.reviews__form-actions {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+  padding-top: $spacing-xs;
+
+  @include respond-to(mobile) {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+.reviews__submit {
+  @include btn-primary;
+  font-size: 10px;
+  letter-spacing: 0.35em;
+  padding: 0.85rem 2rem;
+  border-radius: 0;
+  cursor: pointer;
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+  }
+}
+
+.reviews__cancel {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: $font-body;
+  font-size: $body-sm;
+  font-weight: 300;
+  letter-spacing: 0.06em;
+  color: $on-surface-variant;
+  padding: 0;
+  transition: color $duration-base $ease;
+
+  &:hover { color: $on-surface; }
+
+  @include respond-to(mobile) {
+    text-align: center;
+    padding: $spacing-xs 0;
+  }
+}
+
+// ── Success state ────────────────────────────────────────────
+.reviews__success {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: $spacing-sm;
+  padding: $spacing-lg $spacing-xl;
+  background: rgba($primary, 0.04);
+  border: 1px solid rgba($primary, 0.2);
+  border-radius: $radius-sm;
+}
+
+.reviews__success-icon {
+  font-size: 1.4rem;
+  color: $primary;
+  line-height: 1;
+}
+
+.reviews__success-msg {
+  font-family: $font-body;
+  font-size: $body-md;
+  font-weight: 300;
+  color: $on-surface;
+  letter-spacing: 0.02em;
+  margin: 0;
+}

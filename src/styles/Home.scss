@@ -28,18 +28,19 @@
   .banner {
     position: relative;
     width: 100%;
-    height: 100vh;
+    height: 88vh;
+    min-height: 480px;
     overflow: hidden;
     background: $background;
 
-    .banner__slide {
+    .banner__bg {
       position: absolute;
       inset: 0;
-      z-index: 1;
-      opacity: 0;
-      transition: opacity 1.2s $ease;
-      video { width: 100%; height: 100%; object-fit: cover; object-position: center bottom; display: block; }
-      &--active { opacity: 1; }
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center 65%;
+      z-index: 0;
     }
 
     .banner-overlay {
@@ -291,6 +292,9 @@
   @media (max-width: 768px) {
     .middle-text { margin: $section-padding-y-hero auto; }
     .editorial-strip { padding: $section-padding-y-hero $spacing-xl; }
+    .banner {
+      height: 78vh;
+    }
     .banner .banner__content {
       padding: 0 4vw 6vh;
       .presentation-card { padding: 0; }

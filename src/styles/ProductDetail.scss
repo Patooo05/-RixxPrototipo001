@@ -132,6 +132,52 @@
     letter-spacing: 0.06em;
   }
 
+  // ── Wishlist + Share row ─────────────────────────────────
+  &__actions-row {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: $spacing-md;
+    flex-wrap: wrap;
+  }
+
+  &__wish-btn,
+  &__share-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: transparent;
+    border: 1px solid rgba($outline-variant, 0.2);
+    border-radius: $radius-sm;
+    color: $on-surface-variant;
+    font-family: $font-label;
+    font-size: 10px;
+    font-weight: 300;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    padding: 0.65rem 1.25rem;
+    cursor: pointer;
+    transition: color $duration-base $ease,
+                border-color $duration-base $ease,
+                background $duration-base $ease;
+
+    &:hover {
+      color: $primary;
+      border-color: rgba($primary, 0.35);
+      background: rgba($primary, 0.04);
+    }
+  }
+
+  &__wish-btn--active {
+    color: $primary;
+    border-color: rgba($primary, 0.3);
+
+    &:hover {
+      color: $gold-light;
+      border-color: rgba($primary, 0.5);
+    }
+  }
+
   &__description {
     font-family: $font-body;
     font-size: $body-lg;

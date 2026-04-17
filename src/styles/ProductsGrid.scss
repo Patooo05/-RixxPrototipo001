@@ -85,13 +85,15 @@
   // ── Grid ─────────────────────────────────────────────────
   &__items {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1px;               // gap de 1px = efecto masonry editorial
-    background: rgba($on-surface, 0.05); // el 1px de separación en tono
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1.5rem;
+    align-items: stretch;
   }
 
-  // cada card sobre fondo background para tapar el gap color
-  .product-card { background: $background; }
+  .product-card {
+    background: $surface-container-lowest;
+    height: 100%;
+  }
 
   // ── Estado vacío ─────────────────────────────────────────
   &__empty {
@@ -111,7 +113,40 @@
       font-size: $body-md;
       color: $on-surface-variant;
       margin-bottom: 2.5rem;
+      line-height: 1.8;
+
+      strong {
+        color: $primary;
+        font-weight: 400;
+      }
     }
+
+    // ── Variante: colección próximamente ──────────────────
+    &--collection {
+      padding: 6rem $spacing-md;
+      border: 1px solid rgba($primary, 0.08);
+      position: relative;
+
+      &::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(ellipse at center, rgba($primary, 0.04) 0%, transparent 70%);
+        pointer-events: none;
+      }
+    }
+  }
+
+  &__empty-eyebrow {
+    display: block;
+    font-family: $font-label;
+    font-size: 9px;
+    font-weight: 400;
+    letter-spacing: 0.45em;
+    text-transform: uppercase;
+    color: $primary;
+    margin-bottom: $spacing-lg;
+    opacity: 0.8;
   }
 
   &__empty-btn {
@@ -253,7 +288,7 @@
 @media (max-width: 1024px) {
   .products-grid {
     &__sidebar { width: 180px; }
-    &__items   { grid-template-columns: repeat(2, 1fr); }
+    &__items   { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   }
 }
 
@@ -263,11 +298,53 @@
 
     &__body      { flex-direction: column; gap: $spacing-xl; }
     &__sidebar   { width: 100%; position: static; }
-    &__items     { grid-template-columns: repeat(2, 1fr); }
+    &__items     { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     &__title     { font-size: clamp(2rem, 8vw, 3rem); }
   }
 }
 
 @media (max-width: 480px) {
-  .products-grid__items { grid-template-columns: 1fr; }
+  .products-grid__items { grid-template-columns: minmax(0, 1fr); }
+}
+
+// ── Mini beneficios ───────────────────────────────────────────
+.products-benefits {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  padding: 1.75rem 2rem;
+  border-top: 1px solid rgba(212, 175, 55, 0.1);
+  flex-wrap: wrap;
+  margin-top: 2rem;
+
+  span {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 10px;
+    font-weight: 300;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: rgba(153, 144, 124, 0.7);
+
+    svg { color: rgba(212, 175, 55, 0.7); flex-shrink: 0; }
+  }
+
+  &__dot {
+    display: block !important;
+    width: 3px;
+    height: 3px;
+    border-radius: 50%;
+    background: rgba(212, 175, 55, 0.25);
+    flex-shrink: 0;
+  }
+
+  @media (max-width: 600px) {
+    gap: 1rem;
+    padding: 1.25rem 1rem;
+    &__dot { display: none !important; }
+    span { font-size: 9px; }
+  }
 }

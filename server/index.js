@@ -2,29 +2,39 @@ import "dotenv/config";
 import express from "express";
 import cors from "cors";
 import Anthropic from "@anthropic-ai/sdk";
+import apiRoutes from "./src/routes/index.js";
+import { startAutomationJobs } from "./src/jobs/automation.js";
 
 const app  = express();
 const PORT = process.env.PORT || 4000;
 const ORIGIN = process.env.FRONTEND_ORIGIN || "http://localhost:5173";
 
-// ── Validate API key at startup ───────────────────────────────────
-const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
-if (!ANTHROPIC_API_KEY || ANTHROPIC_API_KEY === "your_api_key_here") {
-  console.error("\n  ❌  ANTHROPIC_API_KEY no configurada.");
-  console.error("  Abrí server/.env y pegá tu clave de https://console.anthropic.com\n");
-  process.exit(1);
-}
-
 app.use(cors({ origin: ORIGIN }));
 app.use(express.json());
 
-const client = new Anthropic({ apiKey: ANTHROPIC_API_KEY });
+// ── API Routes ────────────────────────────────────────────────────
+app.use("/api", apiRoutes);
+startAutomationJobs();
+
+// ── AI client (opcional — el servidor arranca sin esta clave) ─────
+const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
+let client = null;
+if (!ANTHROPIC_API_KEY || ANTHROPIC_API_KEY === "your_api_key_here") {
+  console.warn("\n  ⚠️   ANTHROPIC_API_KEY no configurada — el endpoint /api/ai-system estará deshabilitado.");
+  console.warn("  Para habilitarlo: abrí server/.env y pegá tu clave de https://console.anthropic.com\n");
+} else {
+  client = new Anthropic({ apiKey: ANTHROPIC_API_KEY });
+}
 
 // ── Health check ─────────────────────────────────────────────────
 app.get("/", (_req, res) => res.json({ status: "RIXX AI Backend running" }));
 
 // ── POST /api/ai-system ──────────────────────────────────────────
 app.post("/api/ai-system", async (req, res) => {
+  if (!client) {
+    return res.status(503).json({ error: "AI no disponible: ANTHROPIC_API_KEY no configurada en server/.env" });
+  }
+
   try {
     const { products = [], revenue = 0, costs = 0, adsSpend = 0 } = req.body;
 

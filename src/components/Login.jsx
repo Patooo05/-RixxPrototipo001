@@ -1,17 +1,25 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useState, useEffect } from "react";
 import { AuthContext } from "./AuthContext.jsx";
 import { useNavigate } from "react-router-dom";
 import "../styles/Login.scss";
 
 const Login = () => {
-  const { login } = useContext(AuthContext);
+  const { login, isAdmin, isLoggedIn } = useContext(AuthContext);
   const navigate = useNavigate();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [justLoggedIn, setJustLoggedIn] = useState(false);
 
-  const handleSubmit = (e) => {
+  // Navigate after context re-renders with the new user (works for both sync and async login)
+  useEffect(() => {
+    if (justLoggedIn && isLoggedIn) {
+      navigate(isAdmin ? "/admin" : "/");
+    }
+  }, [justLoggedIn, isLoggedIn, isAdmin, navigate]);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
 
@@ -20,15 +28,10 @@ const Login = () => {
       return;
     }
 
-    const success = login(email, password);
+    const success = await login(email, password);
 
     if (success) {
-      const currentUser = JSON.parse(localStorage.getItem("currentUser"));
-      if (currentUser?.role === "Administrador") {
-        navigate("/admin");
-      } else {
-        navigate("/");
-      }
+      setJustLoggedIn(true);
     } else {
       setError("Credenciales inválidas");
     }

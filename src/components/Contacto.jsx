@@ -222,7 +222,7 @@ export default function Contacto() {
                 <p className="contacto-page__info-label">WhatsApp</p>
                 <a
                   className="contacto-page__info-value"
-                  href="https://wa.me/59899000000"
+                  href="https://wa.me/59898868601"
                   target="_blank"
                   rel="noreferrer"
                 >

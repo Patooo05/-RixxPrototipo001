@@ -132,9 +132,11 @@ $announcement-bar-height: 32px;
   color: rgba($on-surface, 0.55);
   cursor: pointer;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 8px;
+  gap: 3px;
+  padding: 6px 8px;
   min-width: 44px;
   min-height: 44px;
   position: relative;
@@ -142,6 +144,25 @@ $announcement-bar-height: 32px;
   text-decoration: none;
 
   &:hover { color: $primary; }
+
+  // ── Label debajo del ícono ────────────────────────────────
+  &[data-tooltip]::after {
+    content: attr(data-tooltip);
+    font-family: $font-label;
+    font-size: 8px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba($on-surface, 0.35);
+    white-space: nowrap;
+    line-height: 1;
+    transition: color $duration-base $ease;
+    pointer-events: none;
+  }
+
+  &[data-tooltip]:hover::after {
+    color: rgba($primary, 0.7);
+  }
 }
 
 .nav-cart { position: relative; }
@@ -164,32 +185,20 @@ $announcement-bar-height: 32px;
   line-height: 1;
 }
 
-// ── AUTH BUTTONS (desktop only) ──────────────────────────────
-.navbar__auth-btns {
-  display: flex;
-  align-items: center;
-  gap: $spacing-sm;
-}
-
-.navbar__btn-login {
-  @include btn-secondary;
-  padding: 0.5rem 1.25rem;
-  font-size: 0.6875rem;
-}
-
-.navbar__btn-register {
-  @include btn-primary;
-  padding: 0.5rem 1.25rem;
-  font-size: 0.6875rem;
-}
-
-// ── GREETING ─────────────────────────────────────────────────
-.navbar__greeting {
-  font-family: $font-body;
-  font-size: $body-md;
-  color: $on-surface-variant;
-  font-weight: 400;
+// ── USERNAME ─────────────────────────────────────────────────
+.navbar__username {
+  font-family: $font-label;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba($on-surface, 0.4);
   white-space: nowrap;
+  padding-left: 0.75rem;
+  border-left: 1px solid rgba($on-surface, 0.1);
+  margin-left: 0.25rem;
+  pointer-events: none;
+  user-select: none;
 }
 
 // ── TOGGLE MOBILE ─────────────────────────────────────────────
@@ -291,6 +300,11 @@ $announcement-bar-height: 32px;
 
 // ── DESKTOP: ocultar elementos solo-mobile ────────────────────
 @media (min-width: 769px) {
-  .navbar__toggle           { display: none; }
-  .navbar__link-mobile-only { display: none; }
+  .navbar__toggle             { display: none; }
+  .navbar__link-mobile-only   { display: none; }
+}
+
+// ── MOBILE: ocultar elementos solo-desktop ────────────────────
+@media (max-width: 768px) {
+  .navbar__link-desktop-only  { display: none; }
 }

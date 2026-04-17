@@ -1,0 +1,148 @@
+@use "../styles/variables" as *;
+@use "../styles/mixins" as *;
+
+@keyframes stripReveal {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+// ── Strip wrapper ─────────────────────────────────────────────
+.benefits-strip {
+  background: $surface-container-lowest;
+  border-top:    1px solid rgba($primary, 0.1);
+  border-bottom: 1px solid rgba($primary, 0.1);
+  animation: stripReveal 0.7s $ease both;
+
+  &__inner {
+    max-width: $max-width-content;
+    margin: 0 auto;
+    padding: 0 $spacing-xl;
+    display: flex;
+    align-items: stretch;
+    justify-content: center;
+  }
+
+  // ── Cada beneficio ──────────────────────────────────────────
+  &__item {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    padding: 1.75rem 2rem;
+    transition: background $duration-base $ease;
+    text-align: left;
+
+    &:hover {
+      background: rgba($primary, 0.03);
+    }
+
+    // Versión botón para el CTA de registro
+    &--cta {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-family: inherit;
+      color: inherit;
+
+      &:hover {
+        background: rgba($primary, 0.04);
+
+        .benefits-strip__sub {
+          color: rgba($on-surface, 0.6);
+        }
+      }
+    }
+  }
+
+  // ── Ícono dorado ────────────────────────────────────────────
+  &__icon {
+    color: $primary;
+    flex-shrink: 0;
+    opacity: 0.8;
+    transition: opacity $duration-base $ease;
+
+    .benefits-strip__item:hover & {
+      opacity: 1;
+    }
+  }
+
+  // ── Textos ──────────────────────────────────────────────────
+  &__copy {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+  }
+
+  &__label {
+    font-family: $font-label;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: $on-surface;
+    white-space: nowrap;
+
+    &--gold {
+      color: $primary;
+    }
+  }
+
+  &__sub {
+    font-family: $font-body;
+    font-size: 11px;
+    font-weight: 300;
+    color: $on-surface-variant;
+    letter-spacing: 0.04em;
+    transition: color $duration-base $ease;
+  }
+
+  // ── Divisor vertical ────────────────────────────────────────
+  &__divider {
+    display: block;
+    width: 1px;
+    background: linear-gradient(
+      to bottom,
+      transparent,
+      rgba($primary, 0.2) 30%,
+      rgba($primary, 0.2) 70%,
+      transparent
+    );
+    flex-shrink: 0;
+    align-self: stretch;
+    margin: 0.75rem 0;
+  }
+
+  // ── Responsive ──────────────────────────────────────────────
+  @media (max-width: 768px) {
+    &__inner {
+      flex-direction: column;
+      padding: 0 $spacing-lg;
+      align-items: stretch;
+    }
+
+    &__item {
+      justify-content: flex-start;
+      padding: 1.25rem 0.5rem;
+    }
+
+    &__divider {
+      width: auto;
+      height: 1px;
+      background: linear-gradient(
+        to right,
+        transparent,
+        rgba($primary, 0.15) 30%,
+        rgba($primary, 0.15) 70%,
+        transparent
+      );
+      margin: 0;
+      align-self: auto;
+    }
+  }
+
+  @media (max-width: 480px) {
+    &__label { font-size: 9px; letter-spacing: 0.25em; }
+    &__sub   { font-size: 10.5px; }
+  }
+}

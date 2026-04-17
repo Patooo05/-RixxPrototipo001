@@ -1,9 +1,9 @@
-import React, { createContext, useContext, useEffect, useMemo, useState } from 'react'
+import React, { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import { ProductsContext } from './ProductsContext'
+import { AuthContext } from './AuthContext'
 
 const CartCtx = createContext(null)
 
-// Precio efectivo respetando descuentos vigentes
 const getEffectivePrice = (product) => {
   if (product?.descuento?.porcentaje && product?.descuento?.hasta) {
     const until = new Date(product.descuento.hasta)
@@ -14,33 +14,61 @@ const getEffectivePrice = (product) => {
   return product?.price ?? 0
 }
 
+const isValidItem = (item) =>
+  item &&
+  typeof item.id !== "undefined" &&
+  typeof item.name === "string" &&
+  typeof item.price === "number" &&
+  typeof item.quantity === "number"
+
+const loadCart = (key) => {
+  try {
+    const raw = localStorage.getItem(key)
+    if (!raw) return []
+    const parsed = JSON.parse(raw)
+    return Array.isArray(parsed) ? parsed.filter(isValidItem) : []
+  } catch { return [] }
+}
+
 export const CartProvider = ({ children }) => {
   const { products } = useContext(ProductsContext)
+  const { currentUser } = useContext(AuthContext)
+
+  // Clave única por usuario — invitado tiene su propio espacio
+  const cartKey = currentUser?.id
+    ? `rixx_cart_${currentUser.id}`
+    : 'rixx_cart_guest'
+
+  const cartKeyRef = useRef(cartKey)
   const [isCartOpen, setIsCartOpen] = useState(false)
   const openCart  = () => setIsCartOpen(true)
   const closeCart = () => setIsCartOpen(false)
 
-  const isValidItem = (item) =>
-    item &&
-    typeof item.id !== "undefined" &&
-    typeof item.name === "string" &&
-    typeof item.price === "number" &&
-    typeof item.quantity === "number";
+  // Inicializa con el carrito del usuario actual
+  const [items, setItems] = useState(() => loadCart(cartKey))
 
-  const [items, setItems] = useState(() => {
-    try {
-      const raw = localStorage.getItem('rixx_cart');
-      if (!raw) return [];
-      const parsed = JSON.parse(raw);
-      return Array.isArray(parsed) ? parsed.filter(isValidItem) : [];
-    } catch { return []; }
-  })
+  // Ref para guardar el carrito del usuario anterior antes de cambiar
+  const itemsRef = useRef(items)
+  useEffect(() => { itemsRef.current = items }, [items])
 
+  // Cuando cambia de usuario: guarda el carrito del anterior y carga el del nuevo
   useEffect(() => {
-    localStorage.setItem('rixx_cart', JSON.stringify(items))
-  }, [items])
+    const oldKey = cartKeyRef.current
+    if (oldKey === cartKey) return
 
-  // Devuelve el stock disponible actual de un producto
+    // Persiste el carrito del usuario anterior
+    localStorage.setItem(oldKey, JSON.stringify(itemsRef.current))
+
+    // Carga el carrito del usuario nuevo
+    setItems(loadCart(cartKey))
+    cartKeyRef.current = cartKey
+  }, [cartKey])
+
+  // Persiste en cada cambio de items
+  useEffect(() => {
+    localStorage.setItem(cartKey, JSON.stringify(items))
+  }, [items, cartKey])
+
   const currentStock = (id) => {
     const p = products?.find(p => String(p.id) === String(id))
     return p?.stock ?? Infinity
@@ -83,17 +111,14 @@ export const CartProvider = ({ children }) => {
 
   const count = useMemo(() => items.reduce((a, i) => a + (i.quantity || 1), 0), [items])
 
-  // Total usa precio en tiempo real (con descuentos vigentes)
   const total = useMemo(() => items.reduce((acc, item) => {
     const liveProduct = products?.find(p => String(p.id) === String(item.id))
     const price = liveProduct ? getEffectivePrice(liveProduct) : item.price
     return acc + price * (item.quantity || 1)
   }, 0), [items, products])
 
-  // Envío gratis si hay 2 o más unidades en total
-  const shippingCost = useMemo(() => (count >= 2 ? 0 : count === 0 ? 0 : 200), [count])
+  const shippingCost = useMemo(() => (count === 0 ? 0 : total >= 3000 ? 0 : 290), [count, total])
 
-  // Items enriquecidos con precio actual (para mostrar en CartDrawer)
   const syncedItems = useMemo(() => items.map(item => {
     const liveProduct = products?.find(p => String(p.id) === String(item.id))
     return {

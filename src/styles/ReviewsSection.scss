@@ -1,0 +1,632 @@
+@use "variables" as *;
+@use "mixins" as *;
+
+// ── Keyframes ──────────────────────────────────────────────────────────────
+@keyframes reviewsProgress {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+
+@keyframes wordIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes formIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+// ── Section ────────────────────────────────────────────────────────────────
+.reviews {
+  padding: 8rem $spacing-xl 7rem;
+  background: $background;
+  position: relative;
+  overflow: hidden;  // kept on section, NOT on carousel
+  text-align: center;
+
+  // Subtle grain
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-size: 180px;
+    opacity: 0.025;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  // Glow center
+  &::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 600px;
+    height: 300px;
+    background: radial-gradient(ellipse at 50% 0%, rgba($primary, 0.06) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  // ── Header ─────────────────────────────────────────────
+  &__header {
+    position: relative;
+    z-index: 1;
+    margin-bottom: 4rem;
+  }
+
+  &__eyebrow {
+    display: block;
+    font-family: $font-label;
+    font-size: 10px;
+    font-weight: 300;
+    letter-spacing: 0.45em;
+    text-transform: uppercase;
+    color: $primary;
+    margin-bottom: 1.25rem;
+  }
+
+  &__title {
+    font-family: $font-headline;
+    font-size: clamp(2.25rem, 4vw, 3.75rem);
+    font-weight: 300;
+    color: $on-surface;
+    margin: 0 0 1.5rem;
+    letter-spacing: -0.01em;
+
+    em {
+      font-style: italic;
+      color: $primary;
+    }
+  }
+
+  &__gold-line {
+    width: 40px;
+    height: 1px;
+    background: $primary;
+    margin: 0 auto;
+    opacity: 0.6;
+  }
+
+  // #4 — Overall rating displayed in header
+  &__avg {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    margin-top: 1rem;
+    font-family: $font-label;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    color: $on-surface-variant;
+  }
+
+  &__avg-star {
+    color: $primary;
+    font-size: 14px;
+  }
+
+  &__avg-count {
+    opacity: 0.6;
+
+    strong {
+      color: $on-surface;
+      font-family: $font-headline;
+      font-size: 18px;
+      font-weight: 300;
+    }
+  }
+
+  // ── Carousel ───────────────────────────────────────────
+  // overflow: visible so --prev and --next cards are visible outside the track
+  &__carousel {
+    position: relative;
+    z-index: 1;
+    max-width: 900px;   // wider to give side cards room
+    margin: 0 auto;
+    overflow: visible;
+    padding-inline: 5%;
+  }
+
+  &__track {
+    position: relative;
+    height: 320px;  // #1 — taller to accommodate the three-card layout
+    margin-bottom: 2.5rem;
+    overflow: visible;  // #1 — must be visible so side cards are not clipped
+  }
+
+  // ── Cards ──────────────────────────────────────────────
+  // #1 — Three cards visible: active centre + prev/next peeking from sides
+  &__card {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition:
+      opacity    0.5s $ease,
+      transform  0.5s $ease,
+      filter     0.5s $ease;
+
+    &--active {
+      opacity: 1;
+      transform: translateX(0) scale(1);
+      z-index: 3;
+      pointer-events: auto;
+    }
+
+    &--prev {
+      opacity: 0.3;
+      transform: translateX(-58%) scale(0.88);
+      z-index: 1;
+      pointer-events: none;
+      filter: blur(1px);
+    }
+
+    &--next {
+      opacity: 0.3;
+      transform: translateX(58%) scale(0.88);
+      z-index: 1;
+      pointer-events: none;
+      filter: blur(1px);
+    }
+
+    &--hidden {
+      opacity: 0;
+      transform: scale(0.82);
+      z-index: 0;
+      pointer-events: none;
+    }
+  }
+
+  // #3 — card-inner needs relative + overflow: hidden for the progress bar
+  &__card-inner {
+    background: rgba($surface-container-lowest, 0.7);
+    border: 1px solid rgba($primary, 0.1);
+    backdrop-filter: blur(8px);
+    padding: 2.5rem 3rem;
+    position: relative;   // #3
+    overflow: hidden;     // #3 — contains the bottom progress bar
+    max-width: 680px;
+    width: 100%;
+    text-align: center;
+  }
+
+  &__quote {
+    display: block;
+    font-family: $font-headline;
+    font-size: 5rem;
+    font-style: italic;
+    color: $primary;
+    opacity: 0.2;
+    line-height: 0.5;
+    margin-bottom: 1rem;
+    user-select: none;
+  }
+
+  &__stars {
+    display: flex;
+    justify-content: center;
+    gap: 3px;
+    color: $primary;
+    margin-bottom: 1.25rem;
+  }
+
+  // #8 — word-by-word stagger animation (each word is a span.reviews__word)
+  &__word {
+    display: inline-block;
+    opacity: 0;
+    animation: wordIn 0.4s $ease forwards;
+  }
+
+  // #9 — highlighted keyword inside comment text
+  &__highlight {
+    color: $primary;
+    font-style: italic;
+  }
+
+  &__comment {
+    font-family: $font-headline;
+    font-size: clamp(1rem, 2vw, 1.2rem);
+    font-weight: 300;
+    font-style: italic;
+    color: $on-surface;
+    line-height: 1.7;
+    letter-spacing: 0.01em;
+    margin: 0 0 1.75rem;
+    // NOTE: outer quotes removed — JS renderComment wraps content instead
+  }
+
+  // #2 — Avatar initials circle above author name
+  &__avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: rgba($primary, 0.15);
+    border: 1px solid rgba($primary, 0.35);
+    color: $primary;
+    font-family: $font-headline;
+    font-size: 1.25rem;
+    font-weight: 300;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+    letter-spacing: 0;
+  }
+
+  &__author {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    align-items: center;
+  }
+
+  &__author-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    align-items: center;
+  }
+
+  &__author-meta {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.3rem;
+    margin-top: 0.5rem;
+  }
+
+  &__author-name {
+    font-family: $font-label;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: $on-surface;
+  }
+
+  &__author-product {
+    font-family: $font-label;
+    font-size: 9px;
+    font-weight: 300;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: $primary;
+    opacity: 0.7;
+  }
+
+  // #6 — Review date
+  &__date {
+    font-family: $font-label;
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: rgba($on-surface-variant, 0.5);
+  }
+
+  // #7 — Verified purchase badge
+  &__verified {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-family: $font-label;
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: rgba($primary, 0.7);
+    border: 1px solid rgba($primary, 0.2);
+    padding: 0.15rem 0.5rem;
+
+    svg {
+      flex-shrink: 0;
+    }
+  }
+
+  // #3 — Autoplay progress bar (sits at the very bottom of .reviews__card-inner)
+  &__progress {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: rgba($primary, 0.1);
+    overflow: hidden;
+  }
+
+  &__progress-fill {
+    height: 100%;
+    background: $primary;
+    transform-origin: left;
+    animation: reviewsProgress 5000ms linear forwards;
+  }
+
+  // ── Nav ────────────────────────────────────────────────
+  &__nav {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1.5rem;
+    margin-bottom: 1rem;
+  }
+
+  &__nav-btn {
+    width: 40px;
+    height: 40px;
+    border: 1px solid rgba($on-surface, 0.1);
+    background: transparent;
+    color: rgba($on-surface, 0.45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition:
+      border-color $duration-fast $ease,
+      color        $duration-fast $ease,
+      background   $duration-fast $ease;
+
+    &:hover {
+      border-color: rgba($primary, 0.45);
+      color: $primary;
+      background: rgba($primary, 0.06);
+    }
+  }
+
+  &__dots {
+    display: flex;
+    gap: 7px;
+  }
+
+  &__dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 0;
+    background: rgba($on-surface, 0.2);
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    transition:
+      width      $duration-base $ease,
+      background $duration-base $ease;
+
+    &--active {
+      width: 28px;
+      background: $primary;
+    }
+  }
+
+  &__counter {
+    font-family: $font-label;
+    font-size: 10px;
+    letter-spacing: 0.25em;
+    color: rgba($on-surface, 0.35);
+
+    strong {
+      color: $primary;
+      font-family: $font-headline;
+      font-size: 14px;
+      font-weight: 300;
+    }
+  }
+
+  // ── #10 — Write-a-review form section ──────────────────
+  &__form-section {
+    margin-top: 3rem;
+    text-align: center;
+  }
+
+  &__form-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    background: transparent;
+    border: 1px solid rgba($on-surface, 0.15);
+    color: rgba($on-surface, 0.55);
+    font-family: $font-label;
+    font-size: 10px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    padding: 0.8rem 1.5rem;
+    cursor: pointer;
+    transition:
+      border-color $duration-fast $ease,
+      color        $duration-fast $ease;
+
+    &:hover {
+      border-color: rgba($primary, 0.4);
+      color: $primary;
+
+      svg {
+        transform: translateX(3px);
+      }
+    }
+
+    svg {
+      transition: transform $duration-fast $ease;
+    }
+  }
+
+  &__form {
+    max-width: 540px;
+    margin: 0 auto;
+    text-align: left;
+    border: 1px solid rgba($primary, 0.12);
+    padding: 2rem 2.5rem;
+    background: rgba($surface-container-lowest, 0.6);
+    backdrop-filter: blur(8px);
+    animation: formIn 0.35s $ease forwards;
+  }
+
+  &__form-title {
+    font-family: $font-headline;
+    font-size: 1.25rem;
+    font-weight: 300;
+    font-style: italic;
+    color: $on-surface;
+    margin: 0 0 1.5rem;
+  }
+
+  &__form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+  }
+
+  &__form-input,
+  &__form-textarea {
+    width: 100%;
+    background: rgba($on-surface, 0.04);
+    border: 1px solid rgba($on-surface, 0.1);
+    color: $on-surface;
+    font-family: $font-body;
+    font-size: 13px;
+    padding: 0.75rem 1rem;
+    outline: none;
+    resize: none;
+    transition: border-color $duration-fast $ease;
+
+    &::placeholder {
+      color: rgba($on-surface, 0.3);
+    }
+
+    &:focus {
+      border-color: rgba($primary, 0.4);
+    }
+  }
+
+  &__form-textarea {
+    margin-bottom: 1rem;
+  }
+
+  &__form-stars {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 1rem;
+  }
+
+  &__form-star {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: rgba($primary, 0.3);
+    padding: 0.25rem;
+    transition:
+      color     $duration-fast $ease,
+      transform $duration-fast $ease;
+
+    &--active {
+      color: $primary;
+    }
+
+    &:hover {
+      transform: scale(1.2);
+    }
+  }
+
+  &__form-actions {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: flex-end;
+  }
+
+  &__form-cancel {
+    background: transparent;
+    border: 1px solid rgba($on-surface, 0.1);
+    color: rgba($on-surface, 0.4);
+    font-family: $font-label;
+    font-size: 10px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    padding: 0.7rem 1.25rem;
+    cursor: pointer;
+    transition:
+      border-color $duration-fast $ease,
+      color        $duration-fast $ease;
+
+    &:hover {
+      border-color: rgba($on-surface, 0.25);
+      color: $on-surface;
+    }
+  }
+
+  &__form-submit {
+    background: $primary;
+    border: none;
+    color: #0a0a0a;
+    font-family: $font-label;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    padding: 0.7rem 1.5rem;
+    cursor: pointer;
+    transition: background $duration-fast $ease;
+
+    &:hover {
+      background: lighten(#D4AF37, 8%);
+    }
+  }
+
+  &__form-success {
+    font-family: $font-label;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: $primary;
+    padding: 1rem;
+    border: 1px solid rgba($primary, 0.2);
+    display: inline-block;
+  }
+}
+
+// ── Responsive ─────────────────────────────────────────────────────────────
+@media (max-width: 768px) {
+  .reviews {
+    padding: 5rem $spacing-xl 5rem;
+
+    &__track {
+      height: 360px;
+    }
+
+    &__card-inner {
+      padding: 2rem 1.5rem;
+    }
+
+    // On smaller screens reduce side-card offset so they don't bleed too far
+    &__card {
+      &--prev { transform: translateX(-50%) scale(0.88); }
+      &--next { transform: translateX(50%) scale(0.88); }
+    }
+
+    &__form-row {
+      grid-template-columns: 1fr;
+    }
+
+    &__form {
+      padding: 1.5rem 1.25rem;
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .reviews {
+    padding: 4rem 1.5rem 4rem;
+
+    &__track {
+      height: 400px;
+    }
+
+    // Fully hide side cards on very small screens to avoid overflow
+    &__card {
+      &--prev,
+      &--next {
+        opacity: 0;
+        pointer-events: none;
+      }
+    }
+  }
+}

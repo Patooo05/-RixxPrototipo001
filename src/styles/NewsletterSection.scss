@@ -1,0 +1,420 @@
+// ============================================================
+// NOIR ATELIER — NewsletterSection.scss
+// ============================================================
+@use "variables" as *;
+@use "mixins"   as mx;
+
+// ── Keyframes ────────────────────────────────────────────────
+
+@keyframes nl-fade-up {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0);    }
+}
+
+@keyframes nl-success-in {
+  0%   { opacity: 0; transform: translateY(12px) scale(0.97); }
+  60%  { transform: translateY(-3px) scale(1.01); }
+  100% { opacity: 1; transform: translateY(0) scale(1);       }
+}
+
+@keyframes nl-shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position:  200% center; }
+}
+
+@keyframes nl-pulse-dot {
+  0%, 100% { transform: scale(1);   opacity: 0.7; }
+  50%       { transform: scale(1.4); opacity: 1;   }
+}
+
+@keyframes nl-spin-star {
+  from { transform: rotate(0deg);   }
+  to   { transform: rotate(360deg); }
+}
+
+// ── Root section ─────────────────────────────────────────────
+
+.newsletter {
+  position:         relative;
+  background-color: $surface-container;         // #111 — contrasts black background
+  overflow:         hidden;
+  padding:          $section-padding-y-hero $section-padding-x-mobile;
+
+  @include mx.respond-to(desktop) {
+    padding-inline: $spacing-3xl;
+  }
+}
+
+// ── Cinematic radial glow (decorative layer) ──────────────────
+
+.newsletter__glow {
+  pointer-events:   none;
+  position:         absolute;
+  inset:            0;
+  background:
+    radial-gradient(ellipse 80% 60% at 10% 110%, rgba($primary, 0.07) 0%, transparent 65%),
+    radial-gradient(ellipse 60% 50% at 90%  -5%, rgba($primary, 0.04) 0%, transparent 60%);
+}
+
+// ── Inner wrapper (max-width + centering) ─────────────────────
+
+.newsletter__inner {
+  position:         relative;
+  max-width:        $max-width-content;
+  margin-inline:    auto;
+  display:          flex;
+  flex-direction:   column;
+  align-items:      center;
+  gap:              $spacing-xl;
+  text-align:       center;
+  animation:        nl-fade-up $duration-slow $ease both;
+}
+
+// ── Header block ──────────────────────────────────────────────
+
+.newsletter__header {
+  display:        flex;
+  flex-direction: column;
+  align-items:    center;
+  gap:            $spacing-md;
+}
+
+// Eyebrow label
+
+.newsletter__eyebrow {
+  @include mx.label-uppercase($label-sm);
+  color:          $primary;
+  letter-spacing: 0.45em;
+  opacity:        0.85;
+}
+
+// Main headline
+
+.newsletter__title {
+  font-family:    $font-headline;
+  font-size:      clamp(2.25rem, 6vw, 4rem);
+  font-weight:    300;
+  line-height:    1.1;
+  color:          $on-surface;
+  letter-spacing: -0.01em;
+  margin:         0;
+}
+
+.newsletter__title-break {
+  display: block;
+}
+
+.newsletter__title-italic {
+  font-style:  italic;
+  color:       $primary;
+  font-weight: 400;
+}
+
+// Subtitle
+
+.newsletter__subtitle {
+  font-family: $font-body;
+  font-size:   $body-lg;
+  color:       $on-surface-variant;
+  max-width:   38ch;
+  line-height: 1.65;
+  margin:      0;
+}
+
+// Subscriber count badge
+
+.newsletter__count {
+  font-family: $font-body;
+  font-size:   $body-md;
+  color:       $on-surface-variant;
+  margin:      0;
+  display:     flex;
+  align-items: center;
+  gap:         $spacing-xs;
+}
+
+.newsletter__count-number {
+  font-weight: 700;
+  color:       $primary;
+  @include mx.tabular-nums;
+}
+
+// ── Form ──────────────────────────────────────────────────────
+
+.newsletter__form {
+  width:          100%;
+  max-width:      480px;
+  display:        flex;
+  flex-direction: column;
+  gap:            $spacing-lg;
+  align-items:    stretch;
+}
+
+// Field wrapper
+
+.newsletter__field {
+  display:        flex;
+  flex-direction: column;
+  gap:            $spacing-xs;
+  text-align:     left;
+}
+
+// Label
+
+.newsletter__label {
+  font-family:    $font-label;
+  font-size:      $label-md;
+  font-weight:    600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color:          $on-surface-variant;
+}
+
+.newsletter__optional {
+  font-weight:    400;
+  text-transform: none;
+  letter-spacing: 0;
+  opacity:        0.6;
+}
+
+// Input — underline-only, no box
+
+.newsletter__input {
+  background:      transparent;
+  border:          none;
+  border-bottom:   1px solid rgba($outline-variant, 0.35);
+  border-radius:   0;
+  outline:         none;
+  padding:         $spacing-sm 0;
+  font-family:     $font-body;
+  font-size:       $body-lg;
+  color:           $on-surface;
+  width:           100%;
+  transition:
+    border-color $duration-base $ease,
+    color        $duration-base $ease;
+  caret-color:     $primary;
+
+  &::placeholder {
+    color:   $on-surface-variant;
+    opacity: 0.5;
+  }
+
+  &:focus {
+    border-bottom-color: $primary;
+  }
+
+  &:disabled {
+    opacity: 0.45;
+    cursor:  not-allowed;
+  }
+
+  // Error state
+
+  &--error {
+    border-bottom-color: $error;
+    color:               $error;
+
+    &::placeholder { color: $error; opacity: 0.4; }
+  }
+}
+
+// Inline feedback message
+
+.newsletter__feedback {
+  font-family: $font-body;
+  font-size:   $body-md;
+  margin:      0;
+  animation:   nl-fade-up $duration-base $ease both;
+
+  &--error {
+    color: $error;
+  }
+}
+
+// ── CTA Button (gold + shimmer) ───────────────────────────────
+
+.newsletter__btn {
+  position:       relative;
+  display:        inline-flex;
+  align-items:    center;
+  justify-content:center;
+  min-height:     52px;
+  padding:        0 $spacing-2xl;
+  border:         none;
+  border-radius:  $radius-sm;
+  cursor:         pointer;
+  font-family:    $font-label;
+  font-size:      $label-lg;
+  font-weight:    700;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  color:          $on-primary;
+  overflow:       hidden;
+  transition:
+    box-shadow $duration-base $ease,
+    transform  $duration-fast $ease,
+    opacity    $duration-base $ease;
+
+  // Gold base
+  background: $primary;
+
+  // Shimmer layer
+  &::after {
+    content:             "";
+    position:            absolute;
+    inset:               0;
+    background:          linear-gradient(
+      100deg,
+      transparent        30%,
+      rgba(#fff, 0.25)   50%,
+      transparent        70%
+    );
+    background-size:     200% 100%;
+    background-position: -200% center;
+    opacity:             0;
+    transition:          opacity $duration-base $ease;
+  }
+
+  &:hover:not(:disabled) {
+    box-shadow: 0 0 32px rgba($primary, 0.35), 0 4px 20px rgba($primary, 0.20);
+    transform:  translateY(-2px);
+
+    &::after {
+      opacity:             1;
+      animation:           nl-shimmer 700ms $ease forwards;
+    }
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(0) scale(0.98);
+  }
+
+  &:disabled {
+    opacity: 0.45;
+    cursor:  not-allowed;
+  }
+}
+
+// Loading dots inside button
+
+.newsletter__btn-loading {
+  display:     inline-flex;
+  align-items: center;
+  gap:         6px;
+
+  span {
+    display:          block;
+    width:            6px;
+    height:           6px;
+    border-radius:    50%;
+    background-color: $on-primary;
+    animation:        nl-pulse-dot 0.9s $ease infinite;
+
+    &:nth-child(2) { animation-delay: 0.15s; }
+    &:nth-child(3) { animation-delay: 0.30s; }
+  }
+}
+
+// ── Success state ─────────────────────────────────────────────
+
+.newsletter__success {
+  display:        flex;
+  flex-direction: column;
+  align-items:    center;
+  gap:            $spacing-md;
+  padding:        $spacing-xl $spacing-lg;
+  border:         1px solid rgba($primary, 0.18);
+  border-radius:  $radius-md;
+  background:     rgba($primary, 0.04);
+  max-width:      420px;
+  animation:      nl-success-in $duration-slow $ease both;
+}
+
+.newsletter__success-icon {
+  display:     block;
+  font-size:   2rem;
+  color:       $primary;
+  line-height: 1;
+  animation:   nl-spin-star 3s linear infinite;
+}
+
+.newsletter__success-title {
+  font-family: $font-headline;
+  font-size:   $headline-sm;
+  font-weight: 400;
+  font-style:  italic;
+  color:       $on-surface;
+  margin:      0;
+}
+
+.newsletter__success-text {
+  font-family: $font-body;
+  font-size:   $body-md;
+  color:       $on-surface-variant;
+  margin:      0;
+  max-width:   32ch;
+  line-height: 1.6;
+}
+
+.newsletter__reset {
+  background:     transparent;
+  border:         none;
+  padding:        0;
+  cursor:         pointer;
+  font-family:    $font-label;
+  font-size:      $label-md;
+  font-weight:    600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color:          $on-surface-variant;
+  text-decoration:underline;
+  text-underline-offset: 3px;
+  transition:     color $duration-base $ease;
+
+  &:hover {
+    color: $primary;
+  }
+}
+
+// ── Legal footnote ────────────────────────────────────────────
+
+.newsletter__legal {
+  font-family: $font-body;
+  font-size:   $label-sm;
+  color:       $on-surface-variant;
+  opacity:     0.5;
+  margin:      0;
+  letter-spacing: 0.05em;
+}
+
+// ── Responsive — tablet up ────────────────────────────────────
+
+@include mx.respond-to(tablet) {
+  .newsletter__title {
+    font-size: clamp(2.75rem, 5vw, 3.5rem);
+  }
+}
+
+// ── Responsive — desktop ──────────────────────────────────────
+
+@include mx.respond-to(desktop) {
+  .newsletter {
+    padding-block: 7rem;
+  }
+
+  .newsletter__inner {
+    gap: $spacing-2xl;
+  }
+
+  .newsletter__form {
+    max-width:      520px;
+  }
+
+  // Side-by-side fields on wide enough screens
+  .newsletter__fields-row {
+    display:     grid;
+    grid-template-columns: 1fr 1fr;
+    gap:         $spacing-lg;
+  }
+}

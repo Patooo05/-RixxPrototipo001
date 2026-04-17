@@ -4,89 +4,134 @@
 @use './variables' as *;
 @use './mixins' as *;
 
+@keyframes authFadeIn  { from { opacity: 0; } to { opacity: 1; } }
+@keyframes authSlideUp { from { opacity: 0; transform: translateY(20px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+@keyframes spin        { to { transform: rotate(360deg); } }
+
 // ── Overlay ──────────────────────────────────────────────────
 .auth-modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba($background, 0.85);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  background: rgba($background, 0.88);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   z-index: 1000;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: $spacing-lg;
-  animation: authFadeIn $duration-base $ease;
-}
-
-@keyframes authFadeIn {
-  from { opacity: 0; }
-  to   { opacity: 1; }
+  animation: authFadeIn 0.2s $ease;
 }
 
 // ── Modal card ───────────────────────────────────────────────
 .auth-modal {
   background: $surface-container;
-  border: 1px solid rgba($outline-variant, 0.2);
+  border: 1px solid rgba($primary, 0.12);
   border-radius: $radius-lg;
-  box-shadow: 0 0 120px rgba($primary, 0.07), $shadow-ambient;
-  padding: $spacing-2xl;
+  box-shadow:
+    0 0 0 1px rgba($primary, 0.04),
+    0 0 80px rgba($primary, 0.08),
+    $shadow-ambient;
+  padding: 2.5rem 2rem 2rem;
   width: 100%;
-  max-width: 420px;
+  max-width: 400px;
   position: relative;
-  animation: authSlideUp $duration-base $ease;
+  animation: authSlideUp 0.28s $ease;
+
+  @media (max-width: 480px) {
+    padding: 2rem 1.5rem 1.5rem;
+    border-radius: $radius-sm;
+  }
 }
 
-@keyframes authSlideUp {
-  from { opacity: 0; transform: translateY(16px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
-// ── Botón cerrar ─────────────────────────────────────────────
+// ── Close ────────────────────────────────────────────────────
 .auth-modal__close {
   position: absolute;
-  top: $spacing-md;
-  right: $spacing-md;
+  top: 1rem;
+  right: 1rem;
   background: none;
   border: none;
-  color: $on-surface-variant;
+  color: rgba($on-surface, 0.3);
   cursor: pointer;
-  padding: $spacing-xs;
-  line-height: 1;
-  transition: color $duration-base $ease;
+  padding: 6px;
+  min-width: 32px;
+  min-height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: $radius-sm;
+  transition: color $duration-base $ease, background $duration-base $ease;
 
-  &:hover { color: $on-surface; }
-
-  svg {
-    display: block;
+  &:hover {
+    color: $on-surface;
+    background: rgba($on-surface, 0.06);
   }
 }
 
 // ── Header ───────────────────────────────────────────────────
-.auth-modal__logo {
-  font-family: $font-headline;
-  font-size: 1.5rem;
+.auth-modal__header {
+  margin-bottom: 1.8rem;
+}
+
+.auth-modal__eyebrow {
+  display: block;
+  font-family: $font-label;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
   color: $primary;
-  letter-spacing: 0.2em;
-  text-align: center;
-  margin-bottom: $spacing-lg;
+  margin-bottom: 0.6rem;
+  opacity: 0.8;
 }
 
 .auth-modal__title {
   font-family: $font-headline;
-  font-size: 1.75rem;
-  font-weight: 700;
-  color: $primary;
-  text-align: center;
-  letter-spacing: -0.02em;
-  margin: 0 0 $spacing-xs;
+  font-size: clamp(1.6rem, 4vw, 2rem);
+  font-weight: 300;
+  line-height: 1.1;
+  color: $on-surface;
+  margin: 0 0 0.5rem;
+
+  em {
+    font-style: italic;
+    color: $primary;
+  }
 }
 
 .auth-modal__subtitle {
-  font-size: 0.875rem;
+  font-size: $body-sm;
   color: $on-surface-variant;
-  text-align: center;
-  margin: 0 0 $spacing-2xl;
+  margin: 0;
+  line-height: 1.5;
+}
+
+// ── Benefits list (RegisterModal) ────────────────────────────
+.auth-modal__benefits {
+  list-style: none;
+  margin: 0 0 1.5rem;
+  padding: 0.75rem 1rem;
+  background: rgba($primary, 0.04);
+  border-left: 2px solid rgba($primary, 0.25);
+  border-radius: 0 $radius-sm $radius-sm 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+
+  li {
+    font-size: $body-sm;
+    color: $on-surface-variant;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+}
+
+.auth-modal__benefit-check {
+  color: $primary;
+  font-size: 11px;
+  font-weight: 700;
+  flex-shrink: 0;
 }
 
 // ── Form ─────────────────────────────────────────────────────
@@ -99,53 +144,78 @@
 .auth-modal__field {
   display: flex;
   flex-direction: column;
-  gap: $spacing-xs;
+  gap: 6px;
 }
 
 .auth-modal__label {
-  font-size: 0.75rem;
-  font-weight: 600;
-  letter-spacing: 0.15em;
+  font-family: $font-label;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.25em;
   text-transform: uppercase;
   color: $on-surface-variant;
 }
 
+.auth-modal__input-wrap {
+  position: relative;
+}
+
 .auth-modal__input {
-  background: $surface-container-low;
-  border: none;
-  border-bottom: 2px solid transparent;
+  background: rgba($surface-container-low, 0.8);
+  border: 1px solid rgba($on-surface, 0.08);
+  border-radius: $radius-sm;
   color: $on-surface;
   font-family: $font-body;
   font-size: 0.9375rem;
-  padding: $spacing-sm $spacing-md;
+  padding: 0.7rem 1rem;
   outline: none;
-  border-radius: $radius-sm $radius-sm 0 0;
-  transition: border-color $duration-base $ease;
   width: 100%;
   box-sizing: border-box;
+  transition: border-color $duration-base $ease, background $duration-base $ease;
 
-  &::placeholder {
-    color: rgba($on-surface-variant, 0.5);
-  }
+  &::placeholder { color: rgba($on-surface-variant, 0.4); }
 
   &:focus {
-    border-bottom-color: $primary;
+    border-color: rgba($primary, 0.5);
+    background: rgba($surface-container-low, 1);
   }
 
-  &--error {
-    border-bottom-color: $error;
-  }
+  &--error { border-color: rgba($error, 0.6); }
+
+  // When inside input-wrap, make room for toggle
+  .auth-modal__input-wrap & { padding-right: 2.8rem; }
+}
+
+.auth-modal__pwd-toggle {
+  position: absolute;
+  right: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: rgba($on-surface, 0.35);
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  transition: color $duration-base $ease;
+  min-width: 28px;
+  min-height: 28px;
+  justify-content: center;
+
+  &:hover { color: $primary; }
 }
 
 .auth-modal__error-msg {
-  font-size: 0.75rem;
+  font-size: 11px;
   color: $error;
   margin-top: 2px;
+  letter-spacing: 0.02em;
 }
 
-// ── Forgot password ──────────────────────────────────────────
+// ── Forgot ────────────────────────────────────────────────────
 .auth-modal__forgot {
-  font-size: 0.75rem;
+  font-size: 11px;
   color: $on-surface-variant;
   text-align: right;
   cursor: pointer;
@@ -153,19 +223,22 @@
   border: none;
   padding: 0;
   align-self: flex-end;
+  letter-spacing: 0.03em;
   transition: color $duration-base $ease;
 
-  &:hover { color: $on-surface; }
+  &:hover { color: $primary; }
 }
 
-// ── Submit button ────────────────────────────────────────────
+// ── Submit ────────────────────────────────────────────────────
 .auth-modal__submit {
   @include btn-primary;
   width: 100%;
-  margin-top: $spacing-sm;
+  margin-top: 0.5rem;
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 0.5rem;
+  min-height: 48px;
 
   &:disabled {
     opacity: 0.5;
@@ -175,22 +248,79 @@
   }
 }
 
-// ── API-level error ──────────────────────────────────────────
+.auth-modal__spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba($background, 0.3);
+  border-top-color: $background;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+  flex-shrink: 0;
+}
+
+// ── Divider ───────────────────────────────────────────────────
+.auth-modal__divider {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  margin: 1.2rem 0 0.75rem;
+
+  &::before, &::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: rgba($on-surface, 0.07);
+  }
+
+  span {
+    font-size: 10px;
+    color: rgba($on-surface, 0.3);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+}
+
+// ── Guest button ─────────────────────────────────────────────
+.auth-modal__guest-btn {
+  width: 100%;
+  background: none;
+  border: 1px solid rgba($on-surface, 0.1);
+  border-radius: $radius-sm;
+  color: $on-surface-variant;
+  font-family: $font-label;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  padding: 0.7rem;
+  cursor: pointer;
+  transition: border-color $duration-base $ease, color $duration-base $ease;
+  min-height: 44px;
+
+  &:hover {
+    border-color: rgba($on-surface, 0.25);
+    color: $on-surface;
+  }
+}
+
+// ── API error ─────────────────────────────────────────────────
 .auth-modal__api-error {
-  font-size: 0.8125rem;
+  font-size: $body-sm;
   color: $error;
   text-align: center;
-  padding: $spacing-sm;
-  background: rgba($error, 0.08);
+  padding: 0.6rem 1rem;
+  background: rgba($error, 0.07);
+  border: 1px solid rgba($error, 0.15);
   border-radius: $radius-sm;
 }
 
 // ── Switch link ──────────────────────────────────────────────
 .auth-modal__switch {
-  margin-top: $spacing-lg;
+  margin-top: 1.2rem;
   text-align: center;
-  font-size: 0.875rem;
-  color: $on-surface-variant;
+  font-size: $body-sm;
+  color: rgba($on-surface, 0.4);
+  line-height: 1.5;
 
   button {
     background: none;
@@ -198,20 +328,12 @@
     color: $primary;
     cursor: pointer;
     font-weight: 600;
-    padding: 0 $spacing-xs;
+    padding: 0 4px;
     transition: opacity $duration-fast $ease;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    text-decoration-color: rgba($primary, 0.4);
 
     &:hover { opacity: 0.8; }
-  }
-}
-
-// ── 2-column row (for future use) ────────────────────────────
-.auth-modal__row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: $spacing-md;
-
-  @media (max-width: 480px) {
-    grid-template-columns: 1fr;
   }
 }

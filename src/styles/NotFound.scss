@@ -1,0 +1,91 @@
+@use "variables" as *;
+@use "mixins" as *;
+
+.not-found {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: $background;
+  font-family: $font-body;
+  padding: 2rem $section-padding-x-mobile;
+
+  &__inner {
+    text-align: center;
+    max-width: 480px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: $spacing-md;
+  }
+
+  &__code {
+    font-family: $font-headline;
+    font-size: clamp(5rem, 18vw, 9rem);
+    font-weight: 200;
+    line-height: 1;
+    color: transparent;
+    -webkit-text-stroke: 1px rgba($primary, 0.25);
+    letter-spacing: -0.02em;
+    display: block;
+  }
+
+  &__divider {
+    color: $primary;
+    font-size: 0.7rem;
+    opacity: 0.5;
+  }
+
+  &__title {
+    font-family: $font-headline;
+    font-size: clamp(1.6rem, 4vw, 2.4rem);
+    font-weight: 300;
+    color: $on-surface;
+    margin: 0;
+    em { font-style: italic; color: $primary; }
+  }
+
+  &__sub {
+    font-size: $body-md;
+    color: $on-surface-variant;
+    margin: 0;
+    line-height: 1.6;
+  }
+
+  &__actions {
+    display: flex;
+    gap: $spacing-md;
+    margin-top: $spacing-sm;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  &__btn {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.7rem 1.8rem;
+    font-family: $font-label;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    text-decoration: none;
+    border-radius: $radius-sm;
+    cursor: pointer;
+    transition: background $duration-base $ease, border-color $duration-base $ease;
+
+    &--primary {
+      background: $primary;
+      color: $background;
+      border: 1px solid $primary;
+      &:hover { background: $gold-light; border-color: $gold-light; }
+    }
+
+    &--ghost {
+      background: transparent;
+      color: $on-surface-variant;
+      border: 1px solid rgba($on-surface, 0.15);
+      &:hover { border-color: rgba($on-surface, 0.35); color: $on-surface; }
+    }
+  }
+}

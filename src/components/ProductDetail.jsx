@@ -3,17 +3,58 @@ import { useParams, Link } from "react-router-dom";
 import { ProductsContext } from "./ProductsContext";
 import QuantitySelector from "./QuantitySelector";
 import { useCart } from "./CartContext";
+import { useWishlist } from "./WishlistContext";
 import RelatedProducts from "./RelatedProducts";
+import ProductReviews from "./ProductReviews";
 import "../styles/ProductDetail.scss";
 
 const formatPrice = (price) => "$ " + Number(price).toLocaleString("es-UY");
+
+// ── Icon helpers ────────────────────────────────────────────
+const HeartIcon = ({ filled }) => (
+  <svg
+    width="20"
+    height="20"
+    viewBox="0 0 24 24"
+    fill={filled ? "currentColor" : "none"}
+    stroke="currentColor"
+    strokeWidth="1.5"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden="true"
+  >
+    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+  </svg>
+);
+
+const ShareIcon = () => (
+  <svg
+    width="18"
+    height="18"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.5"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden="true"
+  >
+    <circle cx="18" cy="5" r="3" />
+    <circle cx="6" cy="12" r="3" />
+    <circle cx="18" cy="19" r="3" />
+    <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
+    <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+  </svg>
+);
 
 const ProductDetail = () => {
   const { id }       = useParams();
   const { products } = useContext(ProductsContext);
   const { add }      = useCart();
+  const { isWishlisted, toggleWishlist } = useWishlist();
   const [qty, setQty] = useState(1);
   const [zoomOpen, setZoomOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const product = products.find((p) => String(p.id) === id);
   const isInactive = product && product.status && product.status !== "activo";
@@ -45,6 +86,26 @@ const ProductDetail = () => {
         : [];
 
   const mainImage = images[0] ?? null;
+
+  const wishlisted = isWishlisted(product.id);
+
+  const handleShare = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: product.name, url: window.location.href });
+      } catch {
+        // User cancelled or error — do nothing
+      }
+    } else {
+      try {
+        await navigator.clipboard.writeText(window.location.href);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      } catch {
+        // Clipboard not available
+      }
+    }
+  };
 
   return (
     <main className="product-detail">
@@ -113,6 +174,27 @@ const ProductDetail = () => {
             <p className="product-detail__price">{formatPrice(product.price)}</p>
           )}
 
+          {/* ── Wishlist + Share ── */}
+          <div className="product-detail__actions-row">
+            <button
+              className={`product-detail__wish-btn${wishlisted ? " product-detail__wish-btn--active" : ""}`}
+              onClick={() => toggleWishlist(product.id)}
+              aria-label={wishlisted ? "Quitar de favoritos" : "Añadir a favoritos"}
+            >
+              <HeartIcon filled={wishlisted} />
+              <span>{wishlisted ? "Guardado" : "Favoritos"}</span>
+            </button>
+
+            <button
+              className="product-detail__share-btn"
+              onClick={handleShare}
+              aria-label="Compartir producto"
+            >
+              <ShareIcon />
+              <span>{copied ? "¡Copiado!" : "Compartir"}</span>
+            </button>
+          </div>
+
           {product.description && (
             <p className="product-detail__description">{product.description}</p>
           )}
@@ -158,6 +240,9 @@ const ProductDetail = () => {
 
         </div>
       </div>
+
+      {/* ── Reseñas ── */}
+      <ProductReviews productId={String(product.id)} />
 
       {/* ── Productos relacionados ── */}
       <RelatedProducts currentProductId={product.id} category={product.category} />

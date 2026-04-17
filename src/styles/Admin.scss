@@ -1,5 +1,6 @@
 @use "variables" as *;
 @use "mixins" as *;
+@use "ventas";
 
 // ── Keyframes ─────────────────────────────────────────────────
 @keyframes flash-highlight {
@@ -1201,4 +1202,790 @@
   }
 
   .product-drawer { width: 100%; }
+}
+
+// ══════════════════════════════════════════════════════════════
+// MEJORAS 1-10 — Nuevos componentes
+// ══════════════════════════════════════════════════════════════
+
+// ── Botón filtro crítico ──────────────────────────────────────
+.btn-critical-filter {
+  padding: 0.45rem 0.85rem;
+  border: 1px solid rgba(#e8a020, 0.35);
+  background: transparent;
+  color: #e8a020;
+  font-family: $font-body;
+  font-size: $body-sm;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  border-radius: $radius-sm;
+  cursor: pointer;
+  transition: background $duration-fast $ease, border-color $duration-fast $ease;
+
+  &:hover { background: rgba(#e8a020, 0.08); border-color: rgba(#e8a020, 0.6); }
+  &.active { background: rgba(#e8a020, 0.15); border-color: rgba(#e8a020, 0.7); }
+}
+
+// ── Meta bar (contador + bulk bar) ────────────────────────────
+.table-meta-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: $spacing-sm;
+  padding: 0.5rem 0 0.75rem;
+}
+
+.results-counter {
+  font-size: $body-sm;
+  color: $on-surface-variant;
+  letter-spacing: 0.02em;
+
+  strong { color: $on-surface; }
+}
+
+// ── Bulk actions bar ─────────────────────────────────────────
+.bulk-bar {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  padding: 0.35rem 0.75rem;
+  background: rgba($primary, 0.06);
+  border: 1px solid rgba($primary, 0.18);
+  border-radius: $radius-sm;
+  animation: flash-highlight 0.3s $ease;
+
+  &__count {
+    font-size: $body-sm;
+    color: $primary;
+    font-weight: 600;
+    margin-right: $spacing-xs;
+  }
+}
+
+.bulk-btn {
+  padding: 0.3rem 0.7rem;
+  border-radius: $radius-sm;
+  font-size: 11px;
+  font-weight: 600;
+  font-family: $font-body;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all $duration-fast $ease;
+
+  &--activate {
+    background: rgba(#4caf82, 0.12);
+    color: #4caf82;
+    border-color: rgba(#4caf82, 0.3);
+    &:hover { background: rgba(#4caf82, 0.22); }
+  }
+  &--draft {
+    background: rgba(#888, 0.12);
+    color: #aaa;
+    border-color: rgba(#888, 0.3);
+    &:hover { background: rgba(#888, 0.22); }
+  }
+  &--delete {
+    background: rgba(#e05050, 0.12);
+    color: #e05050;
+    border-color: rgba(#e05050, 0.3);
+    &:hover { background: rgba(#e05050, 0.22); }
+  }
+  &--clear {
+    background: transparent;
+    color: $on-surface-variant;
+    &:hover { color: $on-surface; }
+  }
+}
+
+// ── Columnas drag/check ───────────────────────────────────────
+.col-drag {
+  width: 28px;
+  text-align: center;
+  color: rgba($on-surface, 0.2);
+  font-size: 14px;
+  cursor: default;
+}
+
+.drag-handle {
+  cursor: grab;
+  color: rgba($on-surface, 0.25);
+  font-size: 16px;
+  user-select: none;
+  transition: color $duration-fast $ease;
+  display: inline-block;
+  padding: 0 4px;
+
+  &:hover { color: $primary; }
+  &:active { cursor: grabbing; }
+}
+
+.col-check { width: 36px; text-align: center; }
+
+// ── Row states ────────────────────────────────────────────────
+.row-drag-over td { background: rgba($primary, 0.06) !important; border-top: 2px solid rgba($primary, 0.4); }
+.row-selected td  { background: rgba($primary, 0.04); }
+
+// ── Image hover preview ───────────────────────────────────────
+.thumb-wrap {
+  position: relative;
+  display: inline-block;
+}
+
+.img-preview-tooltip {
+  position: fixed;
+  z-index: 9999;
+  pointer-events: none;
+  transform: translate(12px, -50%);
+  margin-top: 0;
+
+  img {
+    width: 200px;
+    height: 200px;
+    object-fit: cover;
+    border: 1px solid rgba($primary, 0.25);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.7);
+    background: $surface-container;
+    display: block;
+    border-radius: $radius-sm;
+  }
+}
+
+// ── Margin badge ─────────────────────────────────────────────
+.margin-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: $radius-sm;
+  min-width: 42px;
+
+  &.margin-good { background: rgba(#4caf82, 0.12); color: #4caf82; }
+  &.margin-mid  { background: rgba(#e8a020, 0.12); color: #e8a020; }
+  &.margin-bad  { background: rgba(#e05050, 0.12); color: #e05050; }
+}
+
+// ── Status toggle (reemplaza select) ─────────────────────────
+.status-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: 1px solid rgba($on-surface, 0.12);
+  border-radius: $radius-full;
+  padding: 3px 8px 3px 4px;
+  cursor: pointer;
+  font-family: $font-body;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  transition: all $duration-fast $ease;
+
+  &__knob {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    transition: background $duration-fast $ease;
+  }
+
+  &--on {
+    border-color: rgba(#4caf82, 0.4);
+    color: #4caf82;
+    .status-toggle__knob { background: #4caf82; }
+    &:hover { background: rgba(#4caf82, 0.08); }
+  }
+
+  &--off {
+    border-color: rgba($on-surface, 0.12);
+    color: rgba($on-surface, 0.4);
+    .status-toggle__knob { background: rgba($on-surface, 0.2); }
+    &:hover { background: rgba($on-surface, 0.06); }
+  }
+}
+
+// ── Historial de cambios ──────────────────────────────────────
+.history-panel {
+  margin-bottom: $spacing-md;
+}
+
+.history-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-sm;
+  background: none;
+  border: 1px solid rgba($on-surface, 0.08);
+  color: $on-surface-variant;
+  font-family: $font-body;
+  font-size: $body-sm;
+  padding: 0.5rem 0.85rem;
+  cursor: pointer;
+  border-radius: $radius-sm;
+  transition: all $duration-fast $ease;
+
+  &:hover { border-color: rgba($primary, 0.3); color: $primary; }
+  &.open  { border-color: rgba($primary, 0.25); color: $on-surface; }
+}
+
+.history-chevron {
+  font-size: 10px;
+  transition: transform $duration-fast $ease;
+  &.open { transform: rotate(180deg); }
+}
+
+.history-list {
+  margin-top: $spacing-sm;
+  border: 1px solid rgba($on-surface, 0.06);
+  border-radius: $radius-sm;
+  max-height: 240px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba($primary, 0.2) transparent;
+}
+
+.history-empty {
+  padding: $spacing-lg;
+  text-align: center;
+  color: $on-surface-variant;
+  font-size: $body-sm;
+  margin: 0;
+}
+
+.history-entry {
+  display: grid;
+  grid-template-columns: 80px 1fr 2fr 120px;
+  gap: $spacing-sm;
+  padding: 0.55rem $spacing-md;
+  border-bottom: 1px solid rgba($on-surface, 0.04);
+  align-items: center;
+  font-size: $body-sm;
+  transition: background $duration-fast $ease;
+
+  &:last-child { border-bottom: none; }
+  &:hover { background: rgba($on-surface, 0.03); }
+
+  &__tipo {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 2px 6px;
+    border-radius: $radius-sm;
+    text-align: center;
+  }
+
+  &__nombre { color: $on-surface; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  &__detalle { color: $on-surface-variant; font-size: $body-sm; }
+  &__time    { color: rgba($on-surface-variant, 0.5); font-size: $label-sm; text-align: right; white-space: nowrap; }
+
+  // Color por tipo
+  &--EDICION .history-entry__tipo { background: rgba($primary, 0.12); color: $primary; }
+  &--NUEVO   .history-entry__tipo { background: rgba(#4caf82, 0.12); color: #4caf82; }
+  &--BAJA    .history-entry__tipo, &--ELIMINADO .history-entry__tipo { background: rgba(#e05050, 0.12); color: #e05050; }
+  &--STOCK   .history-entry__tipo { background: rgba(#6ab8ff, 0.12); color: #6ab8ff; }
+}
+
+// ── Upload zona drag & drop ───────────────────────────────────
+.upload-zone {
+  border: 1px dashed rgba($primary, 0.3);
+  border-radius: $radius-sm;
+  padding: 1.5rem 1rem;
+  text-align: center;
+  cursor: pointer;
+  background: rgba($surface-container-high, 0.3);
+  transition: border-color $duration-fast $ease, background $duration-fast $ease;
+
+  &:hover, &--dragover {
+    border-color: rgba($primary, 0.7);
+    background: rgba($primary, 0.04);
+  }
+
+  &__text {
+    font-size: $body-sm;
+    color: $on-surface-variant;
+    line-height: 1.6;
+    pointer-events: none;
+
+    small { font-size: $label-sm; opacity: 0.6; }
+  }
+}
+
+.upload-progress {
+  font-size: $body-sm;
+  color: $primary;
+  letter-spacing: 0.08em;
+}
+
+.upload-error {
+  font-size: $body-sm;
+  color: #e05050;
+  margin: 0.35rem 0 0;
+}
+
+// ── Historial de precios en drawer ────────────────────────────
+.drawer-price-history {
+  background: rgba($surface-container-high, 0.4);
+  border: 1px solid rgba($primary, 0.08);
+  border-radius: $radius-sm;
+  padding: 0.75rem 0.5rem 0.5rem;
+
+  label {
+    display: block;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: $on-surface-variant;
+    margin-bottom: 0.5rem;
+    padding-left: 0.25rem;
+  }
+}
+
+// ── Reseñas Tab ───────────────────────────────────────────────
+.reviews-tab {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  &__filters {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  &__filter-btn {
+    background: transparent;
+    border: 1px solid rgba($on-surface, 0.12);
+    color: rgba($on-surface, 0.5);
+    font-family: $font-label;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    padding: 0.45rem 1rem;
+    cursor: pointer;
+    transition: border-color $duration-fast $ease, color $duration-fast $ease;
+
+    &.active,
+    &:hover {
+      border-color: $primary;
+      color: $primary;
+    }
+  }
+
+  &__add-btn {
+    background: $primary;
+    border: none;
+    color: #0a0a0a;
+    font-family: $font-label;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    padding: 0.55rem 1.25rem;
+    cursor: pointer;
+    transition: background $duration-fast $ease;
+
+    &:hover { background: lighten(#D4AF37, 8%); }
+  }
+
+  &__form-card {
+    background: rgba($surface-container-lowest, 0.6);
+    border: 1px solid rgba($primary, 0.15);
+    padding: 1.5rem;
+    animation: formIn 0.25s ease forwards;
+  }
+
+  &__form { display: flex; flex-direction: column; gap: 0.75rem; }
+
+  &__form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr auto;
+    gap: 0.75rem;
+  }
+
+  &__input,
+  &__textarea {
+    background: rgba($on-surface, 0.04);
+    border: 1px solid rgba($on-surface, 0.1);
+    color: $on-surface;
+    font-family: $font-body;
+    font-size: 13px;
+    padding: 0.65rem 0.85rem;
+    outline: none;
+    width: 100%;
+    resize: none;
+    transition: border-color $duration-fast $ease;
+
+    &::placeholder { color: rgba($on-surface, 0.3); }
+    &:focus { border-color: rgba($primary, 0.45); }
+  }
+
+  &__form-actions {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: flex-end;
+  }
+
+  &__cancel {
+    background: transparent;
+    border: 1px solid rgba($on-surface, 0.12);
+    color: rgba($on-surface, 0.45);
+    font-family: $font-label;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    padding: 0.55rem 1rem;
+    cursor: pointer;
+    transition: border-color $duration-fast $ease, color $duration-fast $ease;
+    &:hover { border-color: rgba($on-surface, 0.3); color: $on-surface; }
+  }
+
+  &__submit { font-size: 10px; padding: 0.55rem 1.25rem; }
+
+  &__success {
+    font-family: $font-label;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: $primary;
+    padding: 0.75rem;
+    border: 1px solid rgba($primary, 0.25);
+    text-align: center;
+  }
+
+  &__list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  &__card {
+    background: rgba($surface-container-lowest, 0.5);
+    border: 1px solid rgba($on-surface, 0.08);
+    padding: 1rem 1.25rem;
+    transition: border-color $duration-fast $ease;
+
+    &--approved { border-left: 2px solid rgba($primary, 0.5); }
+    &--pending  { border-left: 2px solid rgba(#e0a030, 0.5); }
+  }
+
+  &__card-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-bottom: 0.6rem;
+  }
+
+  &__card-info {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  &__card-author {
+    font-family: $font-label;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: $on-surface;
+  }
+
+  &__card-product {
+    font-size: 11px;
+    color: $primary;
+    opacity: 0.75;
+  }
+
+  &__card-stars {
+    font-size: 11px;
+    color: $primary;
+    letter-spacing: 1px;
+  }
+
+  &__badge {
+    font-family: $font-label;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 0.15rem 0.5rem;
+    border: 1px solid transparent;
+
+    &--ok       { color: #6fcf6f; border-color: rgba(#6fcf6f, 0.35); }
+    &--wait     { color: #e0a030; border-color: rgba(#e0a030, 0.35); }
+    &--customer { color: rgba($on-surface, 0.45); border-color: rgba($on-surface, 0.12); }
+  }
+
+  &__card-actions {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  &__action-btn {
+    background: transparent;
+    border: 1px solid rgba($on-surface, 0.1);
+    font-family: $font-label;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 0.3rem 0.75rem;
+    cursor: pointer;
+    transition: border-color $duration-fast $ease, color $duration-fast $ease, background $duration-fast $ease;
+
+    &--approve {
+      color: #6fcf6f;
+      border-color: rgba(#6fcf6f, 0.3);
+      &:hover { background: rgba(#6fcf6f, 0.08); }
+    }
+    &--reject {
+      color: #e0a030;
+      border-color: rgba(#e0a030, 0.3);
+      &:hover { background: rgba(#e0a030, 0.08); }
+    }
+    &--delete {
+      color: #e05050;
+      border-color: rgba(#e05050, 0.3);
+      &:hover { background: rgba(#e05050, 0.08); }
+    }
+  }
+
+  &__card-comment {
+    font-family: $font-body;
+    font-size: 13px;
+    color: rgba($on-surface, 0.75);
+    line-height: 1.6;
+    margin: 0 0 0.4rem;
+    font-style: italic;
+  }
+
+  &__card-date {
+    font-family: $font-label;
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba($on-surface, 0.3);
+  }
+
+  &__empty {
+    font-family: $font-label;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: rgba($on-surface, 0.3);
+    text-align: center;
+    padding: 3rem 0;
+  }
+}
+
+// ── Mejoras Admin/Productos ───────────────────────────────────
+
+// #1 — Toggle vista tabla/grilla
+.btn-view-toggle {
+  background: transparent;
+  border: 1px solid rgba($on-surface, 0.15);
+  color: rgba($on-surface, 0.5);
+  font-family: $font-label;
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  padding: 0.45rem 0.9rem;
+  cursor: pointer;
+  transition: border-color $duration-fast $ease, color $duration-fast $ease, background $duration-fast $ease;
+
+  &.active,
+  &:hover {
+    border-color: $primary;
+    color: $primary;
+    background: rgba($primary, 0.05);
+  }
+}
+
+// #1 — Grid view
+.products-grid-view {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+  padding: 0.5rem 0;
+}
+
+.product-grid-card {
+  background: rgba($surface-container-lowest, 0.6);
+  border: 1px solid rgba($on-surface, 0.08);
+  cursor: pointer;
+  transition: border-color $duration-fast $ease, transform $duration-fast $ease;
+  overflow: hidden;
+
+  &:hover { border-color: rgba($primary, 0.3); transform: translateY(-2px); }
+
+  &--no-img { border-left: 2px solid rgba(#e05050, 0.5); }
+
+  &__img-wrap {
+    position: relative;
+    height: 140px;
+    background: rgba($on-surface, 0.04);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+  }
+
+  &__no-img {
+    font-family: $font-label;
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: rgba(#e05050, 0.7);
+  }
+
+  &__body {
+    padding: 0.75rem;
+  }
+
+  &__name {
+    font-family: $font-label;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: $on-surface;
+    margin: 0 0 0.2rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &__cat {
+    font-size: 10px;
+    color: rgba($on-surface, 0.4);
+    margin: 0 0 0.5rem;
+    font-family: $font-label;
+    letter-spacing: 0.1em;
+  }
+
+  &__price {
+    font-family: $font-headline;
+    font-size: 1rem;
+    color: $primary;
+    margin-bottom: 0.6rem;
+  }
+
+  &__actions {
+    display: flex;
+    gap: 0.35rem;
+  }
+}
+
+// Stock badge overlay en grilla
+.stock-badge--overlay {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  font-size: 9px;
+  padding: 2px 6px;
+}
+
+// #2 — Edición inline nombre y precio
+.inline-edit-input {
+  background: rgba($on-surface, 0.06);
+  border: 1px solid rgba($primary, 0.4);
+  color: $on-surface;
+  font-family: $font-body;
+  font-size: 13px;
+  padding: 0.3rem 0.5rem;
+  outline: none;
+  width: 100%;
+
+  &--price { width: 90px; }
+}
+
+// #3 — Botón duplicar
+.tbl-btn.duplicate {
+  background: transparent;
+  border: 1px solid rgba($on-surface, 0.12);
+  color: rgba($on-surface, 0.45);
+  padding: 0.25rem 0.5rem;
+  font-size: 13px;
+  cursor: pointer;
+  transition: border-color $duration-fast $ease, color $duration-fast $ease;
+
+  &:hover {
+    border-color: rgba($primary, 0.4);
+    color: $primary;
+  }
+}
+
+// #4 — Celda de imagen sin foto
+.col-img--missing {
+  .no-img {
+    color: rgba(#e05050, 0.7);
+    font-size: 14px;
+  }
+}
+
+// #5 — Precio con descuento
+.price-with-discount {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.price-original {
+  text-decoration: line-through;
+  color: rgba($on-surface, 0.35);
+  font-size: 10px;
+}
+
+.price-discounted {
+  color: #6fcf6f;
+  font-weight: 600;
+}
+
+// #7 — Columna vendidos
+.col-sold { text-align: center; }
+
+.sold-badge {
+  display: inline-block;
+  font-family: $font-label;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: rgba($on-surface, 0.5);
+  background: rgba($on-surface, 0.06);
+  padding: 2px 8px;
+  min-width: 28px;
+  text-align: center;
+}
+
+// #9 — Drag handle desactivado con filtros
+.drag-handle--disabled {
+  opacity: 0.2;
+  cursor: not-allowed;
+}
+
+// #10 — Botón exportar seleccionados
+.export-btn--selected {
+  background: rgba($primary, 0.12) !important;
+  border-color: rgba($primary, 0.4) !important;
+  color: $primary !important;
 }

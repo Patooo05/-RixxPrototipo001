@@ -5,6 +5,9 @@ import { AuthProvider }     from "./components/AuthContext.jsx";
 import { ProductsProvider } from "./components/ProductsContext.jsx";
 import { CartProvider }     from "./components/CartContext.jsx";
 import { WishlistProvider } from "./components/WishlistContext.jsx";
+import { OrdersProvider }   from "./components/OrdersContext.jsx";
+import { ToastProvider }    from "./components/ToastContext.jsx";
+import { ReviewsProvider }  from "./components/ReviewsContext.jsx";
 import "./styles/global.scss";
 
 createRoot(document.getElementById("root")).render(
@@ -13,7 +16,13 @@ createRoot(document.getElementById("root")).render(
       <ProductsProvider>
         <CartProvider>
           <WishlistProvider>
-            <App />
+            <OrdersProvider>
+              <ToastProvider>
+                <ReviewsProvider>
+                  <App />
+                </ReviewsProvider>
+              </ToastProvider>
+            </OrdersProvider>
           </WishlistProvider>
         </CartProvider>
       </ProductsProvider>

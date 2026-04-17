@@ -2,7 +2,7 @@ import { useState, useEffect, useContext } from "react";
 import "./Navbar.scss";
 import logoNavbar from "../../../assets/img/logoNabvar.png";
 
-import { Link, useNavigate, useLocation } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { AuthContext } from "../../AuthContext.jsx";
 import { useCart } from "../../CartContext.jsx";
 import LoginModal from "../../LoginModal.jsx";
@@ -15,9 +15,8 @@ const Navbar = ({ onCartClick }) => {
   const [showRegisterModal, setShowReg]= useState(false);
 
   const { isLoggedIn, isAdmin, logout, username } = useContext(AuthContext);
-  const { count }  = useCart();
-  const navigate   = useNavigate();
-  const location   = useLocation();
+  const { count } = useCart();
+  const location  = useLocation();
 
   // Scroll listener
   useEffect(() => {
@@ -26,9 +25,15 @@ const Navbar = ({ onCartClick }) => {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  // Escuchar evento global desde AnnouncementBar
+  useEffect(() => {
+    const handler = () => setShowReg(true);
+    window.addEventListener("rixx:open-register", handler);
+    return () => window.removeEventListener("rixx:open-register", handler);
+  }, []);
+
   // Cerrar menu al cambiar de ruta
   useEffect(() => { setMenuOpen(false); }, [location.pathname]);
-
 
   // Helper: link activo
   const isActive = (path) =>
@@ -41,7 +46,7 @@ const Navbar = ({ onCartClick }) => {
       <nav className={`navbar${scrolled ? " navbar--scrolled" : ""}`}>
         <div className="navbar__container">
 
-          {/* ── IZQUIERDA: links 1 y 2 ── */}
+          {/* ── IZQUIERDA: links 1 y 2 (+ Nosotros/Contacto si hay sesión) ── */}
           <div className="navbar__left">
             <ul className={`navbar__links${menuOpen ? " navbar__links--open" : ""}`}>
               <li>
@@ -54,6 +59,20 @@ const Navbar = ({ onCartClick }) => {
                   Productos
                 </Link>
               </li>
+              {isLoggedIn && (
+                <>
+                  <li className="navbar__link-desktop-only">
+                    <Link to="/about" className={isActive("/about") ? "navbar__link--active" : ""}>
+                      Nosotros
+                    </Link>
+                  </li>
+                  <li className="navbar__link-desktop-only">
+                    <Link to="/contacto" className={isActive("/contacto") ? "navbar__link--active" : ""}>
+                      Contacto
+                    </Link>
+                  </li>
+                </>
+              )}
               <li className="navbar__link-mobile-only">
                 <Link to="/about" className={isActive("/about") ? "navbar__link--active" : ""}>
                   Nosotros
@@ -97,53 +116,56 @@ const Navbar = ({ onCartClick }) => {
             <img src={logoNavbar} alt="Rixx" className="navbar__logo-img" />
           </Link>
 
-          {/* ── DERECHA: links 3 y 4 + acciones ── */}
+          {/* ── DERECHA: links 3 y 4 (solo sin sesión) + acciones ── */}
           <div className="navbar__right">
-            <ul className="navbar__links navbar__links-right">
-              <li>
-                <Link to="/about" className={isActive("/about") ? "navbar__link--active" : ""}>
-                  Nosotros
-                </Link>
-              </li>
-              <li>
-                <Link to="/contacto" className={isActive("/contacto") ? "navbar__link--active" : ""}>
-                  Contacto
-                </Link>
-              </li>
-            </ul>
+            {!isLoggedIn && (
+              <ul className="navbar__links navbar__links-right">
+                <li>
+                  <Link to="/about" className={isActive("/about") ? "navbar__link--active" : ""}>
+                    Nosotros
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/contacto" className={isActive("/contacto") ? "navbar__link--active" : ""}>
+                    Contacto
+                  </Link>
+                </li>
+              </ul>
+            )}
 
             <div className="navbar__actions">
               {!isLoggedIn && (
-                <div className="navbar__auth-btns">
-                  <button className="navbar__btn-login" onClick={() => setShowLogin(true)}>
-                    Iniciar sesión
-                  </button>
-                  <button className="navbar__btn-register" onClick={() => setShowReg(true)}>
-                    Registrarse
-                  </button>
-                </div>
+                <button className="nav-icon-btn nav-account-btn" onClick={() => setShowLogin(true)} aria-label="Mi cuenta" data-tooltip="Mi cuenta">
+                  <IconUser />
+                </button>
               )}
               {isLoggedIn && !isAdmin && (
                 <>
-                  <span className="navbar__greeting">Hola, {username}</span>
-                  <Link to="/perfil" className="nav-icon-btn" aria-label="Perfil" onClick={closeMenu}>
+                  <Link to="/perfil" className="nav-icon-btn" aria-label="Perfil" onClick={closeMenu} data-tooltip="Perfil">
                     <IconUser />
                   </Link>
-                  <button className="nav-icon-btn nav-cart" onClick={onCartClick} aria-label="Carrito">
+                  <Link to="/favoritos" className={`nav-icon-btn${isActive("/favoritos") ? " nav-icon-btn--active" : ""}`} aria-label="Favoritos" onClick={closeMenu} data-tooltip="Favoritos">
+                    <IconHeart />
+                  </Link>
+                  <Link to="/mis-pedidos" className={`nav-icon-btn${isActive("/mis-pedidos") ? " nav-icon-btn--active" : ""}`} aria-label="Mis pedidos" onClick={closeMenu} data-tooltip="Mis pedidos">
+                    <IconOrders />
+                  </Link>
+                  <button className="nav-icon-btn nav-cart" onClick={onCartClick} aria-label="Carrito" data-tooltip="Carrito">
                     <IconCart />
                     {count > 0 && <span className="nav-badge">{count}</span>}
                   </button>
+                  <span className="navbar__username">{username}</span>
                 </>
               )}
               {isAdmin && (
                 <>
-                  <span className="navbar__greeting">Hola, {username}</span>
-                  <Link to="/admin" className="nav-icon-btn" aria-label="Admin" onClick={closeMenu}>
+                  <Link to="/admin" className="nav-icon-btn" aria-label="Admin" onClick={closeMenu} data-tooltip="Admin">
                     <IconGrid />
                   </Link>
-                  <button className="nav-icon-btn" onClick={logout} aria-label="Cerrar sesión">
+                  <button className="nav-icon-btn" onClick={logout} aria-label="Cerrar sesión" data-tooltip="Cerrar sesión">
                     <IconLogout />
                   </button>
+                  <span className="navbar__username">{username}</span>
                 </>
               )}
             </div>
@@ -211,6 +233,23 @@ const IconLogout = () => (
     <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
     <polyline points="16 17 21 12 16 7" />
     <line x1="21" y1="12" x2="9" y2="12" />
+  </svg>
+);
+
+const IconOrders = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+    stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2" />
+    <rect x="9" y="3" width="6" height="4" rx="1" />
+    <line x1="9" y1="12" x2="15" y2="12" />
+    <line x1="9" y1="16" x2="13" y2="16" />
+  </svg>
+);
+
+const IconHeart = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+    stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" />
   </svg>
 );
 

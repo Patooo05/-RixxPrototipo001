@@ -1,247 +1,376 @@
-import { createContext, useState, useMemo, useRef } from "react";
-
-// ── Imports de imágenes ───────────────────────────────────────
-import img1 from "../assets/img/1.webp";
-import img2 from "../assets/img/2.webp";
-import img3 from "../assets/img/3.webp";
-import img4 from "../assets/img/4.webp";
-import img5 from "../assets/img/5.webp";
-import img6 from "../assets/img/6.webp";
-import img7 from "../assets/img/7.webp";
-import img8 from "../assets/img/8.webp";
+import { createContext, useState, useMemo, useRef, useEffect } from "react";
+import { supabase, isSupabaseEnabled } from "../lib/supabase";
 
 export const ProductsContext = createContext();
 
-const INITIAL_PRODUCTS = [
-  {
-    id: 1,
-    name: "Vintage A",
-    price: 120,
-    image: img1,
-    category: "Classic",
-    stock: 3,
-    featured: false,
-    isNew: false,
-    rating: 4,
-    description: "Diseño clásico atemporal con montura fina",
-    characteristics: ["Montura fina", "UV400", "Ligeros"],
-    precioCosto: 54,
-    status: "activo",
-    images: [img1],
-    variants: [],
-    descuento: null,
-    priceHistory: [{ precio: 120, fecha: "2025-01-01" }],
-  },
-  {
-    id: 2,
-    name: "Vintage B",
-    price: 150,
-    image: img2,
-    category: "Classic",
-    stock: 0,
-    featured: true,
-    isNew: false,
-    rating: 5,
-    description: "Lentes vintage de edición limitada premium",
-    characteristics: ["Edición limitada", "Clásico", "Premium"],
-    precioCosto: 68,
-    status: "activo",
-    images: [img2],
-    variants: [],
-    descuento: null,
-    priceHistory: [{ precio: 150, fecha: "2025-01-01" }],
-  },
-  {
-    id: 3,
-    name: "Urban Shield",
-    price: 99,
-    image: img3,
-    category: "Sport",
-    stock: 5,
-    featured: false,
-    isNew: false,
-    rating: 4,
-    description: "Resistentes y ligeros para el día a día urbano",
-    characteristics: ["Anti-impacto", "Ligeros", "Resistentes"],
-    precioCosto: 44,
-    status: "activo",
-    images: [img3],
-    variants: [],
-    descuento: null,
-    priceHistory: [{ precio: 99, fecha: "2025-01-01" }],
-  },
-  {
-    id: 4,
-    name: "Night Vision",
-    price: 135,
-    image: img4,
-    category: "Sport",
-    stock: 2,
-    featured: true,
-    isNew: false,
-    rating: 4,
-    description: "Alto contraste para uso nocturno y deportivo",
-    characteristics: ["Alto contraste", "Anti-reflejo", "Sport"],
-    precioCosto: 61,
-    status: "activo",
-    images: [img4],
-    variants: [],
-    descuento: null,
-    priceHistory: [{ precio: 135, fecha: "2025-01-01" }],
-  },
-  {
-    id: 5,
-    name: "Gold Frame",
-    price: 175,
-    image: img5,
-    category: "Luxury",
-    stock: 4,
-    featured: true,
-    isNew: false,
-    rating: 5,
-    description: "Montura dorada con cristales de lujo premium",
-    characteristics: ["Montura dorada", "Cristales premium", "Lujo"],
-    precioCosto: 80,
-    status: "activo",
-    images: [img5],
-    variants: [],
-    descuento: null,
-    priceHistory: [{ precio: 175, fecha: "2025-01-01" }],
-  },
-  {
-    id: 6,
-    name: "Classic Elite",
-    price: 145,
-    image: img6,
-    category: "Classic",
-    stock: 6,
-    featured: false,
-    isNew: false,
-    rating: 4,
-    description: "Elegancia clásica para el estilo contemporáneo",
-    characteristics: ["Elegante", "Clásico", "Versátil"],
-    precioCosto: 65,
-    status: "activo",
-    images: [img6],
-    variants: [],
-    descuento: null,
-    priceHistory: [{ precio: 145, fecha: "2025-01-01" }],
-  },
-  {
-    id: 7,
-    name: "Titanium Edge Pro",
-    price: 189.99,
-    image: img7,
-    category: "Sport",
-    stock: 8,
-    featured: true,
-    isNew: true,
-    rating: 5,
-    description: "Lentes deportivos anti-reflejo de titanio puro",
-    characteristics: ["Anti-reflejo", "Titanio", "Ultra-ligeros"],
-    precioCosto: 86,
-    status: "activo",
-    images: [img7],
-    variants: [],
-    descuento: null,
-    priceHistory: [{ precio: 189.99, fecha: "2025-01-01" }],
-  },
-  {
-    id: 8,
-    name: "Aviator Luxe Retro",
-    price: 159.99,
-    image: img8,
-    category: "Classic",
-    stock: 5,
-    featured: true,
-    isNew: true,
-    rating: 5,
-    description: "Diseño vintage clásico inspirado en los años 70s",
-    characteristics: ["Vintage", "Clásico", "Elegante"],
-    precioCosto: 72,
-    status: "activo",
-    images: [img8],
-    variants: [],
-    descuento: null,
-    priceHistory: [{ precio: 159.99, fecha: "2025-01-01" }],
-  },
-];
+// ── Detectar si Supabase está configurado ────────────────────
+const SUPABASE_ENABLED = isSupabaseEnabled;
+
+
+// ── DB ↔ JS mapping helpers ──────────────────────────────────
+const dbToProduct = (row) => ({
+  id:             row.id,
+  name:           row.name,
+  price:          Number(row.price),
+  precioCosto:    row.precio_costo != null ? Number(row.precio_costo) : null,
+  image:          (row.image && !row.image.startsWith("blob:")) ? row.image : null,
+  category:       row.category,
+  description:    row.description ?? "",
+  stock:          row.stock ?? 0,
+  featured:       row.featured ?? false,
+  isNew:          row.is_new ?? false,
+  rating:         row.rating != null ? Number(row.rating) : 0,
+  status:         row.status ?? "activo",
+  characteristics: row.characteristics ?? [],
+  images:         row.images ?? [],
+  variants:       row.variants ?? [],
+  descuento:      row.descuento ?? null,
+  priceHistory:   row.price_history ?? [],
+});
+
+const productToDb = (product) => ({
+  name:           product.name,
+  price:          product.price,
+  precio_costo:   product.precioCosto ?? null,
+  image:          product.image ?? null,
+  category:       product.category,
+  description:    product.description ?? "",
+  stock:          product.stock ?? 0,
+  featured:       product.featured ?? false,
+  is_new:         product.isNew ?? false,
+  rating:         product.rating ?? 0,
+  status:         product.status ?? "activo",
+  characteristics: product.characteristics ?? [],
+  images:         product.images ?? [],
+  variants:       product.variants ?? [],
+  descuento:      product.descuento ?? null,
+  price_history:  product.priceHistory ?? [],
+});
 
 // ── Helpers ────────────────────────────────────────────────────
 const now = () => new Date().toLocaleString("es-UY");
 
 export const ProductsProvider = ({ children }) => {
-  const [products, setProducts]             = useState(INITIAL_PRODUCTS);
-  const nextIdRef = useRef(Math.max(...INITIAL_PRODUCTS.map((p) => p.id), 0) + 1);
-  const [history, setHistory]               = useState([]);           // historial de stock
-  const [changeLog, setChangeLog]           = useState([]);           // cambios sin guardar
+  // In fallback mode nextIdRef tracks the auto-increment; unused in Supabase mode.
+  const nextIdRef = useRef(1);
+
+  const [products, setProducts]             = useState(() => {
+    if (SUPABASE_ENABLED) return [];
+    try {
+      const stored = localStorage.getItem("rixx_products");
+      if (stored) return JSON.parse(stored);
+    } catch { /* ignorar */ }
+    return [];
+  });
+  const [loading, setLoading]               = useState(SUPABASE_ENABLED);
+  const [history, setHistory]               = useState([]);
+  const [changeLog, setChangeLog]           = useState([]);
   const [hasUnsavedChanges, setHasUnsaved]  = useState(false);
   const [lastSavedAt, setLastSavedAt]       = useState(null);
 
-  // ── Filtros (para ProductsGrid) ──────────────────────────────
+  // ── Filtros ──────────────────────────────────────────────────
   const [search, setSearch]                 = useState("");
   const [categoryFilter, setCategoryFilter] = useState("Todos");
   const [priceFilter, setPriceFilter]       = useState("Todos");
   const [sortOrder, setSortOrder]           = useState("nuevo");
-
-  // ── Filtro por rango de precio (slider) ──────────────────────
   const [minPrice, setMinPrice]             = useState(0);
   const [maxPrice, setMaxPrice]             = useState(9999);
 
-  // Registra un cambio en el log
+  // ── Persistir productos en localStorage (modo sin Supabase) ──
+  useEffect(() => {
+    if (!SUPABASE_ENABLED) {
+      localStorage.setItem("rixx_products", JSON.stringify(products));
+    }
+  }, [products]);
+
+  // ── Fetch inicial desde Supabase ─────────────────────────────
+  useEffect(() => {
+    if (!SUPABASE_ENABLED) return;
+    // Limpia cualquier caché local viejo
+    localStorage.removeItem("rixx_products");
+
+    const fetchProducts = async () => {
+      try {
+        const { data, error } = await supabase
+          .from("products")
+          .select("*")
+          .order("id");
+
+        if (error) {
+          console.error("[ProductsContext] Error fetching products:", error);
+        } else {
+          setProducts((data ?? []).map(dbToProduct));
+        }
+      } catch (err) {
+        console.error("[ProductsContext] Unexpected error fetching products:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, []);
+
+  // ── Persistir entrada en change_log de Supabase ──────────────
+  const persistChangeLog = async (entry) => {
+    if (!SUPABASE_ENABLED) return;
+    try {
+      const { error } = await supabase.from("change_log").insert({
+        timestamp:  entry.timestamp,
+        tipo:       entry.tipo,
+        product_id: entry.id,
+        nombre:     entry.nombre,
+        operador:   entry.operador,
+        detalle:    entry.detalle ?? null,
+      });
+      if (error) console.error("[ProductsContext] Error persisting change_log:", error);
+    } catch (err) {
+      console.error("[ProductsContext] Unexpected error persisting change_log:", err);
+    }
+  };
+
+  // ── Log de cambios (local + Supabase) ────────────────────────
   const logChange = (type, product, extra = {}) => {
-    setChangeLog((prev) => [
-      ...prev,
-      {
-        timestamp: now(),
-        tipo: type,
-        id: product.id,
-        nombre: product.name,
-        operador: "admin",
-        ...extra,
-      },
-    ]);
+    const entry = {
+      timestamp: now(),
+      tipo:      type,
+      id:        product.id,
+      nombre:    product.name,
+      operador:  "admin",
+      ...extra,
+    };
+    setChangeLog((prev) => [...prev, entry]);
     setHasUnsaved(true);
+    persistChangeLog(entry);
   };
 
-  // ── CRUD ────────────────────────────────────────────────────
-  const addProduct = (data) => {
-    const newProduct = { ...data, id: nextIdRef.current++, featured: false, isNew: true, rating: 0, status: "activo" };
-    setProducts((prev) => [...prev, newProduct]);
-    logChange("ALTA", newProduct, { detalle: `Precio: $${data.price} · Stock: ${data.stock}` });
+  // ── addProduct ───────────────────────────────────────────────
+  const addProduct = async (data) => {
+    if (!SUPABASE_ENABLED) {
+      const newProduct = {
+        ...data,
+        id:       nextIdRef.current++,
+        featured: false,
+        isNew:    true,
+        rating:   0,
+        status:   "activo",
+      };
+      setProducts((prev) => [...prev, newProduct]);
+      logChange("ALTA", newProduct, { detalle: `Precio: $${data.price} · Stock: ${data.stock}` });
+      return;
+    }
+
+    try {
+      const dbRow = productToDb({
+        ...data,
+        featured: false,
+        isNew:    true,
+        rating:   0,
+        status:   "activo",
+      });
+
+      const { data: inserted, error } = await supabase
+        .from("products")
+        .insert(dbRow)
+        .select()
+        .single();
+
+      if (error) {
+        console.error("[ProductsContext] Error inserting product:", error);
+        return;
+      }
+
+      const newProduct = dbToProduct(inserted);
+      setProducts((prev) => [...prev, newProduct]);
+      logChange("ALTA", newProduct, { detalle: `Precio: $${data.price} · Stock: ${data.stock}` });
+    } catch (err) {
+      console.error("[ProductsContext] Unexpected error in addProduct:", err);
+    }
   };
 
-  const removeProduct = (id) => {
+  // ── removeProduct ────────────────────────────────────────────
+  const removeProduct = async (id) => {
     const product = products.find((p) => p.id === id);
     if (!product) return;
-    setProducts((prev) => prev.filter((p) => p.id !== id));
-    logChange("BAJA", product, { detalle: "Producto eliminado" });
+
+    if (!SUPABASE_ENABLED) {
+      setProducts((prev) => prev.filter((p) => p.id !== id));
+      logChange("BAJA", product, { detalle: "Producto eliminado" });
+      return;
+    }
+
+    try {
+      const { error } = await supabase.from("products").delete().eq("id", id);
+      if (error) {
+        console.error("[ProductsContext] Error deleting product:", error);
+        return;
+      }
+      setProducts((prev) => prev.filter((p) => p.id !== id));
+      logChange("BAJA", product, { detalle: "Producto eliminado" });
+    } catch (err) {
+      console.error("[ProductsContext] Unexpected error in removeProduct:", err);
+    }
   };
 
-  const updateProduct = (updated) => {
+  // ── updateProduct ────────────────────────────────────────────
+  const updateProduct = async (updated) => {
     const old = products.find((p) => p.id === updated.id);
-    setProducts((prev) => prev.map((p) => (p.id === updated.id ? { ...p, ...updated } : p)));
+
+    // Compute diffs before touching state
+    const diffs = [];
     if (old) {
-      const diffs = [];
       if (old.stock       !== updated.stock)       diffs.push(`Stock: ${old.stock} → ${updated.stock}`);
       if (old.price       !== updated.price)       diffs.push(`Precio: ${old.price} → ${updated.price}`);
       if (old.name        !== updated.name)        diffs.push(`Nombre: "${old.name}" → "${updated.name}"`);
       if (old.featured    !== updated.featured)    diffs.push(`Destacado: ${old.featured ? "Sí" : "No"} → ${updated.featured ? "Sí" : "No"}`);
       if (old.status      !== updated.status)      diffs.push(`Status: "${old.status || "activo"}" → "${updated.status || "activo"}"`);
       if (old.precioCosto !== updated.precioCosto) diffs.push(`Costo: ${old.precioCosto ?? "—"} → ${updated.precioCosto ?? "—"}`);
-      if (diffs.length > 0) logChange("MODIFICACIÓN", old, { detalle: diffs.join(" | ") });
+    }
+
+    if (!SUPABASE_ENABLED) {
+      setProducts((prev) => prev.map((p) => (p.id === updated.id ? { ...p, ...updated } : p)));
+      if (old && diffs.length > 0) logChange("MODIFICACIÓN", old, { detalle: diffs.join(" | ") });
+      return;
+    }
+
+    try {
+      const dbRow = productToDb(updated);
+      const { error } = await supabase
+        .from("products")
+        .update(dbRow)
+        .eq("id", updated.id);
+
+      if (error) {
+        console.error("[ProductsContext] Error updating product:", error);
+        return;
+      }
+
+      setProducts((prev) => prev.map((p) => (p.id === updated.id ? { ...p, ...updated } : p)));
+      if (old && diffs.length > 0) logChange("MODIFICACIÓN", old, { detalle: diffs.join(" | ") });
+    } catch (err) {
+      console.error("[ProductsContext] Unexpected error in updateProduct:", err);
     }
   };
 
-  const toggleFeatured = (id) => {
+  // ── toggleFeatured ───────────────────────────────────────────
+  const toggleFeatured = async (id) => {
     const product = products.find((p) => p.id === id);
     if (!product) return;
     const newVal = !product.featured;
-    setProducts((prev) => prev.map((p) => (p.id === id ? { ...p, featured: newVal } : p)));
-    logChange("DESTACADO", product, { detalle: newVal ? "Marcado como destacado" : "Quitado de destacados" });
+
+    if (!SUPABASE_ENABLED) {
+      setProducts((prev) => prev.map((p) => (p.id === id ? { ...p, featured: newVal } : p)));
+      logChange("DESTACADO", product, { detalle: newVal ? "Marcado como destacado" : "Quitado de destacados" });
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from("products")
+        .update({ featured: newVal })
+        .eq("id", id);
+
+      if (error) {
+        console.error("[ProductsContext] Error toggling featured:", error);
+        return;
+      }
+
+      setProducts((prev) => prev.map((p) => (p.id === id ? { ...p, featured: newVal } : p)));
+      logChange("DESTACADO", product, { detalle: newVal ? "Marcado como destacado" : "Quitado de destacados" });
+    } catch (err) {
+      console.error("[ProductsContext] Unexpected error in toggleFeatured:", err);
+    }
   };
 
-  // ── Historial de stock ───────────────────────────────────────
+  // ── updateProductStatus ──────────────────────────────────────
+  const updateProductStatus = async (id, status) => {
+    const product = products.find((p) => p.id === id);
+    if (!product) return;
+
+    if (!SUPABASE_ENABLED) {
+      setProducts((prev) => prev.map((p) => (p.id === id ? { ...p, status } : p)));
+      logChange("STATUS", product, { detalle: `Status cambiado a "${status}"` });
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from("products")
+        .update({ status })
+        .eq("id", id);
+
+      if (error) {
+        console.error("[ProductsContext] Error updating status:", error);
+        return;
+      }
+
+      setProducts((prev) => prev.map((p) => (p.id === id ? { ...p, status } : p)));
+      logChange("STATUS", product, { detalle: `Status cambiado a "${status}"` });
+    } catch (err) {
+      console.error("[ProductsContext] Unexpected error in updateProductStatus:", err);
+    }
+  };
+
+  // ── applyDiscount ────────────────────────────────────────────
+  const applyDiscount = async (id, { porcentaje, hasta }) => {
+    const product = products.find((p) => p.id === id);
+    if (!product) return;
+    const descuento = { porcentaje, hasta };
+
+    if (!SUPABASE_ENABLED) {
+      setProducts((prev) => prev.map((p) => (p.id === id ? { ...p, descuento } : p)));
+      logChange("DESCUENTO", product, { detalle: `Descuento ${porcentaje}% hasta ${hasta}` });
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from("products")
+        .update({ descuento })
+        .eq("id", id);
+
+      if (error) {
+        console.error("[ProductsContext] Error applying discount:", error);
+        return;
+      }
+
+      setProducts((prev) => prev.map((p) => (p.id === id ? { ...p, descuento } : p)));
+      logChange("DESCUENTO", product, { detalle: `Descuento ${porcentaje}% hasta ${hasta}` });
+    } catch (err) {
+      console.error("[ProductsContext] Unexpected error in applyDiscount:", err);
+    }
+  };
+
+  // ── removeDiscount ───────────────────────────────────────────
+  const removeDiscount = async (id) => {
+    const product = products.find((p) => p.id === id);
+    if (!product) return;
+
+    if (!SUPABASE_ENABLED) {
+      setProducts((prev) => prev.map((p) => (p.id === id ? { ...p, descuento: null } : p)));
+      logChange("DESCUENTO", product, { detalle: "Descuento eliminado" });
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from("products")
+        .update({ descuento: null })
+        .eq("id", id);
+
+      if (error) {
+        console.error("[ProductsContext] Error removing discount:", error);
+        return;
+      }
+
+      setProducts((prev) => prev.map((p) => (p.id === id ? { ...p, descuento: null } : p)));
+      logChange("DESCUENTO", product, { detalle: "Descuento eliminado" });
+    } catch (err) {
+      console.error("[ProductsContext] Unexpected error in removeDiscount:", err);
+    }
+  };
+
+  // ── Historial de stock (local only) ─────────────────────────
   const recordStockHistory = (id, oldStock, newStock) => {
     const product = products.find((p) => p.id === id);
     if (!product) return;
@@ -251,7 +380,7 @@ export const ProductsProvider = ({ children }) => {
     ]);
   };
 
-  // ── Marcar como guardado (llamado por Admin al exportar) ──────
+  // ── Marcar como guardado ─────────────────────────────────────
   const markProductsExported = () => {
     setHasUnsaved(false);
     setLastSavedAt(now());
@@ -259,31 +388,6 @@ export const ProductsProvider = ({ children }) => {
 
   const clearChangeLog = () => {
     setChangeLog([]);
-  };
-
-  // ── Status ───────────────────────────────────────────────────
-  const updateProductStatus = (id, status) => {
-    const product = products.find((p) => p.id === id);
-    if (!product) return;
-    setProducts((prev) => prev.map((p) => (p.id === id ? { ...p, status } : p)));
-    logChange("STATUS", product, { detalle: `Status cambiado a "${status}"` });
-  };
-
-  // ── Descuentos ───────────────────────────────────────────────
-  const applyDiscount = (id, { porcentaje, hasta }) => {
-    const product = products.find((p) => p.id === id);
-    if (!product) return;
-    setProducts((prev) =>
-      prev.map((p) => (p.id === id ? { ...p, descuento: { porcentaje, hasta } } : p))
-    );
-    logChange("DESCUENTO", product, { detalle: `Descuento ${porcentaje}% hasta ${hasta}` });
-  };
-
-  const removeDiscount = (id) => {
-    const product = products.find((p) => p.id === id);
-    if (!product) return;
-    setProducts((prev) => prev.map((p) => (p.id === id ? { ...p, descuento: null } : p)));
-    logChange("DESCUENTO", product, { detalle: "Descuento eliminado" });
   };
 
   // ── filteredProducts ─────────────────────────────────────────
@@ -311,6 +415,7 @@ export const ProductsProvider = ({ children }) => {
       value={{
         products,
         filteredProducts,
+        loading,
         history,
         changeLog,
         hasUnsavedChanges,

@@ -1,24 +1,24 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/Home.scss";
-import bannerVideo   from "../assets/img/Bannervideo.mp4";
+import bannerImage    from "../assets/img/fotomontaje3.webp";
 import underCardImage from "../assets/img/fotomontaje3.webp";
 import { fadeInOnScroll } from "../js/home";
 
 import FeaturedProducts    from "../components/FeaturedProducts.jsx";
-import CollectionCarousel  from "../components/CollectionCarousel.jsx";
+import BenefitsStrip      from "../components/BenefitsStrip.jsx";
+import ReviewsSection      from "../components/ReviewsSection.jsx";
+import NewsletterSection   from "../components/NewsletterSection.jsx";
 
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
 
 const SLIDES = [
   {
-    video: bannerVideo,
     title: ["Nuestra", "Esencia"],
     subtitle: "Elegancia, precisión y estilo para tu experiencia visual única.",
     cta: "Descubrir colección",
   },
   {
-    video: bannerVideo,
     title: ["Nueva", "Temporada"],
     subtitle: "Los lentes que definen tu estilo. Diseño atemporal para cada momento.",
     cta: "Ver Colección",
@@ -52,17 +52,13 @@ const Home = () => {
 
   useEffect(() => { fadeInOnScroll(); }, []);
 
+
   return (
     <main className="home">
 
-      {/* ——— VIDEO BANNER ——— */}
+      {/* ——— BANNER ——— */}
       <section className="banner banner--carousel">
-        {/* Un solo video — evita cargar el mismo archivo N veces */}
-        <div className="banner__slide banner__slide--active">
-          <video autoPlay loop muted playsInline poster={underCardImage} preload="auto">
-            <source src={bannerVideo} type="video/mp4" />
-          </video>
-        </div>
+        <img src={bannerImage} alt="" className="banner__bg" aria-hidden="true" />
 
         <div className="banner-overlay" />
 
@@ -97,6 +93,12 @@ const Home = () => {
         </div>
       </section>
 
+      {/* ——— BENEFITS STRIP ——— */}
+      <BenefitsStrip />
+
+      {/* ——— PRODUCTOS DESTACADOS ——— */}
+      <FeaturedProducts />
+
       {/* ——— FRASE EDITORIAL ——— */}
       <span className="section-divider" />
       <section className="middle-text fade-in-on-scroll">
@@ -104,12 +106,8 @@ const Home = () => {
       </section>
       <span className="section-divider" />
 
-      {/* ——— PRODUCTOS DESTACADOS ——— */}
-      <FeaturedProducts />
-
-      {/* ——— COLLECTION CAROUSEL ——— */}
-      <span className="section-divider" />
-      <CollectionCarousel />
+      {/* ——— RESEÑAS ——— */}
+      <ReviewsSection />
       <span className="section-divider" />
 
       {/* ——— EDITORIAL STRIP ——— */}
@@ -131,11 +129,15 @@ const Home = () => {
         </div>
       </section>
 
+      {/* ——— NEWSLETTER ——— */}
+      <span className="section-divider" />
+      <NewsletterSection />
+
       {/* ——— CONTACTO ——— */}
       <span className="section-divider" />
       <section className="social-box fade-in-on-scroll">
         <p>Florida, Uruguay</p>
-        <p><a href="https://wa.me/59899000000" target="_blank" rel="noopener noreferrer" style={{ color: "inherit", textDecoration: "none" }}>099 000 000</a></p>
+        <p><a href="https://wa.me/59898868601" target="_blank" rel="noopener noreferrer" style={{ color: "inherit", textDecoration: "none" }}>098 868 601</a></p>
         <p>contacto@rixxlentes.com</p>
       </section>
 

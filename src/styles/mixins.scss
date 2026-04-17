@@ -51,8 +51,8 @@
 
 // ── Lense Overlay (signature eyewear component) ──────────────
 @mixin lense-overlay {
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
+  backdrop-filter: blur(20px); // Estandarizado a 20px — igual que glass-surface
+  -webkit-backdrop-filter: blur(20px); // Estandarizado a 20px — igual que glass-surface
   background: rgba(v.$surface-variant, 0.10);
 }
 
@@ -100,6 +100,13 @@
   }
 }
 
+// Números tabulares — usar en precios, cantidades, contadores
+// Previene layout shift cuando los dígitos cambian
+@mixin tabular-nums {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
 // ── Product Card ──────────────────────────────────────────────
 @mixin card-product {
   background: v.$surface-container-low;
@@ -110,4 +117,12 @@
     background: v.$surface-container-high;
     @include ambient-shadow;
   }
+}
+
+// Responde a breakpoints consolidados
+@mixin respond-to($bp) {
+  @if      $bp == mobile  { @media (max-width: 767px)                          { @content; } }
+  @else if $bp == tablet  { @media (min-width: 768px) and (max-width: 1023px)  { @content; } }
+  @else if $bp == desktop { @media (min-width: 1024px)                         { @content; } }
+  @else if $bp == wide    { @media (min-width: 1440px)                         { @content; } }
 }

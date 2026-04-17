@@ -98,7 +98,7 @@ const RegisterModal = ({ show, onClose, onSwitchToLogin }) => {
     setLoading(true);
     await new Promise((r) => setTimeout(r, 300));
 
-    const success = register(name, email, password);
+    const success = await register(name, email, password);
     setLoading(false);
 
     if (success) {
@@ -128,9 +128,19 @@ const RegisterModal = ({ show, onClose, onSwitchToLogin }) => {
           <IconClose />
         </button>
 
-        <p className="auth-modal__logo">RIXX</p>
-        <h2 className="auth-modal__title">Crear cuenta</h2>
-        <p className="auth-modal__subtitle">Únite a la comunidad Rixx</p>
+        {/* Header */}
+        <div className="auth-modal__header">
+          <span className="auth-modal__eyebrow">Opcional</span>
+          <h2 className="auth-modal__title">Creá <em>tu cuenta</em></h2>
+          <p className="auth-modal__subtitle">No es necesario para comprar — es para hacerlo mejor.</p>
+        </div>
+
+        {/* Benefits */}
+        <ul className="auth-modal__benefits" aria-label="Beneficios de crear cuenta">
+          <li><span className="auth-modal__benefit-check">✓</span> Seguí tus pedidos en tiempo real</li>
+          <li><span className="auth-modal__benefit-check">✓</span> Guardá tus favoritos</li>
+          <li><span className="auth-modal__benefit-check">✓</span> Completá el checkout sin formularios</li>
+        </ul>
 
         <form className="auth-modal__form" onSubmit={handleSubmit} noValidate>
 

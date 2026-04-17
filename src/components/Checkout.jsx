@@ -1,9 +1,17 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import { useCart } from "./CartContext.jsx";
+import { useOrders } from "./OrdersContext.jsx";
+import { AuthContext } from "./AuthContext.jsx";
+import { ProductsContext } from "./ProductsContext.jsx";
+import { supabase, isSupabaseEnabled } from "../lib/supabase.js";
 import { Link, useNavigate } from "react-router-dom";
 import "../styles/Checkout.scss";
 
-const WHATSAPP_NUMBER = "59899000000";
+// Formatea número uruguayo para wa.me (agrega 598, quita el 0 inicial)
+function toWaNumber(phone) {
+  const d = (phone || "").replace(/\D/g, "");
+  return d.startsWith("598") ? d : `598${d.replace(/^0/, "")}`;
+}
 const SHIPPING_FREE_THRESHOLD = 3000;  // UYU — envío gratis sobre este monto
 const SHIPPING_COST = 290;             // UYU — costo fijo de envío
 
@@ -16,6 +24,7 @@ const DEPARTAMENTOS = [
 const EMPTY_FORM = {
   nombre: "", email: "", telefono: "",
   departamento: "Montevideo", direccion: "", notas: "",
+  phone: "", marketingOptIn: false,
 };
 
 const EMPTY_ERRORS = {
@@ -30,7 +39,8 @@ const EMPTY_CARD_ERRORS = {
   cardNumber: "", cardName: "", cardExpiry: "", cardCvv: "",
 };
 
-const SESSION_KEY = "rixx_checkout_form";
+const SESSION_KEY   = "rixx_checkout_form";
+const PERSIST_KEY   = "rixx_checkout_contact"; // nombre, email, telefono → persiste entre sesiones
 
 // ── Helpers ───────────────────────────────────────────────────
 
@@ -71,28 +81,45 @@ function calcShipping(subtotal) {
   return subtotal >= SHIPPING_FREE_THRESHOLD ? 0 : SHIPPING_COST;
 }
 
-function buildWhatsAppMessage(form, items, subtotal, shipping) {
+function buildWhatsAppMessage(form, items, subtotal, shipping, discount = 0, total) {
+  const finalTotal = total ?? (subtotal + shipping - discount);
+  const orderId = Math.random().toString(36).slice(2, 10).toUpperCase();
   const lines = [];
-  lines.push("🛒 *NUEVO PEDIDO — RIXX Lentes*");
-  lines.push("─────────────────────────");
-  lines.push(`👤 *Cliente:* ${form.nombre}`);
-  lines.push(`📧 *Email:* ${form.email}`);
-  lines.push(`📱 *Teléfono:* ${form.telefono}`);
-  lines.push(`📍 *Departamento:* ${form.departamento}`);
-  lines.push(`🏠 *Dirección:* ${form.direccion}`);
-  if (form.notas.trim()) lines.push(`📝 *Notas:* ${form.notas}`);
-  lines.push("─────────────────────────");
-  lines.push("*Productos:*");
+
+  lines.push(`Hola! 👋 Quiero confirmar mi pedido *#${orderId}*.`);
+  lines.push(``);
+  lines.push(`🛍️ *Productos:*`);
   items.forEach((item) => {
     const price = item.currentPrice ?? item.price;
     const sub = formatPrice(price * (item.quantity || 1));
     lines.push(`• ${item.name} x${item.quantity || 1} → ${sub}`);
   });
-  lines.push("─────────────────────────");
-  lines.push(`📦 *Envío:* ${shipping === 0 ? "Gratis" : formatPrice(shipping)}`);
-  lines.push(`💰 *TOTAL: ${formatPrice(subtotal + shipping)}*`);
-  lines.push("─────────────────────────");
-  lines.push("_Pedido realizado desde rixx.com.uy_");
+  lines.push(`📦 *Envío:* ${shipping === 0 ? "Gratis ✅" : formatPrice(shipping)}`);
+  if (discount > 0) lines.push(`🎟️ *Descuento:* -${formatPrice(discount)}`);
+  lines.push(`💰 *Total: ${formatPrice(finalTotal)}*`);
+  lines.push(``);
+  lines.push(`👤 ${form.nombre} | 📱 ${form.telefono} | 📍 ${form.departamento}`);
+  if (form.notas.trim()) lines.push(`📝 ${form.notas}`);
+  lines.push(``);
+  lines.push(`─────────────────────────`);
+  lines.push(`Para confirmar el pedido realizá el pago *antes de las 24hs*:`);
+  lines.push(``);
+  lines.push(`💳 *Transferencia bancaria (BROU)*`);
+  lines.push(`• Titular: RIXX Lentes`);
+  lines.push(`• Cuenta corriente: 001-234567/8`);
+  lines.push(`• RUT: 21.234.567-0`);
+  lines.push(``);
+  lines.push(`🏦 *RedPagos / Abitab*`);
+  lines.push(`• Código: 7821-4563`);
+  lines.push(``);
+  lines.push(`📱 *Mercado Pago*`);
+  lines.push(`• Alias: rixx.lentes`);
+  lines.push(``);
+  lines.push(`Una vez realizado el pago, envianos el *comprobante por este chat* y tu paquete pasa directo a preparación para envío. 📦`);
+  lines.push(``);
+  lines.push(`¡Gracias por tu compra! 🙌`);
+  lines.push(`*RIXX Lentes*`);
+
   return lines.join("\n");
 }
 
@@ -100,15 +127,40 @@ function buildWhatsAppMessage(form, items, subtotal, shipping) {
 
 export default function Checkout() {
   const { syncedItems: items, total: subtotal, clear } = useCart();
+  const { createOrder } = useOrders();
+  const { isLoggedIn, register } = useContext(AuthContext);
+  const { products, updateProduct } = useContext(ProductsContext);
   const navigate = useNavigate();
 
-  const shipping = calcShipping(subtotal);
-  const grandTotal = subtotal + shipping;
+  // ── Post-purchase account creation modal ─────────────────────
+  const [showAccountModal, setShowAccountModal] = useState(false);
+  const [modalPassword, setModalPassword]       = useState("");
+  const [modalError, setModalError]             = useState("");
+  const [modalLoading, setModalLoading]         = useState(false);
+  const [lastOrder, setLastOrder]               = useState(null);
 
-  // Cargar form guardado en sessionStorage (persistencia entre pasos)
+  // ── Coupon state ──────────────────────────────────────────────
+  const [couponCode, setCouponCode]       = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState(null);  // { type, value, code }
+  const [couponError, setCouponError]     = useState("");
+  const [couponLoading, setCouponLoading] = useState(false);
+
+  const appliedDiscount = appliedCoupon
+    ? appliedCoupon.type === "percentage"
+      ? subtotal * (appliedCoupon.value / 100)
+      : appliedCoupon.value
+    : 0;
+
+  const shipping  = calcShipping(subtotal);
+  const grandTotal = subtotal + shipping - appliedDiscount;
+
+  // Cargar form: sessionStorage (pasos actuales) + localStorage (contacto persistente)
   const savedForm = (() => {
-    try { return JSON.parse(sessionStorage.getItem(SESSION_KEY)) || EMPTY_FORM; }
-    catch { return EMPTY_FORM; }
+    try {
+      const session  = JSON.parse(sessionStorage.getItem(SESSION_KEY)) || {};
+      const contact  = JSON.parse(localStorage.getItem(PERSIST_KEY))  || {};
+      return { ...EMPTY_FORM, ...contact, ...session };
+    } catch { return EMPTY_FORM; }
   })();
 
   const [step, setStep]             = useState(1);
@@ -120,10 +172,18 @@ export default function Checkout() {
   const [sent, setSent]             = useState(false);
   const [processing, setProcessing] = useState(false);
 
-  // Persistir form en sessionStorage en cada cambio
+  // Persistir form completo en sessionStorage (pasos actuales)
   useEffect(() => {
     sessionStorage.setItem(SESSION_KEY, JSON.stringify(form));
   }, [form]);
+
+  // Persistir contacto en localStorage (sobrevive al cierre del navegador)
+  useEffect(() => {
+    const { nombre, email, telefono } = form;
+    if (nombre || email || telefono) {
+      localStorage.setItem(PERSIST_KEY, JSON.stringify({ nombre, email, telefono }));
+    }
+  }, [form.nombre, form.email, form.telefono]);
 
   if (items.length === 0 && !sent) {
     return (
@@ -139,6 +199,67 @@ export default function Checkout() {
       </div>
     );
   }
+
+  // ── Coupon handler ────────────────────────────────────────
+  const applyCoupon = async () => {
+    const code = couponCode.trim().toUpperCase();
+    if (!code) { setCouponError("Ingresá un código de cupón"); return; }
+    setCouponLoading(true);
+    setCouponError("");
+
+    try {
+      if (!isSupabaseEnabled) {
+        setCouponError("Cupones no disponibles en modo offline");
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from("coupons")
+        .select("*")
+        .eq("code", code)
+        .eq("active", true)
+        .single();
+
+      if (error || !data) {
+        setCouponError("Cupón inválido o no encontrado");
+        return;
+      }
+
+      // Validar expiración
+      if (data.valid_until && new Date(data.valid_until) < new Date()) {
+        setCouponError("Este cupón ha expirado");
+        return;
+      }
+
+      // Validar compra mínima
+      if (data.min_purchase && subtotal < data.min_purchase) {
+        setCouponError(
+          `Este cupón requiere una compra mínima de ${formatPrice(data.min_purchase)}`
+        );
+        return;
+      }
+
+      // Validar usos máximos
+      if (data.max_uses != null && data.used_count >= data.max_uses) {
+        setCouponError("Este cupón ya alcanzó el límite de usos");
+        return;
+      }
+
+      setAppliedCoupon({ type: data.type, value: data.value, code: data.code });
+      setCouponError("");
+    } catch (err) {
+      console.error("[Checkout] applyCoupon error:", err);
+      setCouponError("Error al validar el cupón, intentá de nuevo");
+    } finally {
+      setCouponLoading(false);
+    }
+  };
+
+  const removeCoupon = () => {
+    setAppliedCoupon(null);
+    setCouponCode("");
+    setCouponError("");
+  };
 
   // ── Handlers ──────────────────────────────────────────────
 
@@ -187,26 +308,101 @@ export default function Checkout() {
     if (validateStep1()) setStep(2);
   };
 
-  const handleConfirmWhatsApp = () => {
-    const msg = buildWhatsAppMessage(form, items, subtotal, shipping);
-    const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`;
-    window.open(url, "_blank", "noopener,noreferrer");
+  const buildOrderPayload = (method) => ({
+    user_email: form.email,
+    user_name: form.nombre,
+    user_phone: form.telefono,
+    shipping_address: {
+      direccion: form.direccion,
+      departamento: form.departamento,
+    },
+    items: items.map((i) => ({
+      product_id: String(i.id),
+      name: i.name,
+      qty: i.quantity || 1,
+      price: i.currentPrice ?? i.price,
+      image: i.image ?? null,
+    })),
+    subtotal,
+    shipping,
+    free_shipping: shipping === 0,
+    discount: appliedDiscount,
+    total: grandTotal,
+    coupon_code: appliedCoupon?.code ?? null,
+    status: "confirmado",
+    payment_method: method,
+    notes: form.notas,
+    marketing_opt_in: form.marketingOptIn,
+  });
+
+  const decrementStock = (orderItems) => {
+    (orderItems || []).forEach((item) => {
+      const product = products.find((p) => String(p.id) === String(item.product_id || item.id));
+      if (!product) return;
+      const qty = item.qty || item.quantity || 1;
+      const newStock = Math.max(0, (product.stock ?? 0) - qty);
+      updateProduct({ ...product, stock: newStock });
+    });
+  };
+
+  const afterOrderCreated = (order) => {
+    decrementStock(order.items);
     sessionStorage.removeItem(SESSION_KEY);
     clear();
     setSent(true);
     setStep(3);
+    setLastOrder(order);
+    // Show account-creation modal only if user isn't logged in
+    if (!isLoggedIn) {
+      setTimeout(() => setShowAccountModal(true), 800);
+    }
+    // Fire email confirmation to backend (best-effort)
+    fetch("http://localhost:4000/api/email/order-confirmation", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ order }),
+    }).catch(() => {/* backend may not be running — silent fail */});
+  };
+
+  const handleConfirmWhatsApp = async () => {
+    // Guardar el pedido PRIMERO antes de abrir WhatsApp
+    // (el navegador puede suspender la página al salir, interrumpiendo createOrder)
+    let order = buildOrderPayload("whatsapp");
+    try { order = await createOrder(order) ?? order; } catch (e) { console.error(e); }
+
+    // Recién después abrir WhatsApp
+    const msg = buildWhatsAppMessage(form, items, subtotal, shipping, appliedDiscount, grandTotal);
+    const url = `https://wa.me/${toWaNumber(form.telefono)}?text=${encodeURIComponent(msg)}`;
+    window.open(url, "_blank", "noopener,noreferrer");
+
+    afterOrderCreated(order);
   };
 
   const handleConfirmCard = () => {
     if (!validateCard()) return;
     setProcessing(true);
-    setTimeout(() => {
+    setTimeout(async () => {
+      let order = buildOrderPayload("tarjeta");
+      try { order = await createOrder(order) ?? order; } catch (e) { console.error(e); }
       setProcessing(false);
-      sessionStorage.removeItem(SESSION_KEY);
-      clear();
-      setSent(true);
-      setStep(3);
+      afterOrderCreated(order);
     }, 1800);
+  };
+
+  const handleCreateAccount = async () => {
+    if (!modalPassword || modalPassword.length < 6) {
+      setModalError("La contraseña debe tener al menos 6 caracteres");
+      return;
+    }
+    setModalLoading(true);
+    setModalError("");
+    const ok = await register(form.nombre, form.email, modalPassword);
+    setModalLoading(false);
+    if (ok) {
+      setShowAccountModal(false);
+    } else {
+      setModalError("No se pudo crear la cuenta. El email puede ya estar registrado.");
+    }
   };
 
   const handleConfirm = () => {
@@ -223,20 +419,70 @@ export default function Checkout() {
     <div className="checkout">
       <div className="checkout__inner">
 
-        {/* ── Stepper ─────────────────────────────────────── */}
-        <div className="checkout__stepper">
+        {/* ── Step Indicator ──────────────────────────────── */}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 0, marginBottom: 32 }}>
           {STEPS.map((label, idx) => {
             const n = idx + 1;
             const done    = step > n;
             const current = step === n;
+
+            const circleStyle = {
+              width: 28,
+              height: 28,
+              borderRadius: "50%",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: 13,
+              fontWeight: current ? 700 : 400,
+              flexShrink: 0,
+              border: done
+                ? "2px solid #D4AF37"
+                : current
+                  ? "2px solid #D4AF37"
+                  : "2px solid #353534",
+              background: done
+                ? "rgba(212,175,55,0.15)"
+                : current
+                  ? "#D4AF37"
+                  : "transparent",
+              color: done
+                ? "#D4AF37"
+                : current
+                  ? "#0a0a0a"
+                  : "#99907c",
+            };
+
+            const labelColor = done
+              ? "#D4AF37"
+              : current
+                ? "#D4AF37"
+                : "#99907c";
+
             return (
-              <div
-                key={n}
-                className={`stepper-item${current ? " stepper-item--active" : ""}${done ? " stepper-item--done" : ""}`}
-              >
-                <span className="stepper-item__num">{done ? "✓" : n}</span>
-                <span className="stepper-item__label">{label}</span>
-                {idx < STEPS.length - 1 && <span className="stepper-item__line" />}
+              <div key={n} style={{ display: "flex", alignItems: "center", gap: 0 }}>
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
+                  <div style={circleStyle}>{done ? "✓" : n}</div>
+                  <span style={{
+                    fontSize: 11,
+                    textTransform: "uppercase",
+                    letterSpacing: "0.08em",
+                    color: labelColor,
+                    whiteSpace: "nowrap",
+                  }}>{label}</span>
+                </div>
+                {idx < STEPS.length - 1 && (
+                  <div style={{
+                    flex: 1,
+                    height: 1,
+                    background: "#353534",
+                    maxWidth: 48,
+                    minWidth: 24,
+                    marginBottom: 17,
+                    alignSelf: "flex-start",
+                    marginTop: 14,
+                  }} />
+                )}
               </div>
             );
           })}
@@ -299,6 +545,17 @@ export default function Checkout() {
               {errors.direccion && <p className="field-error">{errors.direccion}</p>}
             </div>
 
+            <div className="checkout__field">
+              <label className="checkout__label">
+                Celular <span className="checkout__optional">(opcional)</span>
+              </label>
+              <input
+                className="checkout__input"
+                name="phone" value={form.phone} onChange={handleChange}
+                placeholder="099 123 456" autoComplete="tel" maxLength={12}
+              />
+            </div>
+
             <div className="checkout__field checkout__field--full">
               <label className="checkout__label">
                 Notas adicionales <span className="checkout__optional">(opcional)</span>
@@ -309,6 +566,19 @@ export default function Checkout() {
                 placeholder="Horario preferido, instrucciones especiales..." rows={2}
               />
             </div>
+
+            {/* Marketing opt-in */}
+            <label className="checkout__optin">
+              <input
+                type="checkbox"
+                className="checkout__optin-check"
+                checked={form.marketingOptIn}
+                onChange={e => setForm(f => ({ ...f, marketingOptIn: e.target.checked }))}
+              />
+              <span className="checkout__optin-text">
+                Quiero recibir novedades, drops y promociones exclusivas por WhatsApp y email
+              </span>
+            </label>
 
             {/* Banner envío gratis */}
             {subtotal < SHIPPING_FREE_THRESHOLD && (
@@ -370,6 +640,36 @@ export default function Checkout() {
               ))}
             </div>
 
+            {/* ── Cupón de descuento ── */}
+            <div className="checkout__coupon">
+              {appliedCoupon ? (
+                <div className="checkout__coupon-applied">
+                  <span className="checkout__coupon-tag">
+                    🎟 <strong>{appliedCoupon.code}</strong> — {appliedCoupon.type === "percentage" ? `${appliedCoupon.value}% OFF` : `- ${formatPrice(appliedCoupon.value)}`}
+                  </span>
+                  <button className="checkout__coupon-remove" onClick={removeCoupon} aria-label="Quitar cupón">✕</button>
+                </div>
+              ) : (
+                <div className="checkout__coupon-row">
+                  <input
+                    className="checkout__input checkout__coupon-input"
+                    placeholder="Código de cupón"
+                    value={couponCode}
+                    onChange={e => setCouponCode(e.target.value)}
+                    onKeyDown={e => e.key === "Enter" && applyCoupon()}
+                  />
+                  <button
+                    className="checkout__btn checkout__btn--ghost checkout__coupon-btn"
+                    onClick={applyCoupon}
+                    disabled={couponLoading}
+                  >
+                    {couponLoading ? "…" : "Aplicar"}
+                  </button>
+                </div>
+              )}
+              {couponError && <p className="field-error" style={{ marginTop: "0.4rem" }}>{couponError}</p>}
+            </div>
+
             {/* Subtotal + envío + total */}
             <div className="checkout__price-breakdown">
               <div className="checkout__price-row">
@@ -385,6 +685,12 @@ export default function Checkout() {
                   : <span className="checkout__price-val">{formatPrice(shipping)}</span>
                 }
               </div>
+              {appliedDiscount > 0 && (
+                <div className="checkout__price-row checkout__price-row--discount">
+                  <span className="checkout__price-label">Descuento</span>
+                  <span className="checkout__price-val checkout__price-val--discount">- {formatPrice(appliedDiscount)}</span>
+                </div>
+              )}
               <div className="checkout__total">
                 <span className="checkout__total-label">Total</span>
                 <span className="checkout__total-value">{formatPrice(grandTotal)}</span>
@@ -568,6 +874,51 @@ export default function Checkout() {
         )}
 
       </div>
+
+      {/* ── Post-purchase account creation modal ───────────── */}
+      {showAccountModal && (
+        <div className="checkout-modal-overlay" onClick={() => setShowAccountModal(false)}>
+          <div className="checkout-modal" onClick={e => e.stopPropagation()}>
+            <button className="checkout-modal__close" onClick={() => setShowAccountModal(false)}>✕</button>
+            <p className="checkout-modal__eyebrow">Un paso más</p>
+            <h3 className="checkout-modal__title">Creá tu cuenta para hacer seguimiento</h3>
+            <p className="checkout-modal__sub">
+              Tus pedidos, favoritos y datos de envío guardados. Sin formularios la próxima vez.
+            </p>
+            <div className="checkout__field" style={{ marginTop: "1.2rem" }}>
+              <label className="checkout__label">Email</label>
+              <input className="checkout__input" value={form.email} readOnly style={{ opacity: 0.6 }} />
+            </div>
+            <div className="checkout__field" style={{ marginTop: "0.75rem" }}>
+              <label className="checkout__label">Elegí una contraseña *</label>
+              <input
+                className="checkout__input"
+                type="password"
+                placeholder="Mínimo 6 caracteres"
+                value={modalPassword}
+                onChange={e => { setModalPassword(e.target.value); setModalError(""); }}
+              />
+            </div>
+            {modalError && <p className="field-error" style={{ marginTop: "0.4rem" }}>{modalError}</p>}
+            <button
+              className="checkout__btn checkout__btn--primary"
+              style={{ width: "100%", marginTop: "1.2rem", justifyContent: "center" }}
+              onClick={handleCreateAccount}
+              disabled={modalLoading}
+            >
+              {modalLoading ? "Creando cuenta…" : "Crear cuenta gratis"}
+            </button>
+            <button
+              className="checkout__btn checkout__btn--ghost"
+              style={{ width: "100%", marginTop: "0.5rem", justifyContent: "center" }}
+              onClick={() => setShowAccountModal(false)}
+            >
+              Ahora no
+            </button>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

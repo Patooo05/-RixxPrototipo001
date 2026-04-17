@@ -1,275 +1,593 @@
 @use "variables" as *;
 @use "mixins" as *;
 
-.stock-container {
+// ── Contenedor principal ──────────────────────────────────────────────────────
+.stk {
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+  padding: 2rem 0;
   font-family: $font-body;
-  padding: 2rem;
   color: $on-surface;
-  background-color: $background;
-  min-height: 100vh;
 
-  // ── Header ─────────────────────────────────────────────────────────────────
-  .erp-header {
-    text-align: center;
-    margin-bottom: 2rem;
-    padding-bottom: 1rem;
-
-    h2 {
-      font-family: $font-headline;
-      color: $primary;
-      margin-bottom: 0.3rem;
-      font-size: $headline-md;
-      font-weight: 600;
-      letter-spacing: -0.02em;
-    }
-
-    p {
-      font-size: $body-lg;
-      color: $on-surface-variant;
-      span { color: $primary; font-weight: 500; }
-    }
-  }
-
-  // ── Upload CSV ─────────────────────────────────────────────────────────────
-  .erp-file-upload {
-    display: flex;
-    justify-content: center;
-    margin-bottom: 1.5rem;
-
-    input[type="file"] {
-      padding: 0.7rem;
-      background-color: $surface-container;
-      @include ghost-border;
-      border-radius: $radius-sm;
-      cursor: pointer;
-      color: $on-surface-variant;
-      font-family: $font-body;
-      transition: border-color $duration-base $ease;
-
-      &:hover:not(:disabled) {
-        border-color: rgba($primary, 0.4);
-        box-shadow: 0 0 8px rgba($primary, 0.1);
-      }
-
-      &:disabled { opacity: 0.4; cursor: not-allowed; }
-    }
-  }
-
-  // ── Sección lista de productos ─────────────────────────────────────────────
-  .erp-product-list {
-    margin-bottom: 1.5rem;
-
-    h3 {
-      font-family: $font-headline;
-      color: $primary;
-      margin-bottom: 1rem;
-      font-size: $title-lg;
-      font-weight: 500;
-    }
-
-    .search-box {
-      display: flex;
-      align-items: center;
-      gap: 0.8rem;
-      margin-bottom: 1rem;
-
-      input {
-        width: 260px;
-        background-color: $surface-container-lowest;
-        color: $on-surface;
-        border-radius: $radius-sm;
-        padding: 0.7rem;
-        border: none;
-        border-bottom: 2px solid transparent;
-        font-family: $font-body;
-        transition: border-color $duration-base $ease;
-
-        &:focus {
-          border-bottom-color: $primary;
-          outline: none;
-        }
-
-        &::placeholder { color: rgba($on-surface-variant, 0.5); }
-
-        @media (max-width: 768px) { width: 100%; }
-      }
-    }
-
-    select {
-      background-color: $surface-container-lowest;
-      color: $on-surface;
-      padding: 0.7rem;
-      border-radius: $radius-sm;
-      border: none;
-      border-bottom: 2px solid transparent;
-      font-family: $font-body;
-      transition: border-color $duration-base $ease;
-
-      &:focus {
-        border-bottom-color: $primary;
-        outline: none;
-      }
-    }
-  }
-
-  // ── Inputs generales ───────────────────────────────────────────────────────
-  input, select, button {
-    margin: 0.5rem 0.5rem 1rem 0;
-    padding: 0.6rem 0.8rem;
-    border-radius: $radius-sm;
-    border: none;
-    outline: none;
-    font-size: $body-md;
-    font-family: $font-body;
-  }
-
-  input, select {
-    background-color: $surface-container-high;
-    color: $on-surface;
-    transition: box-shadow $duration-base $ease;
-
-    &:focus { box-shadow: 0 0 5px rgba($primary, 0.4); }
-  }
-
-  button {
-    @include gold-gradient;
-    color: $on-primary;
-    font-weight: bold;
-    cursor: pointer;
-    transition: filter $duration-fast $ease, transform $duration-fast $ease;
-
-    &:hover { filter: brightness(1.1); transform: translateY(-2px); }
-    &:disabled { background: $surface-container-highest; color: $on-surface-variant; cursor: not-allowed; }
-  }
-
-  .error-message {
-    color: $error;
-    font-weight: bold;
-    margin-bottom: 1rem;
-  }
-
-  .search-input {
-    width: 220px;
-    margin-right: 0.5rem;
-    @media (max-width: 768px) { width: 100%; }
-  }
-
-  // ── Dashboard ──────────────────────────────────────────────────────────────
-  .dashboard {
-    display: flex;
-    flex-wrap: wrap;
-    margin: 1rem 0;
+  // ── KPI Cards ───────────────────────────────────────────────────────────────
+  &__kpis {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 1rem;
 
-    .chart-container {
-      flex: 1 1 300px;
-      background-color: $surface-container;
-      padding: 1rem;
-      border-radius: $radius-lg;
-      box-shadow: $shadow-ambient;
-      transition: transform $duration-base $ease;
+    @media (max-width: 900px) { grid-template-columns: repeat(2, 1fr); }
+    @media (max-width: 480px) { grid-template-columns: 1fr; }
+  }
 
-      &:hover { transform: translateY(-3px); }
+  &__kpi {
+    background: $surface-container;
+    border: 1px solid rgba($primary, 0.08);
+    padding: 1.4rem 1.6rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    transition: border-color $duration-base $ease, box-shadow $duration-base $ease;
 
-      h3 {
-        font-family: $font-headline;
-        margin-bottom: 0.8rem;
-        color: $primary;
-        font-size: $title-lg;
-      }
+    &:hover {
+      border-color: rgba($primary, 0.2);
+      box-shadow: 0 4px 20px rgba($primary, 0.06);
+    }
 
-      .stat {
-        font-size: $headline-sm;
-        font-weight: bold;
-        color: $on-surface;
-      }
+    &--alert {
+      border-color: rgba(#ff6b6b, 0.3);
+      background: rgba(#ff6b6b, 0.04);
+      .stk__kpi-value { color: #ff6b6b; }
+    }
+
+    &--accent {
+      border-color: rgba($primary, 0.25);
+      .stk__kpi-value { color: $primary; }
     }
   }
 
-  // ── Resumen historial ──────────────────────────────────────
-  .history-summary {
-    font-size: $body-sm;
-    color: $on-surface-variant;
-    margin-bottom: 0.75rem;
+  &__kpi-value {
+    font-family: $font-headline;
+    font-size: clamp(1.8rem, 3vw, 2.4rem);
+    font-weight: 300;
+    color: $on-surface;
+    line-height: 1;
   }
 
-  // ── Tablas ─────────────────────────────────────────────────────────────────
-  .stock-table,
-  .history-table {
+  &__kpi-label {
+    font-family: $font-label;
+    font-size: 9px;
+    font-weight: 400;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: $on-surface-variant;
+    opacity: 0.7;
+  }
+
+  // ── Sección ──────────────────────────────────────────────────────────────────
+  &__section {
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
+  }
+
+  &__section-header {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  &__section-title {
+    font-family: $font-headline;
+    font-size: $title-lg;
+    font-weight: 300;
+    font-style: italic;
+    color: $on-surface;
+    letter-spacing: 0.01em;
+    margin-right: auto;
+  }
+
+  // ── Filtros de estado ─────────────────────────────────────────────────────
+  &__status-filters,
+  &__history-filters {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    flex-wrap: wrap;
+  }
+
+  &__status-btn {
+    padding: 0.3rem 0.8rem;
+    background: transparent;
+    border: 1px solid rgba($on-surface, 0.1);
+    color: rgba($on-surface, 0.45);
+    font-family: $font-label;
+    font-size: 9px;
+    font-weight: 400;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all $duration-fast $ease;
+
+    &:hover { border-color: rgba($primary, 0.4); color: $on-surface; }
+
+    &--active {
+      border-color: rgba($primary, 0.5);
+      color: $primary;
+      background: rgba($primary, 0.06);
+    }
+  }
+
+  &__history-total {
+    font-family: $font-label;
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: $on-surface-variant;
+    opacity: 0.5;
+    margin-left: 0.5rem;
+  }
+
+  // ── Buscador ─────────────────────────────────────────────────────────────
+  &__search {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: $surface-container;
+    border: 1px solid rgba($on-surface, 0.08);
+    padding: 0.45rem 0.8rem;
+    transition: border-color $duration-base $ease;
+
+    svg { color: rgba($on-surface-variant, 0.4); flex-shrink: 0; }
+
+    &:focus-within {
+      border-color: rgba($primary, 0.4);
+      svg { color: $primary; }
+    }
+  }
+
+  &__search-input {
+    background: transparent;
+    border: none;
+    outline: none;
+    color: $on-surface;
+    font-family: $font-body;
+    font-size: $body-sm;
+    font-weight: 300;
+    width: 180px;
+
+    &::placeholder { color: rgba($on-surface-variant, 0.35); font-style: italic; }
+  }
+
+  &__search-clear {
+    background: none;
+    border: none;
+    color: rgba($on-surface-variant, 0.35);
+    cursor: pointer;
+    font-size: 10px;
+    padding: 0;
+    line-height: 1;
+    transition: color $duration-fast $ease;
+    &:hover { color: $primary; }
+  }
+
+  // ── Tabla ─────────────────────────────────────────────────────────────────
+  &__table-wrap {
+    overflow-x: auto;
+    border: 1px solid rgba($primary, 0.08);
+  }
+
+  &__table {
     width: 100%;
     border-collapse: collapse;
-    margin-top: 1rem;
-    background-color: $surface-container;
-    border-radius: $radius-sm;
-    overflow: hidden;
-
-    th, td {
-      border: none;
-      padding: 0.8rem;
-      text-align: left;
-      font-size: $body-sm;
-    }
 
     th {
-      background-color: $surface-container-high;
-      @include label-uppercase($label-sm);
+      background: $surface-container-high;
+      font-family: $font-label;
+      font-size: 9px;
+      font-weight: 400;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
       color: $primary;
+      padding: 0.8rem 1rem;
+      text-align: left;
+      white-space: nowrap;
     }
 
-    td input {
-      width: 100%;
-      background-color: $background;
-      color: $on-surface;
-      border: none;
-      padding: 0.3rem 0.4rem;
-      border-radius: $radius-sm;
-      font-family: $font-body;
-      transition: box-shadow $duration-fast $ease;
-      &:focus { box-shadow: 0 0 4px rgba($primary, 0.4); }
+    td {
+      padding: 0.7rem 1rem;
+      border-bottom: 1px solid rgba($on-surface, 0.04);
+      font-size: $body-sm;
+      vertical-align: middle;
     }
-
-    tr {
-      transition: background-color $duration-base $ease;
-      &:hover { background-color: $surface-container-high; }
-      &:nth-child(even) { background-color: $surface-container-low; }
-    }
-
-    // Stock status rows
-    tr.low-stock    { background-color: rgba($error-container, 0.2); }
-    tr.medium-stock { background-color: rgba($primary, 0.08); }
-    tr.high-stock   { background-color: rgba($success, 0.08); }
-
-    // History action rows
-    tr.edit-action   { background-color: rgba($primary, 0.03); &:hover { background-color: rgba($primary, 0.07); } }
-    tr.delete-action { background-color: rgba(255, 77, 77, 0.08); &:hover { background-color: rgba(255, 77, 77, 0.14); } }
-    tr.sale-action   { background-color: rgba(255, 77, 77, 0.05); &:hover { background-color: rgba(255, 77, 77, 0.10); } }
-
-    // History quantity colors
-    td.qty-minus { color: #ff4d4d; font-weight: 600; }
-    td.qty-plus  { color: #a5ff6c; font-weight: 600; }
   }
 
-  // ── Ventas ─────────────────────────────────────────────────────────────────
-  .sales-section {
-    display: flex;
-    flex-wrap: wrap;
+  // ── Filas por estado ──────────────────────────────────────────────────────
+  &__row {
+    transition: background $duration-fast $ease;
+
+    &:hover { background: rgba($primary, 0.03); }
+
+    &--out  { background: rgba(#ff6b6b, 0.04); }
+    &--low  { background: rgba($primary, 0.04); }
+    &--ok   { background: transparent; }
+  }
+
+  &__empty-row {
+    text-align: center;
+    padding: 3rem !important;
+    color: rgba($on-surface-variant, 0.4);
+    font-style: italic;
+    font-size: $body-sm;
+  }
+
+  // ── Thumbnail ─────────────────────────────────────────────────────────────
+  &__col-thumb { width: 52px; padding: 0.5rem 0.75rem !important; }
+
+  &__thumb {
+    width: 40px;
+    height: 40px;
+    object-fit: cover;
+    display: block;
+
+    &--placeholder {
+      background: $surface-container-high;
+    }
+  }
+
+  // ── Columnas específicas ──────────────────────────────────────────────────
+  &__col-name {
+    font-weight: 400;
+    color: $on-surface;
+    min-width: 120px;
+  }
+
+  &__col-status { width: 110px; }
+
+  &__col-stock { width: 70px; }
+
+  &__stock-num {
+    font-family: $font-headline;
+    font-size: $title-md;
+    font-weight: 300;
+    color: $on-surface;
+  }
+
+  // ── Badge estado ──────────────────────────────────────────────────────────
+  &__badge {
+    display: inline-flex;
     align-items: center;
-    margin-top: 1rem;
-    gap: 0.5rem;
+    gap: 0.35rem;
+    padding: 0.2rem 0.65rem;
+    font-family: $font-label;
+    font-size: 8px;
+    font-weight: 400;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    white-space: nowrap;
 
-    select, input[type="number"], button { width: auto; }
-    button { margin-left: 0.5rem; }
+    &::before {
+      content: '';
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
 
-    @media (max-width: 768px) {
-      flex-direction: column;
-      align-items: flex-start;
-      select, input[type="number"], button { width: 100%; margin-bottom: 0.5rem; }
+    &--out {
+      color: #ff6b6b;
+      background: rgba(#ff6b6b, 0.1);
+      &::before { background: #ff6b6b; }
+    }
+
+    &--low {
+      color: #f0a500;
+      background: rgba(#f0a500, 0.1);
+      &::before { background: #f0a500; }
+    }
+
+    &--ok {
+      color: #6fcf7a;
+      background: rgba(#6fcf7a, 0.1);
+      &::before { background: #6fcf7a; }
     }
   }
 
-  // ── Responsive ─────────────────────────────────────────────────────────────
-  @media (max-width: 768px) {
-    .dashboard { flex-direction: column; }
-    .stock-table, .history-table { font-size: $label-sm; }
+  // ── Stepper ───────────────────────────────────────────────────────────────
+  &__col-stepper { width: 200px; }
+
+  &__stepper {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  &__step-btn {
+    width: 28px;
+    height: 28px;
+    background: $surface-container-high;
+    border: 1px solid rgba($on-surface, 0.1);
+    color: $on-surface;
+    font-size: 16px;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all $duration-fast $ease;
+    flex-shrink: 0;
+
+    &:hover:not(:disabled) {
+      border-color: rgba($primary, 0.5);
+      color: $primary;
+      background: rgba($primary, 0.08);
+    }
+
+    &:disabled { opacity: 0.3; cursor: not-allowed; }
+  }
+
+  &__step-input {
+    width: 52px;
+    text-align: center;
+    background: $surface-container;
+    border: 1px solid rgba($on-surface, 0.1);
+    color: $on-surface;
+    font-family: $font-body;
+    font-size: $body-sm;
+    padding: 0.3rem 0.4rem;
+    outline: none;
+    transition: border-color $duration-fast $ease;
+
+    &:focus { border-color: rgba($primary, 0.5); }
+
+    // Quitar flechas del input number
+    &::-webkit-outer-spin-button,
+    &::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    -moz-appearance: textfield;
+    appearance: textfield;
+  }
+
+  &__save-btn {
+    padding: 0.3rem 0.7rem;
+    background: $primary;
+    border: none;
+    color: $on-primary;
+    font-family: $font-label;
+    font-size: 8px;
+    font-weight: 700;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background $duration-fast $ease, box-shadow $duration-fast $ease;
+    white-space: nowrap;
+
+    &:hover {
+      background: $gold-light;
+      box-shadow: 0 2px 12px rgba($primary, 0.35);
+    }
+  }
+
+  // ── Botón editar ──────────────────────────────────────────────────────────
+  &__col-action { width: 40px; text-align: center; }
+
+  &__edit-btn {
+    background: transparent;
+    border: none;
+    color: rgba($on-surface-variant, 0.35);
+    cursor: pointer;
+    padding: 0.4rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: color $duration-fast $ease;
+
+    &:hover { color: $primary; }
+  }
+
+  // ── Formulario venta ──────────────────────────────────────────────────────
+  &__sale-form {
+    display: flex;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  &__sale-select-wrap,
+  &__sale-qty-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+
+  &__sale-label {
+    font-family: $font-label;
+    font-size: 9px;
+    font-weight: 400;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: $on-surface-variant;
+    opacity: 0.6;
+  }
+
+  &__sale-select {
+    background: $surface-container;
+    border: 1px solid rgba($on-surface, 0.1);
+    color: $on-surface;
+    font-family: $font-body;
+    font-size: $body-sm;
+    padding: 0.6rem 0.9rem;
+    min-width: 240px;
+    outline: none;
+    cursor: pointer;
+    appearance: none;
+    transition: border-color $duration-base $ease;
+
+    &:focus { border-color: rgba($primary, 0.5); }
+
+    option { background: $surface-container; }
+
+    @media (max-width: 600px) { min-width: 100%; }
+  }
+
+  &__sale-avail {
+    font-family: $font-label;
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: #6fcf7a;
+
+    &--low { color: #f0a500; }
+  }
+
+  &__sale-qty {
+    background: $surface-container;
+    border: 1px solid rgba($on-surface, 0.1);
+    color: $on-surface;
+    font-family: $font-body;
+    font-size: $body-sm;
+    padding: 0.6rem 0.9rem;
+    width: 80px;
+    text-align: center;
+    outline: none;
+    transition: border-color $duration-base $ease;
+
+    &:focus { border-color: rgba($primary, 0.5); }
+
+    &::-webkit-outer-spin-button,
+    &::-webkit-inner-spin-button { -webkit-appearance: none; }
+    -moz-appearance: textfield;
+    appearance: textfield;
+  }
+
+  &__sale-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.65rem 1.4rem;
+    background: $primary;
+    border: none;
+    color: $on-primary;
+    font-family: $font-label;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background $duration-base $ease, box-shadow $duration-base $ease, transform $duration-fast $ease;
+
+    &:hover:not(:disabled) {
+      background: $gold-light;
+      box-shadow: 0 4px 18px rgba($primary, 0.35);
+      transform: translateY(-1px);
+    }
+
+    &:disabled {
+      background: $surface-container-high;
+      color: rgba($on-surface, 0.25);
+      cursor: not-allowed;
+      box-shadow: none;
+      transform: none;
+    }
+  }
+
+  &__sale-error {
+    font-family: $font-label;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    color: #ff6b6b;
+    margin-top: -0.5rem;
+  }
+
+  // ── Historial vacío ───────────────────────────────────────────────────────
+  &__history-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 4rem 2rem;
+    gap: 0.75rem;
+    border: 1px solid rgba($primary, 0.06);
+    text-align: center;
+
+    svg { color: rgba($on-surface-variant, 0.2); }
+
+    p {
+      font-family: $font-headline;
+      font-size: $title-md;
+      font-weight: 300;
+      font-style: italic;
+      color: $on-surface;
+      margin: 0;
+    }
+
+    span {
+      font-size: $body-sm;
+      color: rgba($on-surface-variant, 0.45);
+      max-width: 360px;
+      line-height: 1.6;
+    }
+  }
+
+  // ── Log rows ──────────────────────────────────────────────────────────────
+  &__log-type {
+    font-family: $font-label;
+    font-size: 8px;
+    font-weight: 400;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    padding: 0.15rem 0.55rem;
+
+    &--sale {
+      color: #ff8585;
+      background: rgba(#ff6b6b, 0.1);
+    }
+
+    &--edit {
+      color: $primary;
+      background: rgba($primary, 0.08);
+    }
+  }
+
+  &__qty--minus { color: #ff8585; font-weight: 600; font-size: $body-sm; }
+  &__qty--plus  { color: #6fcf7a; font-weight: 600; font-size: $body-sm; }
+
+  &__log-stock {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+
+    svg { color: rgba($on-surface-variant, 0.3); }
+  }
+
+  &__log-old { color: rgba($on-surface-variant, 0.5); font-size: $body-sm; }
+  &__log-new { color: $on-surface; font-size: $body-sm; font-weight: 400; }
+
+  &__log-date {
+    font-size: 11px;
+    color: rgba($on-surface-variant, 0.5);
+    white-space: nowrap;
+  }
+
+  // ── Ver más ───────────────────────────────────────────────────────────────
+  &__load-more {
+    align-self: center;
+    background: transparent;
+    border: 1px solid rgba($primary, 0.3);
+    color: $primary;
+    font-family: $font-label;
+    font-size: 9px;
+    font-weight: 400;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    padding: 0.6rem 1.6rem;
+    cursor: pointer;
+    transition: all $duration-base $ease;
+    margin-top: 0.5rem;
+
+    &:hover {
+      background: rgba($primary, 0.06);
+      border-color: rgba($primary, 0.6);
+    }
   }
 }

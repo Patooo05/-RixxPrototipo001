@@ -20,7 +20,7 @@ No test suite is configured.
 
 ## Architecture
 
-**Stack:** React 19 + React Router v7 + SCSS + Vite. Context API for global state. Optional Express 5 + Socket.IO backend with MySQL fallback to in-memory arrays.
+**Stack:** React 19 + React Router v7 + SCSS + Vite. Context API for global state. Optional Express 5 + Socket.IO backend with MySQL fallback to in-memory arrays. Product data is fetched from **Supabase** when configured; falls back to `localStorage`.
 
 ### State Management — Three Context Providers
 
@@ -30,7 +30,7 @@ AuthProvider → ProductsProvider → CartProvider → <App />
 ```
 
 - **AuthContext** — `currentUser`, `users[]`, login/logout/register, role checks (`isAdmin`). Persisted to `localStorage`.
-- **ProductsContext** — Product catalog (9 seeded products), filter state (`search`, `categoryFilter`, `priceFilter`, `sortOrder`), computed `filteredProducts` via `useMemo`. Also tracks stock `history[]` and sales.
+- **ProductsContext** — Product catalog fetched from Supabase (or `localStorage` fallback), filter state (`search`, `categoryFilter`, `sortOrder`), computed `filteredProducts` via `useMemo`. Also tracks stock `history[]` and a `changeLog[]` persisted to Supabase's `change_log` table.
 - **CartContext** — `items[]`, add/inc/dec/remove/clear. Exposed via `useCart()` hook. Persisted to `localStorage` as `rixx_cart`.
 
 ### Routing (App.jsx)
@@ -63,10 +63,50 @@ Each component has a corresponding `.scss` file. Use BEM naming: `.block__elemen
 
 Express 5 + Socket.IO server, optional — the frontend works standalone with Context API. Uses MySQL if `MYSQL_HOST`, `MYSQL_USER`, `MYSQL_DB` env vars are set; otherwise falls back to an in-memory `memProducts[]` array. Emits Socket.IO events on product create/delete. Port defaults to `4000`, CORS origin defaults to `http://localhost:5173`.
 
+## Product Grid & Filters
+
+### Categories
+The store uses three collection categories defined in `FilterBar.jsx`:
+```js
+const CATEGORIES = ["Todos", "Rixx 001", "Rixx 002", "Rixx 003"];
+```
+These map to the `category` field in Supabase products. Only the category filter is shown — **price filter and sort order have been removed from the UI**.
+
+### Empty States (`ProductsGrid.jsx`)
+Two distinct empty states:
+- **Category with no products** (`categoryFilter !== "Todos"` + no results): Editorial "coming soon" message — *"Esta colección está siendo curada..."* with a golden eyebrow and subtle radial gradient. Modifier: `.products-grid__empty--collection`.
+- **Search with no results**: Simple message — *"Sin resultados, probá con otro término."*
+
+### Product Card Image Layout (`ProductCard.scss`)
+Images use the **padding-top percentage trick** for a guaranteed 3:4 portrait aspect ratio that is immune to image dimensions from the database:
+```scss
+&__image-wrapper {
+  width: 100%;
+  padding-top: 133.33%; /* 3:4 ratio */
+  position: relative;
+  overflow: hidden;
+
+  img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+```
+
+### Grid Columns
+Both `featured-grid` and `products-grid__items` use `minmax(0, 1fr)` — **not** plain `1fr` — to prevent images from the database from expanding grid columns beyond their equal fraction:
+```scss
+grid-template-columns: repeat(3, minmax(0, 1fr));
+```
+
 ## Key Conventions
 
 - Auth data (passwords, session) lives only in `localStorage` — this is intentional for the prototype; no backend auth.
 - The hardcoded admin credentials are `admin@admin.com` / `1234`.
-- Product images are stored in `src/assets/img/`.
+- Product images are stored as URLs in Supabase (not local assets).
 - `src/lib/api.js` is the HTTP client for backend calls; `src/lib/socket.js` is a stub (not yet implemented).
+- `src/App.css` is intentionally empty — all styles live in SCSS files. Do not add global styles to `App.css`.
 - ESLint uses the new flat config format (`eslint.config.js`); uppercase variables are exempted from `no-unused-vars` via `varsIgnorePattern`.

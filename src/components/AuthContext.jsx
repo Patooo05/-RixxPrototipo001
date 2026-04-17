@@ -1,13 +1,15 @@
-import React, { createContext, useState } from "react";
+import React, { createContext, useState, useEffect, useCallback } from "react";
+import { supabase } from "../lib/supabase";
 
 export const AuthContext = createContext();
 
-// Hash simple — protege contraseñas en localStorage contra lectura casual
+// ─── localStorage fallback helpers ────────────────────────────────────────────
+// These are only used when VITE_SUPABASE_URL is not configured.
+
 const hashPwd = (pwd) => `h:${btoa(unescape(encodeURIComponent(String(pwd))))}`;
 const checkPwd = (plain, stored) =>
   stored?.startsWith("h:") ? stored === hashPwd(plain) : plain === stored;
 
-// Migra usuarios con contraseñas en texto plano al formato hasheado
 const migrateUsers = (users) =>
   users.map((u) =>
     u.password && !u.password.startsWith("h:")
@@ -15,27 +17,25 @@ const migrateUsers = (users) =>
       : u
   );
 
-export const AuthProvider = ({ children }) => {
-  // Estado del usuario actual
+// ─── localStorage AuthProvider ─────────────────────────────────────────────────
+
+const LocalStorageAuthProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(() => {
     try {
       const stored = localStorage.getItem("currentUser");
       if (!stored) return null;
       const parsed = JSON.parse(stored);
-      // Sanitize legacy sessions that may have stored password
       const { password: _omit, ...safe } = parsed;
       return safe;
     } catch { return null; }
   });
 
-  // Lista de usuarios — migra contraseñas plain-text al arranque
   const [users, setUsers] = useState(() => {
     const stored = localStorage.getItem("users");
     const base = stored
       ? JSON.parse(stored)
       : [{ id: 1, name: "Admin", email: "admin@admin.com", password: "1234", role: "Administrador" }];
     const migrated = migrateUsers(base);
-    // Si hubo migración, persistir de inmediato
     if (migrated.some((u, i) => u.password !== base[i]?.password)) {
       localStorage.setItem("users", JSON.stringify(migrated));
     }
@@ -47,44 +47,36 @@ export const AuthProvider = ({ children }) => {
     localStorage.setItem("users", JSON.stringify(newUsers));
   };
 
-  // Strip password before storing in state/localStorage
   const safeUser = (user) => {
     const { password: _omit, ...safe } = user;
     return safe;
   };
 
-  // Login
   const login = (email, password) => {
     const user = users.find(u => u.email === email && checkPwd(password, u.password));
     if (!user) return false;
-
     const safe = safeUser(user);
     setCurrentUser(safe);
     localStorage.setItem("currentUser", JSON.stringify(safe));
     return true;
   };
 
-  // Logout
   const logout = () => {
     localStorage.removeItem("currentUser");
     setCurrentUser(null);
   };
 
-  const isLoggedIn = !!currentUser;
-  const isAdmin = currentUser?.role === "Administrador";
-  const username = currentUser?.name;
-
-  // Registrar un nuevo usuario (cliente)
   const register = (name, email, password) => {
     if (!name || !email || !password) return false;
     if (users.some(u => u.email === email)) return false;
-
     const newUser = {
       id: Date.now(),
       name,
       email,
       password: hashPwd(password),
-      role: "Cliente"
+      role: "Cliente",
+      active: true,
+      permissions: [],
     };
     const newList = [...users, newUser];
     saveUsers(newList);
@@ -94,7 +86,6 @@ export const AuthProvider = ({ children }) => {
     return true;
   };
 
-  // Activar/desactivar usuario
   const toggleUserStatus = (id) => {
     const updated = users.map(u =>
       u.id === id ? { ...u, active: u.active === false ? true : false } : u
@@ -102,7 +93,6 @@ export const AuthProvider = ({ children }) => {
     saveUsers(updated);
   };
 
-  // Alternar permiso de un usuario
   const togglePermission = (id, perm) => {
     const updated = users.map(u => {
       if (u.id !== id) return u;
@@ -115,27 +105,31 @@ export const AuthProvider = ({ children }) => {
     saveUsers(updated);
   };
 
-  // Crear un nuevo usuario (clonando permisos de otro)
   const createUser = (email, password, name, cloneFromEmail) => {
     if (!email || !password || !name) return false;
-
-    if (users.some(u => u.email === email)) return false; // ya existe
-
+    if (users.some(u => u.email === email)) return false;
     const cloneFrom = users.find(u => u.email === cloneFromEmail);
     const role = cloneFrom ? cloneFrom.role : "Cliente";
-
     const newUser = {
       id: Date.now(),
       name,
       email,
       password: hashPwd(password),
-      role
+      role,
+      active: true,
+      permissions: [],
     };
-
-    const newUsersList = [...users, newUser];
-    saveUsers(newUsersList);
+    saveUsers([...users, newUser]);
     return true;
   };
+
+  const refreshUsers = () => {
+    // No-op in localStorage mode — users state is always up-to-date
+  };
+
+  const isLoggedIn = !!currentUser;
+  const isAdmin = currentUser?.role === "Administrador";
+  const username = currentUser?.name;
 
   return (
     <AuthContext.Provider value={{
@@ -149,9 +143,270 @@ export const AuthProvider = ({ children }) => {
       username,
       createUser,
       toggleUserStatus,
-      togglePermission
+      togglePermission,
+      refreshUsers,
+      loading: false,
     }}>
       {children}
     </AuthContext.Provider>
   );
+};
+
+// ─── Supabase AuthProvider (disabled — auth stays in localStorage) ────────────
+// Kept here for future reference if Supabase Auth is needed later.
+
+const buildUserFromProfile = (profile) => ({
+  id: profile.id,
+  name: profile.name,
+  email: profile.email,
+  role: profile.role,
+  active: profile.active,
+  permissions: profile.permissions || [],
+});
+
+const SupabaseAuthProvider = ({ children }) => {
+  const [currentUser, setCurrentUser] = useState(null);
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch a single user's profile from user_profiles
+  const fetchProfile = async (userId) => {
+    try {
+      const { data, error } = await supabase
+        .from("user_profiles")
+        .select("*")
+        .eq("id", userId)
+        .single();
+      if (error) throw error;
+      return data;
+    } catch {
+      return null;
+    }
+  };
+
+  // Fetch all user profiles (for admin panel)
+  const refreshUsers = useCallback(async () => {
+    try {
+      const { data, error } = await supabase
+        .from("user_profiles")
+        .select("*")
+        .order("created_at", { ascending: true });
+      if (error) throw error;
+      setUsers(data.map(buildUserFromProfile));
+    } catch {
+      // Silently fail — non-admin users may not have SELECT access to all rows
+    }
+  }, []);
+
+  // On mount: restore session and subscribe to auth changes
+  useEffect(() => {
+    let authListener = null;
+
+    const init = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user) {
+          const profile = await fetchProfile(session.user.id);
+          if (profile) setCurrentUser(buildUserFromProfile(profile));
+        }
+      } catch {
+        // Session restore failed — treat as logged out
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    init();
+
+    const { data: listener } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === "SIGNED_IN" && session?.user) {
+        const profile = await fetchProfile(session.user.id);
+        if (profile) setCurrentUser(buildUserFromProfile(profile));
+      } else if (event === "SIGNED_OUT") {
+        setCurrentUser(null);
+        setUsers([]);
+      }
+    });
+
+    authListener = listener;
+    return () => { authListener?.subscription?.unsubscribe(); };
+  }, []);
+
+  // Load all users once admin is confirmed
+  useEffect(() => {
+    if (currentUser?.role === "Administrador") {
+      refreshUsers();
+    }
+  }, [currentUser?.role, refreshUsers]);
+
+  // ── Auth actions ──────────────────────────────────────────────────────────
+
+  const login = async (email, password) => {
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) throw error;
+      const profile = await fetchProfile(data.user.id);
+      if (profile) setCurrentUser(buildUserFromProfile(profile));
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
+  const logout = async () => {
+    try {
+      await supabase.auth.signOut();
+    } catch {
+      // Ignore sign-out errors
+    }
+    setCurrentUser(null);
+    setUsers([]);
+  };
+
+  const register = async (name, email, password) => {
+    if (!name || !email || !password) return false;
+    try {
+      const { data, error } = await supabase.auth.signUp({ email, password });
+      if (error) throw error;
+
+      const userId = data.user?.id;
+      if (!userId) throw new Error("No user ID returned from signUp");
+
+      const profilePayload = {
+        id: userId,
+        name,
+        email,
+        role: "Cliente",
+        active: true,
+        permissions: [],
+      };
+
+      const { error: insertError } = await supabase
+        .from("user_profiles")
+        .insert(profilePayload);
+      if (insertError) throw insertError;
+
+      setCurrentUser(profilePayload);
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
+  const createUser = async (email, password, name, cloneFromEmail) => {
+    if (!email || !password || !name) return false;
+    try {
+      // Use signUp — Supabase will send a confirmation email.
+      // Admin-level user creation (without confirmation) requires the service
+      // role key which must never be exposed on the frontend.
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: { data: { name } },
+      });
+      if (error) throw error;
+
+      const userId = data.user?.id;
+      if (!userId) throw new Error("No user ID returned from signUp");
+
+      // Clone role from another user if requested
+      let role = "Cliente";
+      if (cloneFromEmail) {
+        const cloneFrom = users.find(u => u.email === cloneFromEmail);
+        if (cloneFrom) role = cloneFrom.role;
+      }
+
+      const profilePayload = {
+        id: userId,
+        name,
+        email,
+        role,
+        active: true,
+        permissions: [],
+      };
+
+      const { error: insertError } = await supabase
+        .from("user_profiles")
+        .insert(profilePayload);
+      if (insertError) throw insertError;
+
+      await refreshUsers();
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
+  const toggleUserStatus = async (id) => {
+    try {
+      const target = users.find(u => u.id === id);
+      if (!target) return;
+      const newActive = !target.active;
+
+      const { error } = await supabase
+        .from("user_profiles")
+        .update({ active: newActive })
+        .eq("id", id);
+      if (error) throw error;
+
+      setUsers(prev => prev.map(u => u.id === id ? { ...u, active: newActive } : u));
+    } catch {
+      // Silently fail — caller may show its own error UI
+    }
+  };
+
+  const togglePermission = async (id, perm) => {
+    try {
+      const target = users.find(u => u.id === id);
+      if (!target) return;
+      const perms = target.permissions || [];
+      const newPerms = perms.includes(perm)
+        ? perms.filter(p => p !== perm)
+        : [...perms, perm];
+
+      const { error } = await supabase
+        .from("user_profiles")
+        .update({ permissions: newPerms })
+        .eq("id", id);
+      if (error) throw error;
+
+      setUsers(prev => prev.map(u => u.id === id ? { ...u, permissions: newPerms } : u));
+    } catch {
+      // Silently fail
+    }
+  };
+
+  // ── Computed values ───────────────────────────────────────────────────────
+
+  const isLoggedIn = !!currentUser;
+  const isAdmin = currentUser?.role === "Administrador";
+  const username = currentUser?.name;
+
+  return (
+    <AuthContext.Provider value={{
+      currentUser,
+      users,
+      login,
+      logout,
+      register,
+      isLoggedIn,
+      isAdmin,
+      username,
+      createUser,
+      toggleUserStatus,
+      togglePermission,
+      refreshUsers,
+      loading,
+    }}>
+      {children}
+    </AuthContext.Provider>
+  );
+};
+
+// ─── Unified export ────────────────────────────────────────────────────────────
+// Auth always uses localStorage — no user_profiles table required in Supabase.
+// Supabase is used only for products, orders, wishlist, reviews, etc.
+
+export const AuthProvider = ({ children }) => {
+  return <LocalStorageAuthProvider>{children}</LocalStorageAuthProvider>;
 };

@@ -11,7 +11,10 @@
       "Bash(grep -E \"^\\\\\\\\\\\\$\\(success|tertiary|on-primary|error-container|on-error|on-error-container|surface-container-high|outline-variant|radius-lg|radius-md|radius-sm|label-sm|label-md|label-lg|body-sm|body-md|headline-sm|headline-lg|title-lg|duration-fast|ease|font-label|font-body|font-headline\\)\" src/styles/variables.scss)",
       "Bash(node -e \"require\\('sharp'\\)\")",
       "Bash(node scripts/compress-assets.js)",
-      "Bash(winget install:*)"
+      "Bash(winget install:*)",
+      "Bash(py:*)",
+      "Bash(dir \"C:\\\\Users\\\\user\\\\.claude\\\\skills\\\\ui-ux-pro-max\\\\scripts\")",
+      "Bash(dir \"C:\\\\Users\\\\user\\\\.claude\\\\skills\\\\ui-ux-pro-max\\\\data\")"
     ]
   }
 }

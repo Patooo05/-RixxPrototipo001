@@ -7,7 +7,7 @@
 @use './mixins' as *;
 
 // ── Google Fonts ─────────────────────────────────────────────
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&family=DM+Sans:wght@300;400;500&display=swap');
+// Fonts are loaded via <link> + preconnect in index.html for better performance
 
 // ── Reset ────────────────────────────────────────────────────
 *,
@@ -44,7 +44,7 @@ body {
   position: fixed;
   top: 0; left: 0;
   pointer-events: none;
-  z-index: 9999;
+  z-index: 999999;
   border-radius: 50%;
   transform: translate(-50%, -50%);
   transition: opacity 0.3s ease;
@@ -62,11 +62,11 @@ body {
 
 // ── Page Transition ───────────────────────────────────────────
 @keyframes pageFadeIn {
-  from { opacity: 0; transform: translateY(6px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
 .page-transition {
-  animation: pageFadeIn 0.4s cubic-bezier(.22, .61, .36, 1) forwards;
+  animation: pageFadeIn 0.35s ease forwards;
 }
 
 // ── Section Divider editorial ─────────────────────────────────

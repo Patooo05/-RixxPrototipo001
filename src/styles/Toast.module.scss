@@ -1,0 +1,127 @@
+@use "variables" as *;
+@use "mixins" as *;
+
+// ─── Keyframes ────────────────────────────────────────────────────────────────
+@keyframes toast-slide-in {
+  from {
+    transform: translateX(110%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes toast-fade-out {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(110%);
+    opacity: 0;
+  }
+}
+
+// ─── Container ────────────────────────────────────────────────────────────────
+.container {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 9000;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: flex-end;
+  pointer-events: none; // let clicks pass through the gap area
+}
+
+// ─── Individual Toast ─────────────────────────────────────────────────────────
+.toast {
+  pointer-events: all;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 280px;
+  max-width: 380px;
+  padding: 12px 16px;
+  border-radius: 6px;
+  background: rgba(20, 20, 20, 0.96);
+  box-shadow:
+    0 4px 24px rgba(0, 0, 0, 0.6),
+    0 1px 4px rgba(0, 0, 0, 0.4);
+  border-left: 3px solid transparent;
+  animation: toast-slide-in 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
+
+  // Type accent colours
+  &.success {
+    border-left-color: #4caf82;
+  }
+
+  &.error {
+    border-left-color: #e05050;
+  }
+
+  &.info {
+    border-left-color: $primary; // #D4AF37
+  }
+}
+
+// ─── Message Text ─────────────────────────────────────────────────────────────
+.message {
+  font-family: "Manrope", sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.5;
+  letter-spacing: 0.04em;
+  color: $on-surface; // #e5e2e1
+  flex: 1;
+}
+
+// ─── Close Button ─────────────────────────────────────────────────────────────
+.close {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: $on-surface-variant; // #99907c
+  font-size: 16px;
+  line-height: 1;
+  padding: 0 2px;
+  transition: color 0.15s ease;
+
+  &:hover,
+  &:focus-visible {
+    color: $on-surface;
+    outline: none;
+  }
+}
+
+// ─── Mobile ───────────────────────────────────────────────────────────────────
+@media (max-width: 480px) {
+  .container {
+    right: 0;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    align-items: stretch;
+    gap: 0;
+    padding: 0;
+  }
+
+  .toast {
+    min-width: 0;
+    max-width: 100%;
+    width: 100%;
+    border-radius: 0;
+    border-left-width: 4px;
+    animation: toast-slide-in 0.24s cubic-bezier(0.22, 1, 0.36, 1) both;
+
+    // Stack with a thin separator line between items
+    & + .toast {
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+    }
+  }
+}

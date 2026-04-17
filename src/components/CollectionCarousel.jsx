@@ -2,52 +2,18 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/CollectionCarousel.scss";
 
+import img2 from "../assets/img/2.webp";
+import img3 from "../assets/img/3.webp";
+import img5 from "../assets/img/5.webp";
+import img8 from "../assets/img/8.webp";
+import img7 from "../assets/img/7.webp";
+
 const COLLECTIONS = [
-  {
-    id: 0,
-    num: "01",
-    label: "Colección Signature",
-    title: "The Obsidian\nFrame",
-    sub: "Acetato italiano premium. Para los que lideran sin esfuerzo.",
-    accent: "#D4AF37",
-    shape: "round",
-  },
-  {
-    id: 1,
-    num: "02",
-    label: "Colección Sport",
-    title: "The Arctic\nShield",
-    sub: "Lentes polarizados con montura ultraligera de titanio.",
-    accent: "#B8962E",
-    shape: "square",
-  },
-  {
-    id: 2,
-    num: "03",
-    label: "Colección Phantom",
-    title: "The Quiet\nLuxury",
-    sub: "Diseño ovalado retro-futurista. El punto de inflexión del estilo.",
-    accent: "#E8C96A",
-    shape: "oval",
-  },
-  {
-    id: 3,
-    num: "04",
-    label: "Colección Avant",
-    title: "The Gold\nEdge",
-    sub: "Geometría angular. Carácter sin límites. Hecho para sobresalir.",
-    accent: "#D4AF37",
-    shape: "angular",
-  },
-  {
-    id: 4,
-    num: "05",
-    label: "Colección Drift",
-    title: "The Silent\nStatement",
-    sub: "Aerodinámica que se viste. Tecnología que se siente.",
-    accent: "#99907c",
-    shape: "wave",
-  },
+  { id: 0, num: "01", label: "Colección Signature", title: "The Obsidian\nFrame", sub: "Acetato italiano premium. Para los que lideran sin esfuerzo.", accent: "#D4AF37", shape: "round", image: img2, tag: "Signature" },
+  { id: 1, num: "02", label: "Colección Sport", title: "The Arctic\nShield", sub: "Lentes polarizados con montura ultraligera de titanio.", accent: "#B8962E", shape: "square", image: img3, tag: "Sport" },
+  { id: 2, num: "03", label: "Colección Phantom", title: "The Quiet\nLuxury", sub: "Diseño ovalado retro-futurista. El punto de inflexión del estilo.", accent: "#E8C96A", shape: "oval", image: img5, tag: "Luxury" },
+  { id: 3, num: "04", label: "Colección Avant", title: "The Gold\nEdge", sub: "Geometría angular. Carácter sin límites. Hecho para sobresalir.", accent: "#D4AF37", shape: "angular", image: img8, tag: "Limited" },
+  { id: 4, num: "05", label: "Colección Drift", title: "The Silent\nStatement", sub: "Aerodinámica que se viste. Tecnología que se siente.", accent: "#99907c", shape: "wave", image: img7, tag: "New" },
 ];
 
 const INTERVAL = 6000;
@@ -163,41 +129,57 @@ const CollectionCarousel = () => {
 
   return (
     <section className="cc" aria-label="Colecciones">
-      {/* Número decorativo de fondo */}
+      {/* Grain texture overlay */}
+      <div className="cc__grain" aria-hidden="true" />
+
+      {/* Large background number */}
       <span className="cc__bg-num" aria-hidden="true">{col.num}</span>
 
       <div className="cc__inner">
-        {/* ── Panel izquierdo: texto ── */}
+
+        {/* LEFT: text panel */}
         <div className="cc__text-panel">
+          {/* Top decorative line */}
+          <div className="cc__deco-line" aria-hidden="true" />
+
           <div className={`cc__text-content${animating ? " cc__text-content--out" : " cc__text-content--in"}`} key={current}>
+            {/* Tag badge */}
+            <span className="cc__tag" style={{ borderColor: `${col.accent}55`, color: col.accent }}>
+              {col.tag}
+            </span>
+
             <span className="cc__eyebrow">{col.label}</span>
+
             <h2 className="cc__title">
-              {col.title.split("\n").map((line, i) => (
-                <span key={i} className={i === 1 ? "cc__title-italic" : ""}>{line}<br /></span>
-              ))}
+              <span>{col.title.split("\n")[0]}</span>
+              <em className="cc__title-italic" style={{ color: col.accent }}>{col.title.split("\n")[1]}</em>
             </h2>
+
             <p className="cc__sub">{col.sub}</p>
-            <button className="cc__cta" onClick={() => navigate("/productos")}>
-              Explorar colección
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+
+            <button className="cc__cta" onClick={() => navigate("/productos")} style={{ "--accent": col.accent }}>
+              <span>Explorar colección</span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
                 <path d="M5 12h14M12 5l7 7-7 7" />
               </svg>
             </button>
           </div>
 
-          {/* Navegación */}
+          {/* Bottom nav */}
           <div className="cc__nav">
             <span className="cc__counter">
-              <strong>{String(current + 1).padStart(2, "0")}</strong> / {String(count).padStart(2, "0")}
+              <strong style={{ color: col.accent }}>{String(current + 1).padStart(2, "0")}</strong>
+              <span className="cc__counter-sep">/</span>
+              {String(count).padStart(2, "0")}
             </span>
             <div className="cc__nav-btns">
               <button className="cc__nav-btn" onClick={() => handleNav(-1)} aria-label="Anterior">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
                   <path d="M19 12H5M12 5l-7 7 7 7" />
                 </svg>
               </button>
               <button className="cc__nav-btn" onClick={() => handleNav(1)} aria-label="Siguiente">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
                   <path d="M5 12h14M12 5l7 7-7 7" />
                 </svg>
               </button>
@@ -205,23 +187,30 @@ const CollectionCarousel = () => {
           </div>
         </div>
 
-        {/* ── Panel derecho: visual ── */}
+        {/* RIGHT: visual panel */}
         <div className="cc__visual-panel">
           <div
             className={`cc__visual-content${animating ? " cc__visual-content--out" : " cc__visual-content--in"}`}
             key={`v-${current}`}
-            style={{ "--accent": col.accent }}
           >
-            {/* Glow */}
-            <div className="cc__glow" style={{ background: `radial-gradient(circle, ${col.accent}1a 0%, transparent 65%)` }} />
-            {/* SVG lente */}
-            <div className="cc__svg-wrap">
+            {/* Full bleed image */}
+            <div className="cc__img-wrap">
+              <img src={col.image} alt={col.title.replace("\n", " ")} className="cc__img" />
+              {/* Gradient overlay left→transparent */}
+              <div className="cc__img-overlay" style={{ "--accent": col.accent }} />
+            </div>
+
+            {/* SVG glasses floating on top */}
+            <div className="cc__svg-wrap" style={{ "--accent": col.accent }}>
               <GlassSVG shape={col.shape} accent={col.accent} />
             </div>
-            {/* Líneas de detalle */}
-            <div className="cc__grid-lines" aria-hidden="true">
-              <span /><span /><span />
-            </div>
+
+            {/* Ambient glow */}
+            <div className="cc__glow" style={{ background: `radial-gradient(ellipse at 60% 50%, ${col.accent}22 0%, transparent 65%)` }} />
+
+            {/* Corner marks */}
+            <div className="cc__corner cc__corner--tl" aria-hidden="true" />
+            <div className="cc__corner cc__corner--br" aria-hidden="true" />
           </div>
 
           {/* Dots */}
@@ -239,13 +228,9 @@ const CollectionCarousel = () => {
         </div>
       </div>
 
-      {/* Barra de progreso */}
+      {/* Progress bar */}
       <div className="cc__progress-bar">
-        <div
-          className="cc__progress-fill"
-          key={current}
-          style={{ "--duration": `${INTERVAL}ms`, background: col.accent }}
-        />
+        <div className="cc__progress-fill" key={current} style={{ "--duration": `${INTERVAL}ms`, background: col.accent }} />
       </div>
     </section>
   );

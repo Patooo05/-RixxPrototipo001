@@ -1,78 +1,10 @@
 @use "variables" as *;
 @use "mixins" as *;
 
-// ── SECTION ──────────────────────────────────────────────────────
-.cc {
-  position: relative;
-  background: $background;
-  overflow: hidden;
-  padding: 0;
-  min-height: 580px;
-  display: flex;
-  flex-direction: column;
-}
+// ─────────────────────────────────────────────────────────────────────────────
+// KEYFRAMES
+// ─────────────────────────────────────────────────────────────────────────────
 
-// ── NÚMERO DECORATIVO DE FONDO ────────────────────────────────────
-.cc__bg-num {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  font-family: $font-headline;
-  font-size: clamp(14rem, 28vw, 26rem);
-  font-weight: 300;
-  font-style: italic;
-  color: $on-surface;
-  opacity: 0.025;
-  line-height: 1;
-  user-select: none;
-  pointer-events: none;
-  z-index: 0;
-  transition: opacity 0.6s $ease;
-  letter-spacing: -0.05em;
-}
-
-// ── INNER GRID ────────────────────────────────────────────────────
-.cc__inner {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  flex: 1;
-  position: relative;
-  z-index: 1;
-  min-height: 560px;
-}
-
-// ── PANEL IZQUIERDO ───────────────────────────────────────────────
-.cc__text-panel {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  padding: 5rem 4rem 4rem 6vw;
-  border-right: 1px solid rgba($primary, 0.08);
-  position: relative;
-
-  // Línea vertical decorativa
-  &::before {
-    content: "";
-    position: absolute;
-    top: 3rem;
-    left: 6vw;
-    width: 1px;
-    height: 48px;
-    background: rgba($primary, 0.4);
-  }
-}
-
-// ── CONTENIDO DE TEXTO ────────────────────────────────────────────
-.cc__text-content {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  padding-top: 1.5rem;
-}
-
-// Animaciones fade + slide
 @keyframes ccTextIn {
   from { opacity: 0; transform: translateY(20px); }
   to   { opacity: 1; transform: translateY(0); }
@@ -83,10 +15,133 @@
   to   { opacity: 0; transform: translateY(-12px); }
 }
 
-.cc__text-content--in  { animation: ccTextIn  0.65s $ease forwards; }
-.cc__text-content--out { animation: ccTextOut 0.3s  $ease forwards; }
+@keyframes ccVisualIn {
+  from { opacity: 0; transform: scale(0.97); }
+  to   { opacity: 1; transform: scale(1); }
+}
 
-// ── EYEBROW ───────────────────────────────────────────────────────
+@keyframes ccVisualOut {
+  from { opacity: 1; transform: scale(1); }
+  to   { opacity: 0; transform: scale(1.03); }
+}
+
+@keyframes ccFloat {
+  0%,  100% { transform: translateY(0); }
+  50%        { transform: translateY(-10px); }
+}
+
+@keyframes ccProgress {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 1 · SECTION WRAPPER
+// ─────────────────────────────────────────────────────────────────────────────
+
+.cc {
+  position: relative;
+  overflow: hidden;
+  min-height: 620px;
+  background: $background;
+  display: flex;
+  flex-direction: column;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 2 · GRAIN OVERLAY
+// ─────────────────────────────────────────────────────────────────────────────
+
+.cc__grain {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.035;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 180px 180px;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 3 · BACKGROUND DECORATIVE NUMBER
+// ─────────────────────────────────────────────────────────────────────────────
+
+.cc__bg-num {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-family: $font-headline;
+  font-size: clamp(14rem, 28vw, 26rem);
+  font-weight: 300;
+  font-style: italic;
+  color: $on-surface;
+  opacity: 0.022;
+  line-height: 1;
+  user-select: none;
+  pointer-events: none;
+  z-index: 0;
+  letter-spacing: -0.05em;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 4 · INNER GRID
+// ─────────────────────────────────────────────────────────────────────────────
+
+.cc__inner {
+  display: grid;
+  grid-template-columns: 52% 48%;
+  flex: 1;
+  z-index: 2;
+  min-height: 600px;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 5 · LEFT TEXT PANEL
+// ─────────────────────────────────────────────────────────────────────────────
+
+.cc__text-panel {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 5rem 4rem 4rem 6vw;
+  border-right: 1px solid rgba($primary, 0.08);
+  position: relative;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 6 · DECORATIVE GOLD LINE
+// ─────────────────────────────────────────────────────────────────────────────
+
+.cc__deco-line {
+  position: absolute;
+  top: 3rem;
+  left: 6vw;
+  width: 48px;
+  height: 1px;
+  background: rgba($primary, 0.5);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 7 · TAG / PILL BADGE
+// ─────────────────────────────────────────────────────────────────────────────
+
+.cc__tag {
+  display: inline-block;
+  font-family: $font-label;
+  font-size: 9px;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  border: 1px solid; // color set via style prop
+  padding: 0.2rem 0.75rem;
+  margin-bottom: 1.25rem;
+  width: fit-content;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 8 · EYEBROW
+// ─────────────────────────────────────────────────────────────────────────────
+
 .cc__eyebrow {
   display: block;
   font-family: $font-label;
@@ -95,106 +150,188 @@
   letter-spacing: 0.45em;
   text-transform: uppercase;
   color: $primary;
-  margin-bottom: 1.75rem;
+  margin-bottom: 1.25rem;
 }
 
-// ── TÍTULO ────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// 9 · TEXT CONTENT BLOCK
+// ─────────────────────────────────────────────────────────────────────────────
+
+.cc__text-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding-top: 2rem;
+  gap: 0;
+
+  &--in  { animation: ccTextIn  0.65s $ease forwards; }
+  &--out { animation: ccTextOut 0.3s  $ease forwards; }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 10 · TITLE
+// ─────────────────────────────────────────────────────────────────────────────
+
 .cc__title {
   font-family: $font-headline;
   font-size: clamp(2.75rem, 5vw, 5.5rem);
   font-weight: 300;
-  line-height: 1.0;
-  color: $on-surface;
-  margin: 0 0 1.75rem;
-  letter-spacing: -0.01em;
+  line-height: 0.95;
+  margin: 0 0 1.5rem;
+  letter-spacing: -0.02em;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+
+  span {
+    color: $on-surface;
+  }
+
+  .cc__title-italic {
+    font-style: italic;
+    // color set via inline style
+  }
 }
 
-.cc__title-italic {
-  font-style: italic;
-  color: $primary;
-}
+// ─────────────────────────────────────────────────────────────────────────────
+// 11 · SUBTITLE / BODY COPY
+// ─────────────────────────────────────────────────────────────────────────────
 
-// ── SUBTÍTULO ─────────────────────────────────────────────────────
 .cc__sub {
   font-family: $font-body;
   font-size: 13px;
   font-weight: 300;
   color: $on-surface-variant;
-  line-height: 1.7;
-  letter-spacing: 0.04em;
+  line-height: 1.75;
+  letter-spacing: 0.03em;
   max-width: 360px;
   margin-bottom: 2.5rem;
 }
 
-// ── CTA ───────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// 12 · CTA BUTTON
+// ─────────────────────────────────────────────────────────────────────────────
+
 .cc__cta {
   display: inline-flex;
   align-items: center;
   gap: 0.75rem;
   font-family: $font-label;
   font-size: 10px;
-  font-weight: 400;
-  letter-spacing: 0.35em;
+  font-weight: 500;
+  letter-spacing: 0.3em;
   text-transform: uppercase;
   color: $on-surface;
   background: transparent;
-  border: 1px solid rgba($on-surface, 0.2);
-  padding: 0.85rem 1.5rem;
+  border: 1px solid rgba($on-surface, 0.18);
+  padding: 0.9rem 1.75rem;
   cursor: pointer;
+  position: relative;
+  overflow: hidden;
   transition:
     color $duration-base $ease,
     border-color $duration-base $ease,
     gap $duration-fast $ease;
 
-  svg { transition: transform $duration-fast $ease; opacity: 0.6; }
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      105deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.12) 50%,
+      transparent 100%
+    );
+    transform: translateX(-100%);
+    transition: transform 0.55s $ease;
+  }
 
   &:hover {
-    color: $primary;
-    border-color: rgba($primary, 0.5);
+    color: var(--accent, $primary);
+    border-color: rgba(var(--accent), 0.5);
     gap: 1rem;
-    svg { transform: translateX(4px); opacity: 1; }
+
+    &::before {
+      transform: translateX(100%);
+    }
+  }
+
+  svg {
+    transition:
+      transform $duration-fast $ease,
+      opacity $duration-fast $ease;
+    opacity: 0.6;
+  }
+
+  &:hover svg {
+    transform: translateX(4px);
+    opacity: 1;
   }
 }
 
-// ── NAVEGACIÓN ────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// 13 · NAVIGATION ROW
+// ─────────────────────────────────────────────────────────────────────────────
+
 .cc__nav {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-top: 2.5rem;
+  padding-top: 2rem;
   border-top: 1px solid rgba($on-surface, 0.06);
+  margin-top: auto;
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 14 · SLIDE COUNTER
+// ─────────────────────────────────────────────────────────────────────────────
 
 .cc__counter {
   font-family: $font-label;
   font-size: 11px;
-  letter-spacing: 0.25em;
-  color: $on-surface-variant;
-  opacity: 0.5;
+  letter-spacing: 0.2em;
+  color: rgba($on-surface, 0.4);
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
 
   strong {
-    color: $primary;
-    font-weight: 400;
-    opacity: 1;
-    font-size: 14px;
+    font-family: $font-headline;
+    font-size: 22px;
+    font-weight: 300;
+    // color set via inline style
+  }
+
+  .cc__counter-sep {
+    opacity: 0.3;
   }
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 15 · NAV BUTTONS WRAPPER
+// ─────────────────────────────────────────────────────────────────────────────
 
 .cc__nav-btns {
   display: flex;
   gap: 0.5rem;
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// 16 · INDIVIDUAL NAV BUTTON
+// ─────────────────────────────────────────────────────────────────────────────
+
 .cc__nav-btn {
   width: 44px;
   height: 44px;
   border: 1px solid rgba($on-surface, 0.1);
   background: transparent;
-  color: rgba($on-surface, 0.5);
+  color: rgba($on-surface, 0.45);
+  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
   transition:
     border-color $duration-fast $ease,
     color $duration-fast $ease,
@@ -207,97 +344,131 @@
   }
 }
 
-// ── PANEL DERECHO ─────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// 17 · RIGHT VISUAL PANEL
+// ─────────────────────────────────────────────────────────────────────────────
+
 .cc__visual-panel {
   position: relative;
+  overflow: hidden;
+  background: $background;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 18 · VISUAL CONTENT LAYER
+// ─────────────────────────────────────────────────────────────────────────────
+
+.cc__visual-content {
+  position: absolute;
+  inset: 0;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 4rem 4rem 3rem;
-  overflow: hidden;
-  background: radial-gradient(
-    ellipse at 50% 60%,
-    rgba($primary, 0.04) 0%,
-    $surface-container-lowest 65%
+
+  &--in  { animation: ccVisualIn  0.7s $ease forwards; }
+  &--out { animation: ccVisualOut 0.3s $ease forwards; }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 19 · IMAGE WRAP + IMAGE
+// ─────────────────────────────────────────────────────────────────────────────
+
+.cc__img-wrap {
+  position: absolute;
+  inset: 0;
+
+  .cc__img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    opacity: 0.55;
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 20 · IMAGE GRADIENT OVERLAY
+// ─────────────────────────────────────────────────────────────────────────────
+
+.cc__img-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to right,
+    #{$background} 0%,
+    rgba($background, 0.6) 35%,
+    rgba($background, 0.1) 70%,
+    transparent 100%
   );
 }
 
-// ── CONTENIDO VISUAL ──────────────────────────────────────────────
-@keyframes ccVisualIn {
-  from { opacity: 0; transform: scale(0.94); }
-  to   { opacity: 1; transform: scale(1); }
-}
+// ─────────────────────────────────────────────────────────────────────────────
+// 21 · SVG / PRODUCT ILLUSTRATION WRAP
+// ─────────────────────────────────────────────────────────────────────────────
 
-@keyframes ccVisualOut {
-  from { opacity: 1; transform: scale(1); }
-  to   { opacity: 0; transform: scale(1.04); }
-}
-
-.cc__visual-content {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex: 1;
-  width: 100%;
-  position: relative;
-}
-
-.cc__visual-content--in  { animation: ccVisualIn  0.65s $ease forwards; }
-.cc__visual-content--out { animation: ccVisualOut 0.3s  $ease forwards; }
-
-// ── GLOW ─────────────────────────────────────────────────────────
-.cc__glow {
-  position: absolute;
-  inset: -20%;
-  pointer-events: none;
-  z-index: 0;
-  transition: background 0.8s $ease;
-}
-
-// ── SVG LENTE ─────────────────────────────────────────────────────
 .cc__svg-wrap {
   position: relative;
-  z-index: 1;
+  z-index: 3;
   width: 100%;
-  max-width: 480px;
+  max-width: 420px;
   animation: ccFloat 3.5s ease-in-out infinite;
+  filter: drop-shadow(0 0 32px rgba(212, 175, 55, 0.2));
 
   svg {
     width: 100%;
     height: auto;
-    filter: drop-shadow(0 0 30px rgba(212, 175, 55, 0.15));
   }
 }
 
-@keyframes ccFloat {
-  0%, 100% { transform: translateY(0); }
-  50%       { transform: translateY(-12px); }
-}
+// ─────────────────────────────────────────────────────────────────────────────
+// 22 · GLOW ELEMENT
+// ─────────────────────────────────────────────────────────────────────────────
 
-// ── LÍNEAS DE GRILLA DECORATIVAS ──────────────────────────────────
-.cc__grid-lines {
+.cc__glow {
   position: absolute;
-  inset: 0;
-  z-index: 0;
+  inset: -20%;
+  z-index: 1;
   pointer-events: none;
-  display: flex;
-  justify-content: space-around;
+  mix-blend-mode: screen;
+}
 
-  span {
-    width: 1px;
-    height: 100%;
-    background: rgba($on-surface, 0.03);
+// ─────────────────────────────────────────────────────────────────────────────
+// 23 · CORNER DECORATIONS
+// ─────────────────────────────────────────────────────────────────────────────
+
+.cc__corner {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border-color: rgba($primary, 0.35);
+
+  &--tl {
+    top: 1.5rem;
+    left: 1.5rem;
+    border-top: 1px solid;
+    border-left: 1px solid;
+  }
+
+  &--br {
+    bottom: 1.5rem;
+    right: 1.5rem;
+    border-bottom: 1px solid;
+    border-right: 1px solid;
   }
 }
 
-// ── DOTS ──────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// 24 · DOTS INDICATOR
+// ─────────────────────────────────────────────────────────────────────────────
+
 .cc__dots {
+  position: absolute;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
   display: flex;
   gap: 8px;
-  margin-top: 2.5rem;
-  position: relative;
-  z-index: 2;
+  z-index: 5;
 }
 
 .cc__dot {
@@ -307,16 +478,21 @@
   background: rgba($on-surface, 0.18);
   border: none;
   cursor: pointer;
-  transition: width $duration-base $ease, background $duration-base $ease;
   padding: 0;
+  transition:
+    width $duration-base $ease,
+    background $duration-base $ease;
 
   &--active {
-    width: 32px;
-    background: $gold-light;
+    width: 28px;
+    background: $primary;
   }
 }
 
-// ── BARRA DE PROGRESO ─────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// 25 · PROGRESS BAR
+// ─────────────────────────────────────────────────────────────────────────────
+
 .cc__progress-bar {
   position: absolute;
   bottom: 0;
@@ -325,24 +501,21 @@
   height: 1px;
   background: rgba($on-surface, 0.06);
   z-index: 10;
+
+  .cc__progress-fill {
+    height: 100%;
+    transform-origin: left;
+    animation: ccProgress var(--duration, 6000ms) linear forwards;
+  }
 }
 
-@keyframes ccProgress {
-  from { transform: scaleX(0); }
-  to   { transform: scaleX(1); }
-}
+// ─────────────────────────────────────────────────────────────────────────────
+// RESPONSIVE — TABLET
+// ─────────────────────────────────────────────────────────────────────────────
 
-.cc__progress-fill {
-  height: 100%;
-  transform-origin: left center;
-  animation: ccProgress var(--duration, 6000ms) linear forwards;
-}
-
-// ── RESPONSIVE ────────────────────────────────────────────────────
 @media (max-width: 900px) {
   .cc__inner {
     grid-template-columns: 1fr;
-    min-height: auto;
   }
 
   .cc__text-panel {
@@ -350,27 +523,53 @@
     border-right: none;
     border-bottom: 1px solid rgba($primary, 0.08);
 
-    &::before { left: 2rem; }
+    .cc__deco-line {
+      left: 2rem;
+    }
+
+    &::before {
+      left: 2rem;
+    }
   }
 
   .cc__visual-panel {
-    padding: 3rem 2rem 2.5rem;
-    min-height: 280px;
+    position: relative;
+    min-height: unset;
+    padding-bottom: 65%;
   }
 
-  .cc__svg-wrap { max-width: 340px; }
+  .cc__visual-content {
+    position: absolute;
+    inset: 0;
+  }
+
+  .cc__svg-wrap {
+    max-width: 300px;
+  }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// RESPONSIVE — MOBILE
+// ─────────────────────────────────────────────────────────────────────────────
+
 @media (max-width: 480px) {
-  .cc__bg-num { font-size: 45vw; }
+  .cc__bg-num {
+    font-size: 45vw;
+  }
 
-  .cc__title { font-size: clamp(2.25rem, 9vw, 3.5rem); }
+  .cc__title {
+    font-size: clamp(2.25rem, 9vw, 3.5rem);
+  }
 
-  .cc__text-panel { padding: 3rem 1.5rem 2rem; }
+  .cc__text-panel {
+    padding: 3rem 1.5rem 2rem;
+  }
 
-  .cc__visual-panel { padding: 2rem 1.5rem 2rem; min-height: 220px; }
+  .cc__visual-panel {
+    padding-bottom: 70%;
+  }
 
-  .cc__svg-wrap { max-width: 280px; }
-
-  .cc__nav { flex-wrap: wrap; gap: 1rem; }
+  .cc__svg-wrap {
+    max-width: 240px;
+  }
 }

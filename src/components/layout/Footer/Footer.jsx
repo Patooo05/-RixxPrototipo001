@@ -29,8 +29,8 @@ const Footer = () => (
         <ul className="footer__list footer__list--plain">
           <li>Florida, Uruguay</li>
           <li>
-            <a href="https://wa.me/59899000000" target="_blank" rel="noopener noreferrer" className="footer__phone-link">
-              099 000 000
+            <a href="https://wa.me/59898868601" target="_blank" rel="noopener noreferrer" className="footer__phone-link">
+              098 868 601
             </a>
           </li>
           <li>
@@ -48,7 +48,7 @@ const Footer = () => (
           <li><a href="https://www.instagram.com" target="_blank" rel="noopener noreferrer">Instagram</a></li>
           <li><a href="https://www.facebook.com"  target="_blank" rel="noopener noreferrer">Facebook</a></li>
           <li><a href="https://www.tiktok.com"    target="_blank" rel="noopener noreferrer">TikTok</a></li>
-          <li><a href="https://wa.me/59899000000" target="_blank" rel="noopener noreferrer">WhatsApp</a></li>
+          <li><a href="https://wa.me/59898868601" target="_blank" rel="noopener noreferrer">WhatsApp</a></li>
         </ul>
       </div>
 
