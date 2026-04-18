@@ -39,7 +39,13 @@ const LoginModal = ({ show, onClose, onSwitchToRegister }) => {
       ok = false;
     }
     setLoading(false);
-    if (ok) { setEmail(""); setPassword(""); onClose(); }
+    if (ok) {
+      setEmail(""); setPassword(""); onClose();
+      try {
+        const user = JSON.parse(localStorage.getItem("currentUser") || "{}");
+        if (user.role === "Administrador") navigate("/admin");
+      } catch { /* ignorar */ }
+    }
     else setError("Email o contraseña incorrectos");
   };
 
