@@ -29,7 +29,15 @@ const LoginModal = ({ show, onClose, onSwitchToRegister }) => {
     if (!email || !password) { setError("Completá todos los campos"); return; }
     setLoading(true);
     await new Promise((r) => setTimeout(r, 280));
-    const ok = await login(email, password);
+    let ok = false;
+    try {
+      ok = await Promise.race([
+        login(email, password),
+        new Promise((_, reject) => setTimeout(() => reject(new Error("timeout")), 10000)),
+      ]);
+    } catch {
+      ok = false;
+    }
     setLoading(false);
     if (ok) { setEmail(""); setPassword(""); onClose(); }
     else setError("Email o contraseña incorrectos");

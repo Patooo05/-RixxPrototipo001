@@ -248,10 +248,26 @@ const SupabaseAuthProvider = ({ children }) => {
   // ── Auth actions ──────────────────────────────────────────────────────────
 
   const login = async (email, password) => {
+    // Primero chequea localStorage (admin hardcodeado + empleados locales)
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) throw error;
-      const profile = await fetchProfile(data.user.id);
+      const localUsers = JSON.parse(localStorage.getItem("users") || "[]");
+      const localUser = localUsers.find((u) => u.email === email);
+      if (localUser && checkPwd(password, localUser.password)) {
+        const { password: _omit, ...safe } = localUser;
+        setCurrentUser(safe);
+        localStorage.setItem("currentUser", JSON.stringify(safe));
+        return true;
+      }
+    } catch { /* ignorar */ }
+
+    // Si no está en local, intenta Supabase con timeout de 8s
+    try {
+      const result = await Promise.race([
+        supabase.auth.signInWithPassword({ email, password }),
+        new Promise((_, reject) => setTimeout(() => reject(new Error("timeout")), 8000)),
+      ]);
+      if (result.error) throw result.error;
+      const profile = await fetchProfile(result.data.user.id);
       if (profile) setCurrentUser(buildUserFromProfile(profile));
       return true;
     } catch {
