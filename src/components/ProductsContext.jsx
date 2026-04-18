@@ -50,6 +50,29 @@ const productToDb = (product) => ({
 // ── Helpers ────────────────────────────────────────────────────
 const now = () => new Date().toLocaleString("es-UY");
 
+// Raw fetch helper — bypasses Supabase JS client auth blocking
+const sbUrl = () => import.meta.env.VITE_SUPABASE_URL;
+const sbKey = () => import.meta.env.VITE_SUPABASE_ANON_KEY;
+const sbHeaders = () => ({
+  apikey: sbKey(),
+  Authorization: `Bearer ${sbKey()}`,
+  "Content-Type": "application/json",
+  Prefer: "return=representation",
+});
+
+const sbFetch = async (path, options = {}) => {
+  const res = await fetch(`${sbUrl()}/rest/v1/${path}`, {
+    ...options,
+    headers: { ...sbHeaders(), ...(options.headers || {}) },
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Supabase ${res.status}: ${text}`);
+  }
+  const text = await res.text();
+  return text ? JSON.parse(text) : null;
+};
+
 export const ProductsProvider = ({ children }) => {
   // In fallback mode nextIdRef tracks the auto-increment; unused in Supabase mode.
   const nextIdRef = useRef(1);
@@ -174,25 +197,8 @@ export const ProductsProvider = ({ children }) => {
     }
 
     try {
-      const dbRow = productToDb({
-        ...data,
-        featured: false,
-        isNew:    true,
-        rating:   0,
-        status:   "activo",
-      });
-
-      const { data: inserted, error } = await supabase
-        .from("products")
-        .insert(dbRow)
-        .select()
-        .single();
-
-      if (error) {
-        console.error("[ProductsContext] Error inserting product:", error);
-        return;
-      }
-
+      const dbRow = productToDb({ ...data, featured: false, isNew: true, rating: 0, status: "activo" });
+      const [inserted] = await sbFetch("products", { method: "POST", body: JSON.stringify(dbRow) });
       const newProduct = dbToProduct(inserted);
       setProducts((prev) => {
         const next = [newProduct, ...prev];
@@ -201,7 +207,7 @@ export const ProductsProvider = ({ children }) => {
       });
       logChange("ALTA", newProduct, { detalle: `Precio: $${data.price} · Stock: ${data.stock}` });
     } catch (err) {
-      console.error("[ProductsContext] Unexpected error in addProduct:", err);
+      console.error("[ProductsContext] Error en addProduct:", err.message);
     }
   };
 
@@ -217,11 +223,7 @@ export const ProductsProvider = ({ children }) => {
     }
 
     try {
-      const { error } = await supabase.from("products").delete().eq("id", id);
-      if (error) {
-        console.error("[ProductsContext] Error deleting product:", error);
-        return;
-      }
+      await sbFetch(`products?id=eq.${id}`, { method: "DELETE", headers: { Prefer: "" } });
       setProducts((prev) => {
         const next = prev.filter((p) => p.id !== id);
         try { localStorage.setItem("rixx_products_cache", JSON.stringify(next)); } catch { /* ignorar */ }
@@ -229,7 +231,7 @@ export const ProductsProvider = ({ children }) => {
       });
       logChange("BAJA", product, { detalle: "Producto eliminado" });
     } catch (err) {
-      console.error("[ProductsContext] Unexpected error in removeProduct:", err);
+      console.error("[ProductsContext] Error en removeProduct:", err.message);
     }
   };
 
@@ -256,16 +258,7 @@ export const ProductsProvider = ({ children }) => {
 
     try {
       const dbRow = productToDb(updated);
-      const { error } = await supabase
-        .from("products")
-        .update(dbRow)
-        .eq("id", updated.id);
-
-      if (error) {
-        console.error("[ProductsContext] Error updating product:", error);
-        return;
-      }
-
+      await sbFetch(`products?id=eq.${updated.id}`, { method: "PATCH", body: JSON.stringify(dbRow), headers: { Prefer: "" } });
       setProducts((prev) => {
         const next = prev.map((p) => (p.id === updated.id ? { ...p, ...updated } : p));
         try { localStorage.setItem("rixx_products_cache", JSON.stringify(next)); } catch { /* ignorar */ }
@@ -273,7 +266,7 @@ export const ProductsProvider = ({ children }) => {
       });
       if (old && diffs.length > 0) logChange("MODIFICACIÓN", old, { detalle: diffs.join(" | ") });
     } catch (err) {
-      console.error("[ProductsContext] Unexpected error in updateProduct:", err);
+      console.error("[ProductsContext] Error en updateProduct:", err.message);
     }
   };
 
@@ -290,20 +283,11 @@ export const ProductsProvider = ({ children }) => {
     }
 
     try {
-      const { error } = await supabase
-        .from("products")
-        .update({ featured: newVal })
-        .eq("id", id);
-
-      if (error) {
-        console.error("[ProductsContext] Error toggling featured:", error);
-        return;
-      }
-
+      await sbFetch(`products?id=eq.${id}`, { method: "PATCH", body: JSON.stringify({ featured: newVal }), headers: { Prefer: "" } });
       setProducts((prev) => prev.map((p) => (p.id === id ? { ...p, featured: newVal } : p)));
       logChange("DESTACADO", product, { detalle: newVal ? "Marcado como destacado" : "Quitado de destacados" });
     } catch (err) {
-      console.error("[ProductsContext] Unexpected error in toggleFeatured:", err);
+      console.error("[ProductsContext] Error en toggleFeatured:", err.message);
     }
   };
 
@@ -319,20 +303,11 @@ export const ProductsProvider = ({ children }) => {
     }
 
     try {
-      const { error } = await supabase
-        .from("products")
-        .update({ status })
-        .eq("id", id);
-
-      if (error) {
-        console.error("[ProductsContext] Error updating status:", error);
-        return;
-      }
-
+      await sbFetch(`products?id=eq.${id}`, { method: "PATCH", body: JSON.stringify({ status }), headers: { Prefer: "" } });
       setProducts((prev) => prev.map((p) => (p.id === id ? { ...p, status } : p)));
       logChange("STATUS", product, { detalle: `Status cambiado a "${status}"` });
     } catch (err) {
-      console.error("[ProductsContext] Unexpected error in updateProductStatus:", err);
+      console.error("[ProductsContext] Error en updateProductStatus:", err.message);
     }
   };
 
@@ -349,20 +324,11 @@ export const ProductsProvider = ({ children }) => {
     }
 
     try {
-      const { error } = await supabase
-        .from("products")
-        .update({ descuento })
-        .eq("id", id);
-
-      if (error) {
-        console.error("[ProductsContext] Error applying discount:", error);
-        return;
-      }
-
+      await sbFetch(`products?id=eq.${id}`, { method: "PATCH", body: JSON.stringify({ descuento }), headers: { Prefer: "" } });
       setProducts((prev) => prev.map((p) => (p.id === id ? { ...p, descuento } : p)));
       logChange("DESCUENTO", product, { detalle: `Descuento ${porcentaje}% hasta ${hasta}` });
     } catch (err) {
-      console.error("[ProductsContext] Unexpected error in applyDiscount:", err);
+      console.error("[ProductsContext] Error en applyDiscount:", err.message);
     }
   };
 
@@ -378,20 +344,11 @@ export const ProductsProvider = ({ children }) => {
     }
 
     try {
-      const { error } = await supabase
-        .from("products")
-        .update({ descuento: null })
-        .eq("id", id);
-
-      if (error) {
-        console.error("[ProductsContext] Error removing discount:", error);
-        return;
-      }
-
+      await sbFetch(`products?id=eq.${id}`, { method: "PATCH", body: JSON.stringify({ descuento: null }), headers: { Prefer: "" } });
       setProducts((prev) => prev.map((p) => (p.id === id ? { ...p, descuento: null } : p)));
       logChange("DESCUENTO", product, { detalle: "Descuento eliminado" });
     } catch (err) {
-      console.error("[ProductsContext] Unexpected error in removeDiscount:", err);
+      console.error("[ProductsContext] Error en removeDiscount:", err.message);
     }
   };
 
