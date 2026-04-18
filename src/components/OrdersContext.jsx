@@ -36,64 +36,33 @@ export function OrdersProvider({ children }) {
   // ── createOrder ────────────────────────────────────────────────────────────
   const createOrder = useCallback(async (orderData) => {
     if (isSupabaseEnabled) {
-      // Columnas base garantizadas en el schema original
-      const basePayload = {
-        user_email:       orderData.user_email       ?? null,
-        user_name:        orderData.user_name        ?? null,
-        user_phone:       orderData.user_phone       ?? null,
-        shipping_address: orderData.shipping_address ?? null,
-        items:            orderData.items            ?? [],
-        subtotal:         orderData.subtotal         ?? 0,
-        shipping:         orderData.shipping         ?? 0,
-        discount:         orderData.discount         ?? 0,
-        total:            orderData.total            ?? 0,
-        coupon_code:      orderData.coupon_code      ?? null,
-        status:           orderData.status           ?? "confirmado",
-        payment_method:   orderData.payment_method   ?? null,
-        notes:            orderData.notes            ?? null,
-        source:           orderData.source           ?? null,
-      };
-
-      // Columnas nuevas — se agregan solo si existen en Supabase
-      const extendedPayload = {
-        ...basePayload,
+      const payload = {
+        user_email:        orderData.user_email        ?? null,
+        user_name:         orderData.user_name         ?? null,
+        user_phone:        orderData.user_phone        ?? null,
+        shipping_address:  orderData.shipping_address  ?? null,
+        items:             orderData.items             ?? [],
+        subtotal:          orderData.subtotal          ?? 0,
+        shipping:          orderData.shipping          ?? 0,
+        discount:          orderData.discount          ?? 0,
+        total:             orderData.total             ?? 0,
+        coupon_code:       orderData.coupon_code       ?? null,
+        status:            orderData.status            ?? "confirmado",
+        payment_method:    orderData.payment_method    ?? null,
+        notes:             orderData.notes             ?? null,
+        source:            orderData.source            ?? null,
         free_shipping:     orderData.free_shipping     ?? false,
-        shipped_at:        orderData.shipped_at        ?? null,
         confirmation_sent: orderData.confirmation_sent ?? false,
         marketing_opt_in:  orderData.marketing_opt_in  ?? false,
-        direccion:         orderData.shipping_address?.direccion    ?? orderData.direccion    ?? null,
-        departamento:      orderData.shipping_address?.departamento ?? orderData.departamento ?? null,
+        direccion:         orderData.shipping_address?.direccion    ?? null,
+        departamento:      orderData.shipping_address?.departamento ?? null,
       };
 
-      // Intentar con todas las columnas primero
       let { data, error } = await supabase
         .from("orders")
-        .insert([extendedPayload])
+        .insert([payload])
         .select()
         .single();
-
-      // Si falla por columnas faltantes, reintentar solo con las base
-      if (error && (error.message?.includes("column") || error.message?.includes("schema cache"))) {
-        console.warn("[OrdersContext] Reintentando sin columnas nuevas:", error.message);
-        ({ data, error } = await supabase
-          .from("orders")
-          .insert([basePayload])
-          .select()
-          .single());
-      }
-
-      // Si el insert fue exitoso pero select no retornó data (ej: RLS en SELECT)
-      // intentar insertar sin select y construir el objeto manualmente
-      if (error?.code === "PGRST116" || (!error && !data)) {
-        const { error: insertError } = await supabase
-          .from("orders")
-          .insert([extendedPayload]);
-        if (!insertError) {
-          const full = { ...orderData, id: crypto.randomUUID(), created_at: new Date().toISOString() };
-          setOrders((prev) => [full, ...prev]);
-          return full;
-        }
-      }
 
       if (!error && data) {
         const full = { ...orderData, ...data };

@@ -272,63 +272,56 @@ const SupabaseAuthProvider = ({ children }) => {
       const userId = data.user?.id;
       if (!userId) throw new Error("No user ID returned from signUp");
 
-      const profilePayload = {
-        id: userId,
-        name,
-        email,
-        role: "Cliente",
-        active: true,
-        permissions: [],
-      };
-
-      const { error: insertError } = await supabase
+      // Check if admin pre-created a profile for this email
+      const { data: existing } = await supabase
         .from("user_profiles")
-        .insert(profilePayload);
-      if (insertError) throw insertError;
+        .select("*")
+        .eq("email", email)
+        .single();
 
-      setCurrentUser(profilePayload);
+      if (existing) {
+        // Link existing profile to new auth user
+        await supabase
+          .from("user_profiles")
+          .update({ id: userId })
+          .eq("email", email);
+        setCurrentUser({ ...existing, id: userId });
+      } else {
+        const profilePayload = {
+          id: userId,
+          name,
+          email,
+          role: "Cliente",
+          active: true,
+          permissions: [],
+        };
+        await supabase.from("user_profiles").insert(profilePayload);
+        setCurrentUser(profilePayload);
+      }
       return true;
     } catch {
       return false;
     }
   };
 
-  const createUser = async (email, password, name, cloneFromEmail) => {
-    if (!email || !password || !name) return false;
+  const createUser = async (email, password, name, role = "Empleado", permissions = []) => {
+    if (!email || !name) return false;
     try {
-      // Use signUp — Supabase will send a confirmation email.
-      // Admin-level user creation (without confirmation) requires the service
-      // role key which must never be exposed on the frontend.
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: { data: { name } },
-      });
-      if (error) throw error;
-
-      const userId = data.user?.id;
-      if (!userId) throw new Error("No user ID returned from signUp");
-
-      // Clone role from another user if requested
-      let role = "Cliente";
-      if (cloneFromEmail) {
-        const cloneFrom = users.find(u => u.email === cloneFromEmail);
-        if (cloneFrom) role = cloneFrom.role;
-      }
-
+      // Insert pre-approved profile — no signUp needed.
+      // When the employee registers with this email, their account links automatically.
       const profilePayload = {
-        id: userId,
+        id: crypto.randomUUID(),
         name,
         email,
         role,
         active: true,
-        permissions: [],
+        permissions,
       };
 
-      const { error: insertError } = await supabase
+      const { error } = await supabase
         .from("user_profiles")
         .insert(profilePayload);
-      if (insertError) throw insertError;
+      if (error) throw error;
 
       await refreshUsers();
       return true;
@@ -404,9 +397,13 @@ const SupabaseAuthProvider = ({ children }) => {
 };
 
 // ─── Unified export ────────────────────────────────────────────────────────────
-// Auth always uses localStorage — no user_profiles table required in Supabase.
-// Supabase is used only for products, orders, wishlist, reviews, etc.
+// Uses Supabase Auth when Supabase is configured (requires user_profiles table).
+// Falls back to localStorage auth when Supabase is not available.
+
+import { isSupabaseEnabled } from "../lib/supabase";
 
 export const AuthProvider = ({ children }) => {
-  return <LocalStorageAuthProvider>{children}</LocalStorageAuthProvider>;
+  return isSupabaseEnabled
+    ? <SupabaseAuthProvider>{children}</SupabaseAuthProvider>
+    : <LocalStorageAuthProvider>{children}</LocalStorageAuthProvider>;
 };

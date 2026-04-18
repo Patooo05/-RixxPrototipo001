@@ -88,7 +88,8 @@ const Admin = () => {
   const [userDeleteConfirm, setUserDeleteConfirm] = useState(null);
 
   // ── Usuarios ─────────────────────────────────────────────────
-  const [newUserForm, setNewUserForm] = useState({ name: "", email: "", password: "", cloneFromEmail: "admin@admin.com" });
+  const ALL_PERMS = ["Productos", "Stock", "Usuarios", "Ventas"];
+  const [newUserForm, setNewUserForm] = useState({ name: "", email: "", role: "Empleado", permissions: [] });
   const [userSearch, setUserSearch] = useState("");
   const [userRoleFilter, setUserRoleFilter] = useState("Todos");
   const [selectedUser, setSelectedUser] = useState(null);
@@ -826,15 +827,25 @@ const Admin = () => {
     setNewUserForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleCreateUser = (e) => {
+  const handleNewUserPermToggle = (perm) => {
+    setNewUserForm((prev) => {
+      const has = prev.permissions.includes(perm);
+      return {
+        ...prev,
+        permissions: has ? prev.permissions.filter((p) => p !== perm) : [...prev.permissions, perm],
+      };
+    });
+  };
+
+  const handleCreateUser = async (e) => {
     e.preventDefault();
-    const success = createUser(
-      newUserForm.email, newUserForm.password,
-      newUserForm.name, newUserForm.cloneFromEmail
+    const success = await createUser(
+      newUserForm.email, "", newUserForm.name,
+      newUserForm.role, newUserForm.permissions
     );
     if (success) {
-      setUserCreateMsg({ type: "success", text: `Usuario ${newUserForm.name} creado con permisos clonados.` });
-      setNewUserForm({ name: "", email: "", password: "", cloneFromEmail: "admin@admin.com" });
+      setUserCreateMsg({ type: "success", text: `Usuario ${newUserForm.name} creado como ${newUserForm.role}.` });
+      setNewUserForm({ name: "", email: "", role: "Empleado", permissions: [] });
     } else {
       setUserCreateMsg({ type: "error", text: "Error al crear usuario. El email ya existe o los datos son inválidos." });
     }
@@ -1554,25 +1565,28 @@ const Admin = () => {
               <form className="admin-form users-form" onSubmit={handleCreateUser}>
                 <div className="form-row">
                   <input name="name" value={newUserForm.name} onChange={handleNewUserChange} placeholder="Nombre completo" required />
-                  <input name="email" value={newUserForm.email} onChange={handleNewUserChange} placeholder="Email" required />
+                  <input name="email" value={newUserForm.email} onChange={handleNewUserChange} placeholder="Email" type="email" required />
                 </div>
                 <div className="form-row">
-                  <input
-                    type="password"
-                    name="password"
-                    value={newUserForm.password}
-                    onChange={handleNewUserChange}
-                    placeholder="Contraseña temporal"
-                    required
-                  />
-                  <select name="cloneFromEmail" value={newUserForm.cloneFromEmail} onChange={handleNewUserChange}>
-                    <option value="">Clonar permisos desde…</option>
-                    {(users || []).filter((u) => u.role === "Administrador").map((u) => (
-                      <option key={u.email} value={u.email}>{u.name} (Admin)</option>
-                    ))}
+                  <select name="role" value={newUserForm.role} onChange={handleNewUserChange}>
+                    <option value="Empleado">Empleado</option>
+                    <option value="Administrador">Administrador</option>
                   </select>
                 </div>
-                <button className="primary-btn">Crear empleado</button>
+                <div className="form-perms">
+                  <span className="form-perms__label">Permisos:</span>
+                  {ALL_PERMS.map((perm) => (
+                    <label key={perm} className="checkbox">
+                      <input
+                        type="checkbox"
+                        checked={newUserForm.permissions.includes(perm)}
+                        onChange={() => handleNewUserPermToggle(perm)}
+                      />
+                      {perm}
+                    </label>
+                  ))}
+                </div>
+                <button className="primary-btn">Crear usuario</button>
               </form>
             </div>
 
@@ -1590,6 +1604,7 @@ const Admin = () => {
                 <select value={userRoleFilter} onChange={(e) => setUserRoleFilter(e.target.value)}>
                   <option value="Todos">Todos</option>
                   <option value="Administrador">Administradores</option>
+                  <option value="Empleado">Empleados</option>
                   <option value="Cliente">Clientes</option>
                 </select>
               </div>
@@ -1617,7 +1632,7 @@ const Admin = () => {
                         <td><strong>{u.name}</strong></td>
                         <td>{u.email}</td>
                         <td>
-                          <span className={`role-badge ${u.role === "Administrador" ? "admin" : "employee"}`}>
+                          <span className={`role-badge ${u.role === "Administrador" ? "admin" : u.role === "Empleado" ? "employee" : "client"}`}>
                             {u.role}
                           </span>
                         </td>
@@ -1654,13 +1669,26 @@ const Admin = () => {
               <div className="modal-overlay" onClick={() => setPermissionsUser(null)}>
                 <div className="modal" onClick={(e) => e.stopPropagation()}>
                   <h2>Permisos de {permissionsUser.name}</h2>
-                  {["Productos", "Stock", "Usuarios"].map((perm) => (
+                  {ALL_PERMS.map((perm) => (
                     <label key={perm} className="checkbox">
-                      <input type="checkbox" onChange={() => togglePermission(permissionsUser.id, perm)} />
+                      <input
+                        type="checkbox"
+                        checked={(permissionsUser.permissions || []).includes(perm)}
+                        onChange={() => {
+                          togglePermission(permissionsUser.id, perm);
+                          setPermissionsUser((prev) => {
+                            const perms = prev.permissions || [];
+                            const newPerms = perms.includes(perm)
+                              ? perms.filter((p) => p !== perm)
+                              : [...perms, perm];
+                            return { ...prev, permissions: newPerms };
+                          });
+                        }}
+                      />
                       {perm}
                     </label>
                   ))}
-                  <button className="primary-btn" onClick={() => setPermissionsUser(null)}>Guardar</button>
+                  <button className="primary-btn" onClick={() => setPermissionsUser(null)}>Cerrar</button>
                 </div>
               </div>
             )}

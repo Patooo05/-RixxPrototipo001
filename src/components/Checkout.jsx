@@ -44,6 +44,13 @@ const PERSIST_KEY   = "rixx_checkout_contact"; // nombre, email, telefono → pe
 
 // ── Helpers ───────────────────────────────────────────────────
 
+function sanitize(str) {
+  return String(str ?? "")
+    .trim()
+    .replace(/[<>]/g, "")
+    .slice(0, 500);
+}
+
 function formatPrice(n) {
   return new Intl.NumberFormat("es-UY", {
     style: "currency", currency: "UYU", maximumFractionDigits: 0,
@@ -309,12 +316,12 @@ export default function Checkout() {
   };
 
   const buildOrderPayload = (method) => ({
-    user_email: form.email,
-    user_name: form.nombre,
-    user_phone: form.telefono,
+    user_email: sanitize(form.email),
+    user_name: sanitize(form.nombre),
+    user_phone: sanitize(form.telefono),
     shipping_address: {
-      direccion: form.direccion,
-      departamento: form.departamento,
+      direccion: sanitize(form.direccion),
+      departamento: sanitize(form.departamento),
     },
     items: items.map((i) => ({
       product_id: String(i.id),
@@ -331,7 +338,7 @@ export default function Checkout() {
     coupon_code: appliedCoupon?.code ?? null,
     status: "confirmado",
     payment_method: method,
-    notes: form.notas,
+    notes: sanitize(form.notas),
     marketing_opt_in: form.marketingOptIn,
   });
 

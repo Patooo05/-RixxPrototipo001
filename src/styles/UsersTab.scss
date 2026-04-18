@@ -74,6 +74,42 @@
       &::placeholder { color: rgba($on-surface-variant, 0.5); }
     }
 
+    .form-perms {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.6rem;
+      margin-bottom: 1rem;
+
+      &__label {
+        font-size: $body-sm;
+        color: $on-surface-variant;
+        width: 100%;
+        margin-bottom: 0.1rem;
+      }
+
+      .checkbox {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        background: $surface-container-high;
+        padding: 0.4rem 0.75rem;
+        border-radius: $radius-sm;
+        font-size: $body-sm;
+        cursor: pointer;
+        transition: background $duration-base $ease;
+
+        &:hover { background: rgba($primary, 0.08); }
+
+        input[type="checkbox"] {
+          width: auto;
+          margin-bottom: 0;
+          accent-color: $primary;
+          cursor: pointer;
+        }
+      }
+    }
+
     button {
       width: 100%;
       @include btn-primary;
