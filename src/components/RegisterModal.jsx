@@ -13,7 +13,7 @@ const IconClose = () => (
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const RegisterModal = ({ show, onClose, onSwitchToLogin }) => {
-  const { register } = useContext(AuthContext);
+  const { register, users } = useContext(AuthContext);
 
   const [name,     setName]     = useState("");
   const [email,    setEmail]    = useState("");
@@ -29,8 +29,11 @@ const RegisterModal = ({ show, onClose, onSwitchToLogin }) => {
   if (!show) return null;
 
   // ── Validators ──────────────────────────────────────────────
-  const validateEmail = (val) =>
-    !emailRegex.test(val) ? "Email inválido" : "";
+  const validateEmail = (val) => {
+    if (!emailRegex.test(val)) return "Email inválido";
+    if (users?.some((u) => u.email === val)) return "Este email ya está registrado";
+    return "";
+  };
 
   const validatePassword = (val) =>
     val.length < 8 ? "Mínimo 8 caracteres" : "";

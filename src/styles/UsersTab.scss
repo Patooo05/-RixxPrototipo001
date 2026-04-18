@@ -38,29 +38,32 @@
   .users-form {
     background: $surface-container;
     border-radius: $radius-lg;
-    padding: 1.5rem;
-    margin-bottom: 2.5rem;
+    padding: 1.1rem 1.25rem;
+    margin-bottom: 2rem;
     box-shadow: $shadow-ambient;
-    max-width: 520px;
+    max-width: 380px;
+    @include ghost-border;
 
     h3 {
-      font-family: $font-headline;
-      margin-bottom: 1rem;
-      font-size: $title-lg;
-      color: $primary;
+      font-family: $font-label;
+      margin-bottom: 0.9rem;
+      font-size: $label-lg;
+      color: $on-surface-variant;
+      @include label-uppercase($label-sm);
+      letter-spacing: 0.25em;
     }
 
     input,
     select {
       width: 100%;
-      padding: 0.7rem 0.9rem;
-      margin-bottom: 0.9rem;
+      padding: 0.5rem 0.7rem;
+      margin-bottom: 0.7rem;
       border-radius: $radius-sm;
       background: $surface-container-lowest;
       border: none;
-      border-bottom: 2px solid transparent;
+      border-bottom: 1px solid rgba($outline-variant, 0.2);
       color: $on-surface;
-      font-size: $body-md;
+      font-size: $body-sm;
       font-family: $font-body;
       transition: border-color $duration-base $ease;
 
@@ -68,10 +71,10 @@
 
       &:focus {
         outline: none;
-        border-bottom-color: $primary;
+        border-bottom-color: rgba($primary, 0.5);
       }
 
-      &::placeholder { color: rgba($on-surface-variant, 0.5); }
+      &::placeholder { color: rgba($on-surface-variant, 0.4); }
     }
 
     .form-perms {
@@ -110,10 +113,70 @@
       }
     }
 
-    button {
-      width: 100%;
-      @include btn-primary;
-      border-radius: $radius-sm;
+    // ── Password field con toggle ────────────────────────────
+    .password-field {
+      position: relative;
+      margin-bottom: 0.7rem;
+
+      input {
+        margin-bottom: 0;
+        padding-right: 2.2rem;
+      }
+
+      .password-toggle {
+        position: absolute;
+        right: 0.5rem;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        padding: 0.2rem;
+        cursor: pointer;
+        color: rgba($on-surface-variant, 0.45);
+        display: flex;
+        align-items: center;
+        transition: color $duration-fast $ease;
+        width: auto;
+        margin: 0;
+
+        &:hover { color: $primary; }
+      }
+    }
+
+    // ── Error de campo individual ────────────────────────────
+    .field-error {
+      display: block;
+      font-size: $label-sm;
+      color: $error;
+      margin-top: -0.5rem;
+      margin-bottom: 0.6rem;
+      padding-left: 0.1rem;
+    }
+
+    // ── Submit — discreto, alineado a la derecha ──────────────
+    .form-submit {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 0.5rem;
+
+      button {
+        background: transparent;
+        @include ghost-border;
+        color: $on-surface-variant;
+        padding: 0.4rem 1rem;
+        border-radius: $radius-sm;
+        cursor: pointer;
+        font-family: $font-label;
+        font-size: $label-sm;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        transition: border-color $duration-fast $ease, color $duration-fast $ease;
+
+        &:hover {
+          border-color: rgba($primary, 0.45);
+          color: $primary;
+        }
+      }
     }
   }
 
@@ -176,6 +239,14 @@
     }
 
     tr.disabled { opacity: 0.45; }
+
+    .empty-state {
+      text-align: center;
+      color: $on-surface-variant;
+      font-size: $body-sm;
+      padding: 2rem 1rem;
+      opacity: 0.5;
+    }
 
     td small {
       display: block;

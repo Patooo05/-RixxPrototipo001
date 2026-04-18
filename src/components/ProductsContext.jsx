@@ -86,23 +86,34 @@ export const ProductsProvider = ({ children }) => {
   // ── Fetch inicial desde Supabase ─────────────────────────────
   useEffect(() => {
     if (!SUPABASE_ENABLED) return;
-    // Limpia cualquier caché local viejo
-    localStorage.removeItem("rixx_products");
+
+    const timeout = (ms) =>
+      new Promise((_, reject) =>
+        setTimeout(() => reject(new Error("timeout")), ms)
+      );
 
     const fetchProducts = async () => {
       try {
-        const { data, error } = await supabase
-          .from("products")
-          .select("*")
-          .order("id");
+        const { data, error } = await Promise.race([
+          supabase.from("products").select("*").order("id"),
+          timeout(8000),
+        ]);
 
         if (error) {
           console.error("[ProductsContext] Error fetching products:", error);
         } else {
-          setProducts((data ?? []).map(dbToProduct));
+          // Guarda en localStorage como caché para próximos arranques
+          const mapped = (data ?? []).map(dbToProduct);
+          setProducts(mapped);
+          try { localStorage.setItem("rixx_products_cache", JSON.stringify(mapped)); } catch { /* ignorar */ }
         }
       } catch (err) {
-        console.error("[ProductsContext] Unexpected error fetching products:", err);
+        console.warn("[ProductsContext] Supabase no disponible, usando caché local:", err.message);
+        // Fallback: muestra productos guardados en caché anterior
+        try {
+          const cached = localStorage.getItem("rixx_products_cache");
+          if (cached) setProducts(JSON.parse(cached));
+        } catch { /* ignorar */ }
       } finally {
         setLoading(false);
       }

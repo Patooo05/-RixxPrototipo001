@@ -203,6 +203,11 @@ const SupabaseAuthProvider = ({ children }) => {
     let authListener = null;
 
     const init = async () => {
+      const timeoutId = setTimeout(() => {
+        // Si Supabase no responde en 6s, desbloquea la UI como no logueado
+        setLoading(false);
+      }, 6000);
+
       try {
         const { data: { session } } = await supabase.auth.getSession();
         if (session?.user) {
@@ -212,6 +217,7 @@ const SupabaseAuthProvider = ({ children }) => {
       } catch {
         // Session restore failed — treat as logged out
       } finally {
+        clearTimeout(timeoutId);
         setLoading(false);
       }
     };
