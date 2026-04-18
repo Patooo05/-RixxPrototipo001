@@ -220,12 +220,28 @@ export default function Checkout() {
         return;
       }
 
-      const { data, error } = await supabase
-        .from("coupons")
-        .select("*")
-        .eq("code", code)
-        .eq("active", true)
-        .single();
+      let result;
+      try {
+        result = await Promise.race([
+          supabase
+            .from("coupons")
+            .select("*")
+            .eq("code", code)
+            .eq("active", true)
+            .single(),
+          new Promise((_, reject) =>
+            setTimeout(() => reject(new Error("timeout")), 8000)
+          ),
+        ]);
+      } catch (raceErr) {
+        if (raceErr.message === "timeout") {
+          setCouponError("No se pudo validar el cupón, intentá de nuevo");
+          return;
+        }
+        throw raceErr;
+      }
+
+      const { data, error } = result;
 
       if (error || !data) {
         setCouponError("Cupón inválido o no encontrado");

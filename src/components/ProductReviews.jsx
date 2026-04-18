@@ -172,15 +172,34 @@ const ProductReviews = ({ productId }) => {
   // ── Fetch ──────────────────────────────────────────────────────────────
 
   const fetchReviews = useCallback(async () => {
+    // Guard: skip fetch if productId is invalid
+    if (productId == null || productId === "") return;
+
     setLoading(true);
     try {
       if (isSupabaseEnabled) {
-        const { data, error } = await supabase
-          .from("reviews")
-          .select("*")
-          .eq("product_id", productId)
-          .order("created_at", { ascending: false });
+        let result;
+        try {
+          result = await Promise.race([
+            supabase
+              .from("reviews")
+              .select("*")
+              .eq("product_id", productId)
+              .order("created_at", { ascending: false }),
+            new Promise((_, reject) =>
+              setTimeout(() => reject(new Error("timeout")), 8000)
+            ),
+          ]);
+        } catch (raceErr) {
+          if (raceErr.message === "timeout") {
+            console.warn("[ProductReviews] fetch timed out, leaving reviews empty");
+            setReviews([]);
+            return;
+          }
+          throw raceErr;
+        }
 
+        const { data, error } = result;
         if (error) throw error;
         setReviews(data ?? []);
       } else {
@@ -196,7 +215,7 @@ const ProductReviews = ({ productId }) => {
   }, [productId]);
 
   useEffect(() => {
-    if (productId) fetchReviews();
+    if (productId != null && productId !== "") fetchReviews();
   }, [productId, fetchReviews]);
 
   // ── Derived state ──────────────────────────────────────────────────────

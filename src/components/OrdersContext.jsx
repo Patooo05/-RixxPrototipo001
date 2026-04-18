@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback } from "react";
+import React, { createContext, useContext, useState, useCallback, useRef } from "react";
 import { supabase, isSupabaseEnabled } from "../lib/supabase";
 
 export const OrdersContext = createContext(null);
@@ -32,56 +32,74 @@ function writeLocalOrders(orders) {
 export function OrdersProvider({ children }) {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(false);
+  const isSubmitting = useRef(false);
 
   // ── createOrder ────────────────────────────────────────────────────────────
   const createOrder = useCallback(async (orderData) => {
-    if (isSupabaseEnabled) {
-      const payload = {
-        user_email:        orderData.user_email        ?? null,
-        user_name:         orderData.user_name         ?? null,
-        user_phone:        orderData.user_phone        ?? null,
-        shipping_address:  orderData.shipping_address  ?? null,
-        items:             orderData.items             ?? [],
-        subtotal:          orderData.subtotal          ?? 0,
-        shipping:          orderData.shipping          ?? 0,
-        discount:          orderData.discount          ?? 0,
-        total:             orderData.total             ?? 0,
-        coupon_code:       orderData.coupon_code       ?? null,
-        status:            orderData.status            ?? "confirmado",
-        payment_method:    orderData.payment_method    ?? null,
-        notes:             orderData.notes             ?? null,
-        source:            orderData.source            ?? null,
-        free_shipping:     orderData.free_shipping     ?? false,
-        confirmation_sent: orderData.confirmation_sent ?? false,
-        marketing_opt_in:  orderData.marketing_opt_in  ?? false,
-        direccion:         orderData.shipping_address?.direccion    ?? null,
-        departamento:      orderData.shipping_address?.departamento ?? null,
-      };
+    // Bloquear doble submit
+    if (isSubmitting.current) return null;
+    isSubmitting.current = true;
 
-      let { data, error } = await supabase
-        .from("orders")
-        .insert([payload])
-        .select()
-        .single();
+    try {
+      if (isSupabaseEnabled) {
+        const payload = {
+          user_email:        orderData.user_email        ?? null,
+          user_name:         orderData.user_name         ?? null,
+          user_phone:        orderData.user_phone        ?? null,
+          shipping_address:  orderData.shipping_address  ?? null,
+          items:             orderData.items             ?? [],
+          subtotal:          orderData.subtotal          ?? 0,
+          shipping:          orderData.shipping          ?? 0,
+          discount:          orderData.discount          ?? 0,
+          total:             orderData.total             ?? 0,
+          coupon_code:       orderData.coupon_code       ?? null,
+          status:            orderData.status            ?? "confirmado",
+          payment_method:    orderData.payment_method    ?? null,
+          notes:             orderData.notes             ?? null,
+          source:            orderData.source            ?? null,
+          free_shipping:     orderData.free_shipping     ?? false,
+          confirmation_sent: orderData.confirmation_sent ?? false,
+          marketing_opt_in:  orderData.marketing_opt_in  ?? false,
+          direccion:         orderData.shipping_address?.direccion    ?? null,
+          departamento:      orderData.shipping_address?.departamento ?? null,
+        };
 
-      if (!error && data) {
-        const full = { ...orderData, ...data };
-        setOrders((prev) => [full, ...prev]);
-        return full;
+        const timeout = new Promise((resolve) =>
+          setTimeout(() => resolve({ __timeout: true }), 12000)
+        );
+
+        const result = await Promise.race([
+          supabase.from("orders").insert([payload]).select().single(),
+          timeout,
+        ]);
+
+        if (result?.__timeout) {
+          console.warn("[OrdersContext] createOrder timeout — usando fallback localStorage");
+          // Caer al fallback sin lanzar error
+        } else {
+          const { data, error } = result;
+          if (!error && data) {
+            const full = { ...orderData, ...data };
+            setOrders((prev) => [full, ...prev]);
+            return full;
+          }
+          console.error("[OrdersContext] Supabase insert error:", error?.message);
+        }
       }
-      console.error("[OrdersContext] Supabase insert error:", error?.message);
-    }
 
-    // Fallback: localStorage
-    const newOrder = {
-      ...orderData,
-      id: crypto.randomUUID(),
-      created_at: new Date().toISOString(),
-    };
-    const existing = readLocalOrders();
-    writeLocalOrders([newOrder, ...existing]);
-    setOrders((prev) => [newOrder, ...prev]);
-    return newOrder;
+      // Fallback: localStorage
+      const newOrder = {
+        ...orderData,
+        id: crypto.randomUUID(),
+        created_at: new Date().toISOString(),
+      };
+      const existing = readLocalOrders();
+      writeLocalOrders([newOrder, ...existing]);
+      setOrders((prev) => [newOrder, ...prev]);
+      return newOrder;
+    } finally {
+      isSubmitting.current = false;
+    }
   }, []);
 
   // ── getUserOrders ──────────────────────────────────────────────────────────
@@ -132,11 +150,25 @@ export function OrdersProvider({ children }) {
       let remote = [];
 
       if (isSupabaseEnabled) {
-        const { data, error } = await supabase
-          .from("orders")
-          .select("*")
-          .order("created_at", { ascending: false });
+        const timeout = new Promise((resolve) =>
+          setTimeout(() => resolve({ __timeout: true }), 15000)
+        );
 
+        const result = await Promise.race([
+          supabase.from("orders").select("*").order("created_at", { ascending: false }),
+          timeout,
+        ]);
+
+        if (result?.__timeout) {
+          console.warn("[OrdersContext] getAllOrders timeout — retornando órdenes de localStorage");
+          const merged = local.sort(
+            (a, b) => new Date(b.created_at) - new Date(a.created_at)
+          );
+          setOrders(merged);
+          return merged;
+        }
+
+        const { data, error } = result;
         if (error) {
           console.error("[OrdersContext] Supabase getAllOrders error:", error);
         } else {

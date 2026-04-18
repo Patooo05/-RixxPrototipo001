@@ -57,19 +57,33 @@ export const WishlistProvider = ({ children }) => {
     let cancelled = false;
     setLoading(true);
 
-    supabase
-      .from("wishlist")
-      .select("product_id")
-      .eq("user_email", email)
-      .then(({ data, error }) => {
+    const fetchWishlist = async () => {
+      try {
+        const fetchPromise = supabase
+          .from("wishlist")
+          .select("product_id")
+          .eq("user_email", email);
+        const timeoutPromise = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error("wishlist fetch timeout")), 8000)
+        );
+        const { data, error } = await Promise.race([fetchPromise, timeoutPromise]);
         if (cancelled) return;
         if (error) {
-          console.error("[Wishlist] fetch error:", error.message);
+          console.warn("[Wishlist] fetch error, usando fallback local:", error.message);
+          setItems(readLocalStorage());
         } else {
           setItems((data ?? []).map((row) => row.product_id));
         }
-        setLoading(false);
-      });
+      } catch (err) {
+        if (cancelled) return;
+        console.warn("[Wishlist] fetch falló, usando fallback local:", err.message);
+        setItems(readLocalStorage());
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+
+    fetchWishlist();
 
     return () => { cancelled = true; };
   }, [useSupabase, email]);

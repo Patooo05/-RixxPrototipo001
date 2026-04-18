@@ -61,16 +61,25 @@ const sbHeaders = () => ({
 });
 
 const sbFetch = async (path, options = {}) => {
-  const res = await fetch(`${sbUrl()}/rest/v1/${path}`, {
-    ...options,
-    headers: { ...sbHeaders(), ...(options.headers || {}) },
-  });
-  if (!res.ok) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 12000);
+  try {
+    const res = await fetch(`${sbUrl()}/rest/v1/${path}`, {
+      ...options,
+      signal: controller.signal,
+      headers: { ...sbHeaders(), ...(options.headers || {}) },
+    });
+    clearTimeout(timeoutId);
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`Supabase ${res.status}: ${text}`);
+    }
     const text = await res.text();
-    throw new Error(`Supabase ${res.status}: ${text}`);
+    return text ? JSON.parse(text) : null;
+  } catch (err) {
+    clearTimeout(timeoutId);
+    throw err;
   }
-  const text = await res.text();
-  return text ? JSON.parse(text) : null;
 };
 
 export const ProductsProvider = ({ children }) => {
@@ -151,7 +160,7 @@ export const ProductsProvider = ({ children }) => {
   const persistChangeLog = async (entry) => {
     if (!SUPABASE_ENABLED) return;
     try {
-      const { error } = await supabase.from("change_log").insert({
+      const insertPromise = supabase.from("change_log").insert({
         timestamp:  entry.timestamp,
         tipo:       entry.tipo,
         product_id: entry.id,
@@ -159,9 +168,13 @@ export const ProductsProvider = ({ children }) => {
         operador:   entry.operador,
         detalle:    entry.detalle ?? null,
       });
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error("change_log timeout")), 8000)
+      );
+      const { error } = await Promise.race([insertPromise, timeoutPromise]);
       if (error) console.error("[ProductsContext] Error persisting change_log:", error);
     } catch (err) {
-      console.error("[ProductsContext] Unexpected error persisting change_log:", err);
+      console.warn("[ProductsContext] change_log no persistido (no crítico):", err.message);
     }
   };
 

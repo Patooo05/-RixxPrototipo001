@@ -209,13 +209,16 @@ const SupabaseAuthProvider = ({ children }) => {
       }, 6000);
 
       try {
-        const { data: { session } } = await supabase.auth.getSession();
+        const { data: { session } } = await Promise.race([
+          supabase.auth.getSession(),
+          new Promise((_, reject) => setTimeout(() => reject(new Error('auth-timeout')), 6000)),
+        ]);
         if (session?.user) {
           const profile = await fetchProfile(session.user.id);
           if (profile) setCurrentUser(buildUserFromProfile(profile));
         }
       } catch {
-        // Session restore failed — treat as logged out
+        // Session restore failed or timed out — treat as logged out
       } finally {
         clearTimeout(timeoutId);
         setLoading(false);
@@ -287,7 +290,10 @@ const SupabaseAuthProvider = ({ children }) => {
   const register = async (name, email, password) => {
     if (!name || !email || !password) return false;
     try {
-      const { data, error } = await supabase.auth.signUp({ email, password });
+      const { data, error } = await Promise.race([
+        supabase.auth.signUp({ email, password }),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('signUp-timeout')), 10000)),
+      ]);
       if (error) throw error;
 
       const userId = data.user?.id;
@@ -308,7 +314,10 @@ const SupabaseAuthProvider = ({ children }) => {
         active: true,
         permissions: existing?.permissions || [],
       };
-      await supabase.from("user_profiles").upsert(profilePayload, { onConflict: "id" });
+      await Promise.race([
+        supabase.from("user_profiles").upsert(profilePayload, { onConflict: "id" }),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('upsert-timeout')), 10000)),
+      ]);
       setCurrentUser(profilePayload);
       return true;
     } catch {
