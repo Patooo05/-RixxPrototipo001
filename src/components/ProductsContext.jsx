@@ -83,46 +83,39 @@ export const ProductsProvider = ({ children }) => {
     }
   }, [products]);
 
-  // ── Fetch inicial desde Supabase ─────────────────────────────
+  // ── Fetch inicial desde Supabase (raw fetch, no espera auth) ──
   useEffect(() => {
     if (!SUPABASE_ENABLED) return;
 
-    // Muestra caché inmediatamente para no quedar con pantalla vacía
+    // Muestra caché inmediatamente mientras carga en segundo plano
     try {
       const cached = localStorage.getItem("rixx_products_cache");
       if (cached) setProducts(JSON.parse(cached));
     } catch { /* ignorar */ }
 
-    const fetchWithTimeout = (ms) =>
-      Promise.race([
-        supabase.from("products").select("*").order("created_at", { ascending: false }),
-        new Promise((_, reject) => setTimeout(() => reject(new Error("timeout")), ms)),
-      ]);
-
     const fetchProducts = async () => {
-      // Intento 1 — 20 segundos (Supabase puede tardar en despertar)
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 15000);
+
       try {
-        const { data, error } = await fetchWithTimeout(20000);
-        if (!error) {
-          const mapped = (data ?? []).map(dbToProduct);
-          setProducts(mapped);
-          try { localStorage.setItem("rixx_products_cache", JSON.stringify(mapped)); } catch { /* ignorar */ }
-          setLoading(false);
-          return;
-        }
-        throw new Error(error.message);
-      } catch {
-        // Intento 2 — 15 segundos más
-        try {
-          const { data, error } = await fetchWithTimeout(15000);
-          if (!error) {
-            const mapped = (data ?? []).map(dbToProduct);
-            setProducts(mapped);
-            try { localStorage.setItem("rixx_products_cache", JSON.stringify(mapped)); } catch { /* ignorar */ }
-          }
-        } catch (err) {
-          console.warn("[ProductsContext] Supabase no disponible después de 2 intentos:", err.message);
-        }
+        const url = `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/products?select=*&order=created_at.desc`;
+        const res = await fetch(url, {
+          signal: controller.signal,
+          headers: {
+            apikey: import.meta.env.VITE_SUPABASE_ANON_KEY,
+            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          },
+        });
+        clearTimeout(timeoutId);
+
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        const mapped = data.map(dbToProduct);
+        setProducts(mapped);
+        try { localStorage.setItem("rixx_products_cache", JSON.stringify(mapped)); } catch { /* ignorar */ }
+      } catch (err) {
+        clearTimeout(timeoutId);
+        console.warn("[ProductsContext] Fetch directo falló, usando caché:", err.message);
       } finally {
         setLoading(false);
       }
