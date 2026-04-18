@@ -87,33 +87,42 @@ export const ProductsProvider = ({ children }) => {
   useEffect(() => {
     if (!SUPABASE_ENABLED) return;
 
-    const timeout = (ms) =>
-      new Promise((_, reject) =>
-        setTimeout(() => reject(new Error("timeout")), ms)
-      );
+    // Muestra caché inmediatamente para no quedar con pantalla vacía
+    try {
+      const cached = localStorage.getItem("rixx_products_cache");
+      if (cached) setProducts(JSON.parse(cached));
+    } catch { /* ignorar */ }
+
+    const fetchWithTimeout = (ms) =>
+      Promise.race([
+        supabase.from("products").select("*").order("created_at", { ascending: false }),
+        new Promise((_, reject) => setTimeout(() => reject(new Error("timeout")), ms)),
+      ]);
 
     const fetchProducts = async () => {
+      // Intento 1 — 20 segundos (Supabase puede tardar en despertar)
       try {
-        const { data, error } = await Promise.race([
-          supabase.from("products").select("*").order("id"),
-          timeout(8000),
-        ]);
-
-        if (error) {
-          console.error("[ProductsContext] Error fetching products:", error);
-        } else {
-          // Guarda en localStorage como caché para próximos arranques
+        const { data, error } = await fetchWithTimeout(20000);
+        if (!error) {
           const mapped = (data ?? []).map(dbToProduct);
           setProducts(mapped);
           try { localStorage.setItem("rixx_products_cache", JSON.stringify(mapped)); } catch { /* ignorar */ }
+          setLoading(false);
+          return;
         }
-      } catch (err) {
-        console.warn("[ProductsContext] Supabase no disponible, usando caché local:", err.message);
-        // Fallback: muestra productos guardados en caché anterior
+        throw new Error(error.message);
+      } catch {
+        // Intento 2 — 15 segundos más
         try {
-          const cached = localStorage.getItem("rixx_products_cache");
-          if (cached) setProducts(JSON.parse(cached));
-        } catch { /* ignorar */ }
+          const { data, error } = await fetchWithTimeout(15000);
+          if (!error) {
+            const mapped = (data ?? []).map(dbToProduct);
+            setProducts(mapped);
+            try { localStorage.setItem("rixx_products_cache", JSON.stringify(mapped)); } catch { /* ignorar */ }
+          }
+        } catch (err) {
+          console.warn("[ProductsContext] Supabase no disponible después de 2 intentos:", err.message);
+        }
       } finally {
         setLoading(false);
       }
@@ -192,7 +201,11 @@ export const ProductsProvider = ({ children }) => {
       }
 
       const newProduct = dbToProduct(inserted);
-      setProducts((prev) => [...prev, newProduct]);
+      setProducts((prev) => {
+        const next = [newProduct, ...prev];
+        try { localStorage.setItem("rixx_products_cache", JSON.stringify(next)); } catch { /* ignorar */ }
+        return next;
+      });
       logChange("ALTA", newProduct, { detalle: `Precio: $${data.price} · Stock: ${data.stock}` });
     } catch (err) {
       console.error("[ProductsContext] Unexpected error in addProduct:", err);
@@ -216,7 +229,11 @@ export const ProductsProvider = ({ children }) => {
         console.error("[ProductsContext] Error deleting product:", error);
         return;
       }
-      setProducts((prev) => prev.filter((p) => p.id !== id));
+      setProducts((prev) => {
+        const next = prev.filter((p) => p.id !== id);
+        try { localStorage.setItem("rixx_products_cache", JSON.stringify(next)); } catch { /* ignorar */ }
+        return next;
+      });
       logChange("BAJA", product, { detalle: "Producto eliminado" });
     } catch (err) {
       console.error("[ProductsContext] Unexpected error in removeProduct:", err);
@@ -256,7 +273,11 @@ export const ProductsProvider = ({ children }) => {
         return;
       }
 
-      setProducts((prev) => prev.map((p) => (p.id === updated.id ? { ...p, ...updated } : p)));
+      setProducts((prev) => {
+        const next = prev.map((p) => (p.id === updated.id ? { ...p, ...updated } : p));
+        try { localStorage.setItem("rixx_products_cache", JSON.stringify(next)); } catch { /* ignorar */ }
+        return next;
+      });
       if (old && diffs.length > 0) logChange("MODIFICACIÓN", old, { detalle: diffs.join(" | ") });
     } catch (err) {
       console.error("[ProductsContext] Unexpected error in updateProduct:", err);
@@ -417,7 +438,7 @@ export const ProductsProvider = ({ children }) => {
     result = result.filter((p) => p.price >= minPrice && p.price <= maxPrice);
     if (sortOrder === "precio-asc")  result.sort((a, b) => a.price - b.price);
     if (sortOrder === "precio-desc") result.sort((a, b) => b.price - a.price);
-    if (sortOrder === "nuevo")       result.sort((a, b) => b.id - a.id);
+    if (sortOrder === "nuevo")       result.sort((a, b) => String(b.id).localeCompare(String(a.id)));
     return result;
   }, [products, search, categoryFilter, priceFilter, sortOrder, minPrice, maxPrice]);
 
