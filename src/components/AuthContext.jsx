@@ -275,14 +275,13 @@ const SupabaseAuthProvider = ({ children }) => {
     }
   };
 
-  const logout = async () => {
-    try {
-      await supabase.auth.signOut();
-    } catch {
-      // Ignore sign-out errors
-    }
+  const logout = () => {
+    // Limpia estado local inmediatamente, sin esperar Supabase
     setCurrentUser(null);
     setUsers([]);
+    localStorage.removeItem("currentUser");
+    // Intenta cerrar sesión en Supabase en segundo plano (sin bloquear)
+    supabase?.auth.signOut().catch(() => {});
   };
 
   const register = async (name, email, password) => {
