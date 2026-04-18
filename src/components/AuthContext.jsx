@@ -301,25 +301,16 @@ const SupabaseAuthProvider = ({ children }) => {
         .eq("email", email)
         .single();
 
-      if (existing) {
-        // Link existing profile to new auth user
-        await supabase
-          .from("user_profiles")
-          .update({ id: userId })
-          .eq("email", email);
-        setCurrentUser({ ...existing, id: userId });
-      } else {
-        const profilePayload = {
-          id: userId,
-          name,
-          email,
-          role: "Cliente",
-          active: true,
-          permissions: [],
-        };
-        await supabase.from("user_profiles").insert(profilePayload);
-        setCurrentUser(profilePayload);
-      }
+      const profilePayload = {
+        id: userId,
+        name: existing?.name || name,
+        email,
+        role: existing?.role || "Cliente",
+        active: true,
+        permissions: existing?.permissions || [],
+      };
+      await supabase.from("user_profiles").upsert(profilePayload, { onConflict: "id" });
+      setCurrentUser(profilePayload);
       return true;
     } catch {
       return false;
@@ -342,7 +333,7 @@ const SupabaseAuthProvider = ({ children }) => {
 
       const { error } = await supabase
         .from("user_profiles")
-        .insert(profilePayload);
+        .upsert(profilePayload, { onConflict: "id" });
       if (error) throw error;
 
       await refreshUsers();
