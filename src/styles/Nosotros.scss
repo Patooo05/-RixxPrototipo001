@@ -81,6 +81,17 @@
     grid-template-columns: 60% 40%;
     gap: v.$spacing-3xl;
     align-items: center;
+
+    @media (max-width: 768px) {
+      grid-template-columns: 1fr;
+      gap: v.$spacing-2xl;
+      padding: 0 v.$spacing-lg;
+    }
+
+    @media (max-width: 480px) {
+      padding: 0 1.25rem;
+      gap: v.$spacing-xl;
+    }
   }
 
   &__historia-text {
@@ -95,8 +106,77 @@
     max-width: 560px;
   }
 
-  &__historia-space {
-    // elegant negative space — intentionally empty
+  &__historia-visual {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 2.5rem;
+    padding: 2rem;
+    border-left: 1px solid rgba(v.$primary, 0.2);
+
+    @media (max-width: 768px) {
+      border-left: none;
+      border-top: 1px solid rgba(v.$primary, 0.2);
+      padding: 1.5rem 0 0;
+    }
+  }
+
+  &__historia-quote {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  &__historia-quote-mark {
+    font-family: v.$font-headline;
+    font-size: 5rem;
+    line-height: 0.6;
+    color: v.$primary;
+    opacity: 0.4;
+    display: block;
+  }
+
+  &__historia-quote-text {
+    font-family: v.$font-headline;
+    font-size: clamp(1.25rem, 2.5vw, 1.75rem);
+    font-style: italic;
+    color: v.$on-surface;
+    line-height: 1.4;
+  }
+
+  &__historia-quote-attr {
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: v.$on-surface-variant;
+    opacity: 0.6;
+  }
+
+  &__historia-stat-row {
+    display: flex;
+    gap: 2rem;
+  }
+
+  &__historia-stat {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+  }
+
+  &__historia-stat-num {
+    font-family: v.$font-headline;
+    font-size: 2rem;
+    font-weight: 300;
+    color: v.$primary;
+    line-height: 1;
+  }
+
+  &__historia-stat-label {
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: v.$on-surface-variant;
+    opacity: 0.7;
   }
 
   // ── Valores ─────────────────────────────────────────────
@@ -203,6 +283,19 @@
     margin: 0 0 0.5rem;
     font-weight: 300;
     text-align: left;
+  }
+
+  &__ubicacion-dir--link {
+    color: inherit;
+    text-decoration: underline;
+    text-decoration-color: rgba(v.$primary, 0.3);
+    text-underline-offset: 3px;
+    transition: color v.$duration-base v.$ease, text-decoration-color v.$duration-base v.$ease;
+
+    &:hover {
+      color: v.$primary;
+      text-decoration-color: v.$primary;
+    }
   }
 
   &__ubicacion-horario {

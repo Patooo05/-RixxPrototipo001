@@ -35,11 +35,15 @@
   padding: 2.5rem 2rem 2rem;
   width: 100%;
   max-width: 400px;
+  max-height: 90vh;
+  overflow-y: auto;
   position: relative;
   animation: authSlideUp 0.28s $ease;
 
   @media (max-width: 480px) {
     padding: 2rem 1.5rem 1.5rem;
+    max-width: calc(100% - 2rem);
+    max-height: 85vh;
     border-radius: $radius-sm;
   }
 }
@@ -53,9 +57,9 @@
   border: none;
   color: rgba($on-surface, 0.3);
   cursor: pointer;
-  padding: 6px;
-  min-width: 32px;
-  min-height: 32px;
+  padding: 0.5rem;
+  min-width: 44px;
+  min-height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -336,4 +340,64 @@
 
     &:hover { opacity: 0.8; }
   }
+}
+
+// ── Welcome / cupón de bienvenida ─────────────────────────────
+.auth-modal__welcome {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 1rem;
+  padding: 0.5rem 0 0.25rem;
+}
+
+.auth-modal__welcome-icon {
+  font-size: 2rem;
+  color: $primary;
+  opacity: 0.6;
+}
+
+.auth-modal__coupon-box {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: rgba($primary, 0.06);
+  border: 1px dashed rgba($primary, 0.35);
+  border-radius: 4px;
+  padding: 0.875rem 1.25rem;
+  width: 100%;
+  justify-content: space-between;
+}
+
+.auth-modal__coupon-code {
+  font-family: $font-label;
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: 0.25em;
+  color: $primary;
+}
+
+.auth-modal__coupon-copy {
+  background: rgba($primary, 0.12);
+  border: 1px solid rgba($primary, 0.3);
+  color: $primary;
+  font-family: $font-label;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  padding: 0.4rem 0.875rem;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: background $duration-fast $ease;
+  white-space: nowrap;
+
+  &:hover { background: rgba($primary, 0.2); }
+}
+
+.auth-modal__coupon-hint {
+  font-size: $body-sm;
+  color: rgba($on-surface, 0.4);
+  margin: 0;
 }

@@ -31,27 +31,25 @@ const CustomCursor = () => {
     };
     raf = requestAnimationFrame(animate);
 
-    // Escalar ring al hacer hover sobre links/botones
-    const grow   = () => ring.style.transform = "translate(-50%, -50%) scale(1.8)";
-    const shrink = () => ring.style.transform = "translate(-50%, -50%) scale(1)";
-
-    document.querySelectorAll("a, button").forEach((el) => {
-      el.addEventListener("mouseenter", grow);
-      el.addEventListener("mouseleave", shrink);
-    });
-
-    const observer = new MutationObserver(() => {
-      document.querySelectorAll("a, button").forEach((el) => {
-        el.addEventListener("mouseenter", grow);
-        el.addEventListener("mouseleave", shrink);
-      });
-    });
-    observer.observe(document.body, { childList: true, subtree: true });
+    // Escalar ring al hacer hover sobre links/botones — delegado en document
+    const grow = (e) => {
+      if (e.target.closest("a, button")) {
+        ring.style.transform = "translate(-50%, -50%) scale(1.8)";
+      }
+    };
+    const shrink = (e) => {
+      if (e.target.closest("a, button")) {
+        ring.style.transform = "translate(-50%, -50%) scale(1)";
+      }
+    };
+    document.addEventListener("mouseover",  grow);
+    document.addEventListener("mouseout",   shrink);
 
     return () => {
       window.removeEventListener("mousemove", onMove);
+      document.removeEventListener("mouseover",  grow);
+      document.removeEventListener("mouseout",   shrink);
       cancelAnimationFrame(raf);
-      observer.disconnect();
     };
   }, []);
 

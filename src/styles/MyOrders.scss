@@ -1,33 +1,56 @@
 @use "variables" as *;
 @use "mixins" as *;
 
+// ── Status color map ──────────────────────────────────────────────────────────
+// pendiente/confirmado → dorado
+// armando              → azul   #3b82f6
+// enviado              → verde  #22c55e
+// entregado            → gris   #6a6460
+// reclamo/cancelado    → rojo   #ef4444
+
+$status-pending:   #D4AF37;
+$status-confirmed: #D4AF37;
+$status-preparing: #3b82f6;
+$status-shipped:   #22c55e;
+$status-delivered: #6a6460;
+$status-cancelled: #ef4444;
+$status-claim:     #ef4444;
+
+// ── Page layout ───────────────────────────────────────────────────────────────
 .my-orders {
-  min-height: 70vh;
-  max-width: 860px;
+  min-height: 80vh;
+  max-width: 780px;
   margin: 0 auto;
-  padding: 8rem $spacing-xl 5rem;
+  padding: 8rem $spacing-xl 6rem;
   font-family: $font-body;
 
-  // ── Header ───────────────────────────────────────────────────
-  &__header { margin-bottom: 3rem; }
+  // ── Header ─────────────────────────────────────────────────
+  &__header {
+    margin-bottom: 2.5rem;
+  }
 
   &__eyebrow {
     display: block;
     font-size: 10px;
-    font-weight: 400;
-    letter-spacing: 0.4em;
+    font-weight: 600;
+    letter-spacing: 0.45em;
     text-transform: uppercase;
     color: $primary;
-    margin-bottom: $spacing-md;
+    margin-bottom: $spacing-sm;
   }
 
   &__title {
     font-family: $font-headline;
-    font-size: clamp(2rem, 4vw, 3rem);
+    font-size: clamp(2rem, 5vw, 3rem);
     font-weight: 300;
     color: $on-surface;
     margin: 0 0 0.5rem;
-    em { font-style: italic; color: $primary; }
+    line-height: 1.1;
+
+    em {
+      font-style: italic;
+      color: $primary;
+    }
   }
 
   &__sub {
@@ -36,158 +59,238 @@
     margin: 0;
   }
 
-  // ── Empty / Loading ───────────────────────────────────────────
-  &__empty, &__loading {
-    text-align: center;
-    padding: 5rem $spacing-md;
-    color: $on-surface-variant;
+  // ── Lista ───────────────────────────────────────────────────
+  &__list {
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-md;
+  }
 
-    p { margin: 0 0 $spacing-md; }
+  // ── Empty ───────────────────────────────────────────────────
+  &__empty {
+    text-align: center;
+    padding: 5rem $spacing-md 4rem;
+    color: $on-surface-variant;
   }
 
   &__empty-icon {
-    font-size: 2rem;
-    color: rgba($primary, 0.3);
+    font-size: 2.5rem;
+    color: rgba($primary, 0.25);
     margin-bottom: $spacing-lg;
+    display: block;
+  }
+
+  &__empty-title {
+    font-family: $font-headline;
+    font-size: clamp(1.25rem, 3vw, 1.75rem);
+    font-weight: 300;
+    color: $on-surface;
+    margin: 0 0 $spacing-sm;
+  }
+
+  &__empty-text {
+    font-size: $body-md;
+    line-height: 1.7;
+    color: $on-surface-variant;
+    margin: 0 0 $spacing-xl;
   }
 
   &__btn {
     display: inline-block;
-    margin-top: $spacing-md;
-    padding: 0.7rem 1.75rem;
-    border: 1px solid rgba($primary, 0.4);
+    padding: 0.75rem 2rem;
+    border: 1px solid rgba($primary, 0.45);
     color: $primary;
     font-family: $font-label;
     font-size: 10px;
     font-weight: 700;
-    letter-spacing: 0.3em;
+    letter-spacing: 0.35em;
     text-transform: uppercase;
     text-decoration: none;
+    border-radius: $radius-sm;
     transition: background $duration-base $ease, border-color $duration-base $ease;
 
-    &:hover { background: rgba($primary, 0.08); border-color: rgba($primary, 0.7); }
+    &:hover {
+      background: rgba($primary, 0.08);
+      border-color: rgba($primary, 0.7);
+    }
   }
 
-  // ── Lista de órdenes ─────────────────────────────────────────
-  &__list {
+  // ── Loading ─────────────────────────────────────────────────
+  &__loading {
     display: flex;
     flex-direction: column;
-    gap: $spacing-lg;
+    align-items: center;
+    gap: $spacing-md;
+    padding: 5rem $spacing-md;
+    color: $on-surface-variant;
+    font-size: $body-md;
+  }
+
+  &__loading-dots {
+    display: flex;
+    gap: 6px;
+
+    span {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: rgba($primary, 0.5);
+      animation: dot-pulse 1.2s ease-in-out infinite;
+
+      &:nth-child(1) { animation-delay: 0s; }
+      &:nth-child(2) { animation-delay: 0.2s; }
+      &:nth-child(3) { animation-delay: 0.4s; }
+    }
   }
 }
 
-// ── Order card ────────────────────────────────────────────────
+@keyframes dot-pulse {
+  0%, 80%, 100% { transform: scale(0.7); opacity: 0.4; }
+  40%            { transform: scale(1);   opacity: 1;   }
+}
+
+// ── Order card ────────────────────────────────────────────────────────────────
 .order-card {
   background: $surface-container-low;
   border: 1px solid rgba($on-surface, 0.06);
   border-radius: $radius-sm;
   overflow: hidden;
-  transition: border-color $duration-base $ease;
+  transition: border-color $duration-base $ease, box-shadow $duration-base $ease;
 
-  &:hover { border-color: rgba($primary, 0.15); }
+  &:hover {
+    border-color: rgba($primary, 0.18);
+  }
 
+  &--open {
+    border-color: rgba($primary, 0.22);
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.35);
+  }
+
+  // ── Cabecera (botón) ────────────────────────────────────────
   &__top {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 1rem 1.5rem;
-    border-bottom: 1px solid rgba($on-surface, 0.05);
+    padding: 1rem 1.25rem;
+    width: 100%;
+    background: none;
+    border: none;
+    color: inherit;
+    cursor: pointer;
+    text-align: left;
+    gap: $spacing-sm;
+    transition: background $duration-fast $ease;
+
+    &:hover { background: rgba($on-surface, 0.03); }
+    &:focus-visible {
+      outline: 1px solid rgba($primary, 0.5);
+      outline-offset: -2px;
+    }
   }
 
-  &__meta { display: flex; flex-direction: column; gap: 0.2rem; }
+  &__meta {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    min-width: 0;
+  }
 
   &__id {
     font-family: $font-label;
     font-size: 11px;
     font-weight: 700;
-    letter-spacing: 0.15em;
+    letter-spacing: 0.18em;
     color: $on-surface;
+    white-space: nowrap;
   }
 
   &__date {
     font-size: $body-sm;
     color: $on-surface-variant;
+    white-space: nowrap;
   }
 
-  // Status badges
+  &__header-right {
+    display: flex;
+    align-items: center;
+    gap: $spacing-sm;
+    flex-shrink: 0;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+
+  // ── Status badge ─────────────────────────────────────────────
   &__status {
     font-size: 9px;
     font-weight: 700;
-    letter-spacing: 0.18em;
+    letter-spacing: 0.2em;
     text-transform: uppercase;
     padding: 3px 10px;
     border-radius: $radius-full;
+    white-space: nowrap;
 
-    &--pending   { background: rgba(#e8a020, 0.12); color: #e8a020; }
-    &--confirmed { background: rgba(#6ab8ff, 0.12); color: #6ab8ff; }
-    &--shipped   { background: rgba($primary,  0.12); color: $primary; }
-    &--delivered { background: rgba(#4caf82,  0.12); color: #4caf82; }
-    &--cancelled { background: rgba(#e05050,  0.12); color: #e05050; }
-    &--preparing { background: rgba(#e07830, 0.12); color: #e07830; }
-    &--claim     { background: rgba(#e05050, 0.12); color: #e05050; }
+    &--pending   { background: rgba($status-pending,   0.12); color: $status-pending;   }
+    &--confirmed { background: rgba($status-confirmed, 0.12); color: $status-confirmed; }
+    &--preparing { background: rgba($status-preparing, 0.12); color: $status-preparing; }
+    &--shipped   { background: rgba($status-shipped,   0.12); color: $status-shipped;   }
+    &--delivered { background: rgba($status-delivered, 0.12); color: $status-delivered; }
+    &--cancelled { background: rgba($status-cancelled, 0.12); color: $status-cancelled; }
+    &--claim     { background: rgba($status-claim,     0.12); color: $status-claim;     }
   }
 
-  // Items
-  &__items {
-    padding: 1rem 1.5rem;
-    display: flex;
-    flex-direction: column;
-    gap: 0.6rem;
-  }
-
-  &__item {
-    display: flex;
-    align-items: center;
-    gap: $spacing-sm;
+  &__payment {
     font-size: $body-sm;
     color: $on-surface-variant;
+    white-space: nowrap;
+
+    @media (max-width: 480px) { display: none; }
   }
 
-  &__item-img {
-    width: 36px;
-    height: 36px;
-    object-fit: cover;
-    border-radius: $radius-sm;
-    flex-shrink: 0;
-    background: $surface-container;
-  }
-
-  &__item-name { flex: 1; color: $on-surface; }
-  &__item-qty  { opacity: 0.5; }
-  &__item-price { color: $primary; font-family: $font-headline; font-size: $title-sm; }
-
-  // Footer
-  &__footer {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0.75rem 1.5rem;
-    border-top: 1px solid rgba($on-surface, 0.05);
-    background: rgba($surface-container, 0.4);
-    flex-wrap: wrap;
-    gap: $spacing-sm;
-  }
-
-  &__shipping { font-size: $body-sm; color: $on-surface-variant; }
-  &__coupon   { font-size: $body-sm; color: $primary; }
-
-  &__total {
+  &__total-preview {
     font-family: $font-headline;
-    font-size: $title-lg;
+    font-size: $title-sm;
     font-weight: 400;
     color: $primary;
-    letter-spacing: 0.03em;
-    margin-left: auto;
+    white-space: nowrap;
   }
+
+  &__chevron {
+    color: $on-surface-variant;
+    flex-shrink: 0;
+    transition: transform $duration-base $ease;
+
+    &--open { transform: rotate(180deg); }
+  }
+
+  // ── Cuerpo accordion ────────────────────────────────────────
+  // Técnica: grid-template-rows 0fr → 1fr para animación suave
+  &__body {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows $duration-base $ease;
+
+    &--visible {
+      grid-template-rows: 1fr;
+    }
+  }
+
+  // El wrapper interno necesita overflow:hidden para que el grid funcione
+  &__body-inner {
+    overflow: hidden;
+  }
+
+  // ── Barra de progreso ────────────────────────────────────────
 }
 
 .order-card__progress {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  padding: 1rem 1.5rem 0.85rem;
+  padding: 1rem 1.25rem 0.9rem;
   border-top: 1px solid rgba($on-surface, 0.05);
   overflow-x: auto;
+  scrollbar-width: none;
+  &::-webkit-scrollbar { display: none; }
 }
 
 .order-card__step {
@@ -197,27 +300,28 @@
   flex: 1;
   position: relative;
   gap: 5px;
-  min-width: 60px;
+  min-width: 64px;
 
   &-dot {
     width: 10px;
     height: 10px;
     border-radius: 50%;
-    background: rgba($on-surface, 0.12);
-    border: 2px solid rgba($on-surface, 0.18);
+    background: rgba($on-surface, 0.1);
+    border: 2px solid rgba($on-surface, 0.16);
     z-index: 1;
     flex-shrink: 0;
-    transition: all 0.2s;
+    transition: background $duration-base $ease, border-color $duration-base $ease, box-shadow $duration-base $ease;
   }
 
   &-label {
     font-size: 8px;
     text-transform: uppercase;
     letter-spacing: 0.1em;
-    color: rgba($on-surface, 0.28);
-    font-weight: 700;
+    color: rgba($on-surface, 0.25);
+    font-weight: 600;
     text-align: center;
     white-space: nowrap;
+    transition: color $duration-base $ease;
   }
 
   &-line {
@@ -234,21 +338,391 @@
 
   &--done &-dot {
     background: rgba($primary, 0.15);
-    border-color: rgba($primary, 0.45);
+    border-color: rgba($primary, 0.5);
+  }
+
+  &--done &-label {
+    color: rgba($primary, 0.55);
   }
 
   &--current &-dot {
     background: $primary;
     border-color: $primary;
-    box-shadow: 0 0 10px rgba($primary, 0.45);
+    box-shadow: 0 0 10px rgba($primary, 0.5);
   }
 
-  &--current &-label { color: $primary; font-weight: 700; }
+  &--current &-label {
+    color: $primary;
+    font-weight: 700;
+  }
 }
 
-// ── Responsive ────────────────────────────────────────────────
+// ── Items del pedido ───────────────────────────────────────────────────────────
+.order-card {
+  &__items {
+    padding: 0.875rem 1.25rem;
+    border-top: 1px solid rgba($on-surface, 0.05);
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+
+  &__item {
+    display: flex;
+    align-items: center;
+    gap: $spacing-sm;
+    font-size: $body-sm;
+    color: $on-surface-variant;
+  }
+
+  &__item-img {
+    width: 40px;
+    height: 40px;
+    object-fit: cover;
+    border-radius: $radius-sm;
+    flex-shrink: 0;
+    background: $surface-container;
+  }
+
+  &__item-name {
+    flex: 1;
+    color: $on-surface;
+    font-size: $body-sm;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &__item-qty {
+    opacity: 0.45;
+    font-size: $body-sm;
+    flex-shrink: 0;
+  }
+
+  &__item-price {
+    color: $primary;
+    font-family: $font-headline;
+    font-size: $title-sm;
+    flex-shrink: 0;
+  }
+
+  // ── Footer ─────────────────────────────────────────────────
+  &__footer {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    padding: 0.875rem 1.25rem;
+    border-top: 1px solid rgba($on-surface, 0.05);
+    background: rgba($surface-container, 0.35);
+    gap: $spacing-md;
+    flex-wrap: wrap;
+  }
+
+  &__footer-left {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    min-width: 0;
+  }
+
+  &__footer-right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: $spacing-sm;
+    flex-shrink: 0;
+  }
+
+  &__footer-label {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: $on-surface-variant;
+    display: block;
+    margin-bottom: 1px;
+  }
+
+  &__shipping,
+  &__coupon,
+  &__shipping-cost {
+    font-size: $body-sm;
+    color: $on-surface-variant;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 280px;
+  }
+
+  &__coupon {
+    color: $primary;
+  }
+
+  &__total {
+    font-family: $font-headline;
+    font-size: $title-lg;
+    font-weight: 400;
+    color: $primary;
+    letter-spacing: 0.03em;
+  }
+
+  // ── Botón de tracking ───────────────────────────────────────
+  &__track-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 0.5rem 1rem;
+    background: none;
+    border: 1px solid rgba($primary, 0.35);
+    color: $primary;
+    font-family: $font-label;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    border-radius: $radius-sm;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background $duration-base $ease, border-color $duration-base $ease;
+
+    &:hover {
+      background: rgba($primary, 0.1);
+      border-color: rgba($primary, 0.65);
+    }
+
+    &:focus-visible {
+      outline: 1px solid rgba($primary, 0.6);
+      outline-offset: 2px;
+    }
+
+    svg { flex-shrink: 0; }
+  }
+}
+
+// ── KPIs ─────────────────────────────────────────────────────────────────────
+.orders-kpis {
+  display: flex;
+  flex-direction: row;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.orders-kpi {
+  flex: 1;
+  min-width: 0;
+  padding: 0.875rem 1rem;
+  background: rgba($primary, 0.04);
+  border: 1px solid rgba($primary, 0.12);
+  border-radius: $radius-sm;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+
+  &__label {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: $on-surface-variant;
+    line-height: 1;
+  }
+
+  &__value {
+    font-family: $font-headline;
+    font-size: 1.25rem;
+    font-weight: 400;
+    color: $primary;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+// ── Filtros pill ──────────────────────────────────────────────────────────────
+.orders-filters {
+  display: flex;
+  flex-direction: row;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.orders-filter-btn {
+  padding: 0.35rem 0.875rem;
+  border-radius: 999px;
+  font-family: $font-label;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  background: none;
+  border: 1px solid rgba($on-surface, 0.08);
+  color: $on-surface-variant;
+  cursor: pointer;
+  transition: background $duration-fast $ease, border-color $duration-fast $ease, color $duration-fast $ease;
+
+  &:hover:not(&--active) {
+    border-color: rgba($on-surface, 0.18);
+    color: $on-surface;
+  }
+
+  &--active {
+    background: rgba($primary, 0.12);
+    border-color: rgba($primary, 0.4);
+    color: $primary;
+  }
+
+  &:focus-visible {
+    outline: 1px solid rgba($primary, 0.5);
+    outline-offset: 2px;
+  }
+}
+
+// ── Empty state filtrado ──────────────────────────────────────────────────────
+.orders-empty-filter {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 3rem 1rem;
+  color: $on-surface-variant;
+  text-align: center;
+
+  &__icon {
+    font-size: 1.5rem;
+    color: rgba($primary, 0.2);
+    line-height: 1;
+  }
+
+  &__text {
+    font-size: $body-md;
+    margin: 0;
+  }
+}
+
+// ── Skeleton loader ───────────────────────────────────────────────────────────
+@keyframes shimmer {
+  0%   { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+
+.order-skeleton {
+  height: 72px;
+  border-radius: $radius-sm;
+  background: rgba($on-surface, 0.04);
+  background-image: linear-gradient(
+    90deg,
+    rgba($on-surface, 0.04) 0%,
+    rgba($on-surface, 0.09) 50%,
+    rgba($on-surface, 0.04) 100%
+  );
+  background-size: 800px 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+
+  &--card {
+    height: auto;
+    padding: 1.25rem 1.5rem;
+    border: 1px solid rgba($on-surface, 0.06);
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+
+  &__top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  &__right { display: flex; align-items: center; gap: 0.75rem; }
+
+  &__line {
+    border-radius: 4px;
+    background: rgba($on-surface, 0.08);
+    animation: shimmer 1.4s ease-in-out infinite;
+    background-image: linear-gradient(90deg, rgba($on-surface,.06) 0%, rgba($on-surface,.13) 50%, rgba($on-surface,.06) 100%);
+    background-size: 800px 100%;
+
+    &--id    { width: 90px; height: 14px; }
+    &--price { width: 70px; height: 14px; }
+    &--date  { width: 120px; height: 12px; }
+  }
+
+  &__pill {
+    width: 80px; height: 22px;
+    border-radius: $radius-full;
+    background: rgba($on-surface, 0.08);
+    animation: shimmer 1.4s ease-in-out infinite;
+    background-image: linear-gradient(90deg, rgba($on-surface,.06) 0%, rgba($on-surface,.13) 50%, rgba($on-surface,.06) 100%);
+    background-size: 800px 100%;
+  }
+}
+
+.my-orders__skeleton-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+// ── Responsive mobile-first ───────────────────────────────────────────────────
+@media (max-width: $bp-tablet) {
+  .my-orders {
+    padding: 7rem $spacing-lg 4rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .my-orders {
+    padding: 6rem $section-padding-x-mobile 3rem;
+  }
+}
+
 @media (max-width: 600px) {
-  .my-orders { padding: 6rem $section-padding-x-mobile 3rem; }
-  .order-card__footer { flex-direction: column; align-items: flex-start; }
-  .order-card__total  { margin-left: 0; }
+  .my-orders {
+    padding: 6.5rem $section-padding-x-mobile 3.5rem;
+  }
+
+  .order-card {
+    &__top { padding: 0.875rem 1rem; }
+
+    &__header-right { gap: $spacing-xs; }
+
+    &__total-preview { display: none; }
+
+    &__items { padding: 0.75rem 1rem; }
+
+    &__footer {
+      flex-direction: column;
+      align-items: flex-start;
+      padding: 0.75rem 1rem;
+    }
+
+    &__footer-right {
+      align-items: flex-start;
+      flex-direction: row;
+      align-items: center;
+      width: 100%;
+      justify-content: space-between;
+    }
+  }
+
+  .order-card__progress {
+    padding: 0.875rem 1rem 0.75rem;
+  }
+}
+
+@media (max-width: 360px) {
+  .order-card__step {
+    min-width: 50px;
+
+    &-label { font-size: 7px; letter-spacing: 0.06em; }
+  }
+
+  .order-card__id {
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
 }

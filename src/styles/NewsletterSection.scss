@@ -148,6 +148,12 @@
   flex-direction: column;
   gap:            $spacing-lg;
   align-items:    stretch;
+  box-sizing:     border-box;
+
+  @media (max-width: 480px) {
+    max-width:    100%;
+    gap:          $spacing-md;
+  }
 }
 
 // Field wrapper

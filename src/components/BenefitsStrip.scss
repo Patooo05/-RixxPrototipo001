@@ -8,6 +8,9 @@
 
 // ── Strip wrapper ─────────────────────────────────────────────
 .benefits-strip {
+  position: relative;
+  z-index: 2;
+  margin-top: -90px;
   background: $surface-container-lowest;
   border-top:    1px solid rgba($primary, 0.1);
   border-bottom: 1px solid rgba($primary, 0.1);

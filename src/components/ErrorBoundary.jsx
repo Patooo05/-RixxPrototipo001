@@ -1,53 +1,63 @@
-import { Component } from "react";
+import { Component } from 'react';
 
-class ErrorBoundary extends Component {
+export class ErrorBoundary extends Component {
   constructor(props) {
     super(props);
-    this.state = { hasError: false };
+    this.state = { hasError: false, error: null };
   }
 
-  static getDerivedStateFromError() {
-    return { hasError: true };
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
   }
 
   componentDidCatch(error, info) {
-    if (import.meta.env.DEV) {
-      console.error("ErrorBoundary caught:", error, info);
-    }
+    console.error('[RIXX ErrorBoundary]', error, info);
   }
 
   render() {
     if (this.state.hasError) {
+      const isDev = typeof import.meta !== 'undefined' && import.meta.env?.DEV;
       return (
         <div style={{
-          minHeight: "60vh", display: "flex", flexDirection: "column",
-          alignItems: "center", justifyContent: "center", gap: "1rem",
-          background: "#0a0a0a", color: "#888",
+          minHeight: '60vh',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: '#0a0a0a',
+          color: '#ede8df',
+          fontFamily: 'Manrope, sans-serif',
+          padding: '2rem',
+          textAlign: 'center',
+          gap: '1.2rem',
         }}>
-          <p style={{
-            fontFamily: "'Cormorant Garamond', serif",
-            fontSize: "1.5rem", color: "#D4AF37", fontStyle: "italic",
-          }}>
+          <span style={{ color: '#D4AF37', fontSize: '2rem' }}>◆</span>
+          <h2 style={{ fontFamily: 'Noto Serif, serif', fontWeight: 300, fontSize: '1.5rem', margin: 0 }}>
             Algo salió mal
+          </h2>
+          <p style={{ color: '#6a6460', fontSize: '0.9rem', margin: 0, maxWidth: '36ch', lineHeight: 1.6 }}>
+            Ocurrió un error inesperado. Podés recargar la página o volver al inicio.
           </p>
-          <p style={{
-            fontFamily: "'DM Sans', sans-serif",
-            fontSize: "11px", letterSpacing: "0.2em", textTransform: "uppercase",
-          }}>
-            Recargá la página para continuar.
-          </p>
-          <button
-            onClick={() => window.location.reload()}
-            style={{
-              marginTop: "1rem", padding: "0.75rem 2rem",
-              border: "1px solid #D4AF37", background: "transparent",
-              color: "#D4AF37", fontFamily: "'DM Sans', sans-serif",
-              fontSize: "11px", letterSpacing: "0.3em",
-              textTransform: "uppercase", cursor: "pointer",
-            }}
-          >
-            Recargar
-          </button>
+          {isDev && this.state.error && (
+            <pre style={{ background: '#1a1a1a', border: '1px solid #333', borderRadius: 6, padding: '1rem', fontSize: '11px', color: '#e05555', textAlign: 'left', maxWidth: '90vw', overflow: 'auto', whiteSpace: 'pre-wrap', wordBreak: 'break-all', maxHeight: '40vh' }}>
+              {this.state.error.toString()}{'\n\n'}{this.state.error.stack}
+            </pre>
+          )}
+          <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', justifyContent: 'center' }}>
+            <button
+              onClick={() => { this.setState({ hasError: false, error: null }); window.location.reload(); }}
+              style={{ padding: '0.6rem 1.4rem', background: '#D4AF37', color: '#0a0a0a', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '10px', fontWeight: 700, letterSpacing: '0.25em', textTransform: 'uppercase', fontFamily: 'Manrope, sans-serif' }}
+            >
+              Recargar
+            </button>
+            <a
+              href="/"
+              onClick={() => this.setState({ hasError: false, error: null })}
+              style={{ padding: '0.6rem 1.4rem', background: 'transparent', color: '#ede8df', border: '1px solid rgba(237,232,223,0.2)', borderRadius: '4px', cursor: 'pointer', fontSize: '10px', fontWeight: 700, letterSpacing: '0.25em', textTransform: 'uppercase', textDecoration: 'none', fontFamily: 'Manrope, sans-serif', display: 'inline-flex', alignItems: 'center' }}
+            >
+              Ir al inicio
+            </a>
+          </div>
         </div>
       );
     }

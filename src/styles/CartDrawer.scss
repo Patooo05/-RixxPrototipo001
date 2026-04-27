@@ -1,51 +1,36 @@
 @use "variables" as *;
 @use "mixins" as *;
 
+// ── Keyframes ────────────────────────────────────────────────
+@keyframes overlayIn      { from { opacity: 0 } to { opacity: 1 } }
+@keyframes drawerIn       { from { transform: translateX(100%) } to { transform: translateX(0) } }
+@keyframes cartItemEnter  { from { opacity: 0; transform: translateX(20px) } to { opacity: 1; transform: translateX(0) } }
+@keyframes lensFloat      { 0%, 100% { transform: translateY(0) } 50% { transform: translateY(-8px) } }
+@keyframes timerUrgent    { 0%, 100% { opacity: 0.8 } 50% { opacity: 1 } }
+@keyframes couponSpin     { to { transform: rotate(360deg); } }
+
 // ── Overlay ──────────────────────────────────────────────────
 .cart-overlay {
   position: fixed;
   inset: 0;
-  background: rgba($background, 0.6);
-  backdrop-filter: blur(3px);
-  -webkit-backdrop-filter: blur(3px);
+  background: rgba($background, 0.65);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
   z-index: 301;
-  opacity: 0;
   animation: overlayIn $duration-base $ease forwards;
 }
 
-@keyframes overlayIn {
-  to { opacity: 1; }
-}
-
-// ── Mejora 1: animación entrada ítem ─────────────────────────
-@keyframes cartItemEnter {
-  from {
-    opacity: 0;
-    transform: translateX(24px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-// ── Mejora 9: flotación del ícono vacío ──────────────────────
-@keyframes lensFloat {
-  0%, 100% { transform: translateY(0); }
-  50%       { transform: translateY(-8px); }
-}
-
-// ── Drawer ───────────────────────────────────────────────────
+// ── Drawer shell ─────────────────────────────────────────────
 .cart-drawer {
   position: fixed;
   top: 0;
   right: 0;
-  width: 400px;
-  max-width: 92vw;
+  width: 420px;
+  max-width: 100vw;
   height: 100%;
   background: $surface-container-low;
-  border-left: 1px solid rgba($primary, 0.12);
-  box-shadow: -20px 0 60px rgba($background, 0.7);
+  border-left: 1px solid rgba($primary, 0.1);
+  box-shadow: -24px 0 80px rgba($background, 0.8);
   z-index: 302;
   display: flex;
   flex-direction: column;
@@ -54,44 +39,62 @@
   font-family: $font-body;
   will-change: transform;
 
-  &.open {
-    transform: translateX(0);
-  }
+  &.open { transform: translateX(0); }
 }
 
 // ── Header ───────────────────────────────────────────────────
 .cart-header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 2.5rem 1.75rem 1.5rem;
-  border-bottom: 1px solid rgba($primary, 0.12);
-  background: rgba($surface-container-high, 0.35);
+  justify-content: space-between;
+  padding: 1.5rem 1.5rem 1.25rem;
+  border-bottom: 1px solid rgba($primary, 0.08);
   flex-shrink: 0;
 
-  h2 {
+  &__left {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+
+  &__title {
     margin: 0;
     font-family: $font-headline;
     font-size: $headline-sm;
     font-weight: 400;
     font-style: italic;
+    color: $on-surface;
+    letter-spacing: 0.03em;
+  }
+
+  &__count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 22px;
+    height: 22px;
+    padding: 0 6px;
+    background: rgba($primary, 0.15);
+    border: 1px solid rgba($primary, 0.25);
+    border-radius: $radius-full;
+    font-size: 10px;
+    font-weight: 700;
     color: $primary;
     letter-spacing: 0.04em;
   }
 
-  .close-btn {
-    background: $surface-container-high;
-    border: 1px solid rgba($outline-variant, 0.2);
-    color: $on-surface-variant;
-    width: 36px;
-    height: 36px;
-    border-radius: $radius-full;
+  &__close {
     display: flex;
     align-items: center;
     justify-content: center;
+    width: 34px;
+    height: 34px;
+    background: rgba($surface-container-high, 0.6);
+    border: 1px solid rgba($outline-variant, 0.18);
+    border-radius: $radius-full;
+    color: $on-surface-variant;
     cursor: pointer;
-    font-size: 14px;
-    transition: all $duration-fast $ease;
+    transition: background $duration-fast $ease, color $duration-fast $ease, transform $duration-fast $ease;
 
     &:hover {
       background: rgba($primary, 0.1);
@@ -102,507 +105,666 @@
   }
 }
 
-// ── Content ──────────────────────────────────────────────────
-.cart-content {
+// ── Body (scrollable) ─────────────────────────────────────────
+.cart-body {
   flex: 1;
   overflow-y: auto;
-  padding: $spacing-sm 1.75rem;
-  display: flex;
-  flex-direction: column;
+  padding: 0.5rem 0;
   scrollbar-width: thin;
-  scrollbar-color: rgba($primary, 0.2) transparent;
+  scrollbar-color: rgba($primary, 0.18) transparent;
 
-  &::-webkit-scrollbar { width: 4px; }
+  &::-webkit-scrollbar { width: 3px; }
   &::-webkit-scrollbar-track { background: transparent; }
   &::-webkit-scrollbar-thumb { background: rgba($primary, 0.2); border-radius: 2px; }
 }
 
 // ── Empty state ───────────────────────────────────────────────
 .cart-empty {
-  text-align: center;
-  padding: $spacing-3xl $spacing-md;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: $spacing-md;
+  justify-content: center;
+  gap: 1rem;
+  height: 100%;
+  min-height: 320px;
+  text-align: center;
+  padding: 2rem;
 
-  // Mejora 9: wrapper para la animación de flotación
-  &__icon-wrap {
+  &__icon {
     animation: lensFloat 3.2s ease-in-out infinite;
-    margin-bottom: 0.5rem;
-  }
 
-  // Mejora 9: SVG de anteojos animado
-  &__lens {
-    width: 80px;
-    height: auto;
-    color: $primary;
-    opacity: 0.2;
-    display: block;
+    svg {
+      width: 80px;
+      height: auto;
+      color: $primary;
+      opacity: 0.2;
+      display: block;
+    }
   }
 
   &__text {
-    color: $on-surface-variant;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
     font-size: 11px;
-    margin: 0;
-  }
-
-  // Mejora 9: botón "Explorar colección"
-  &__cta {
-    margin-top: $spacing-sm;
-    background: none;
-    border: 1px solid rgba($primary, 0.35);
-    color: $primary;
-    font-family: $font-label;
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 0.3em;
-    text-transform: uppercase;
-    padding: 0.65rem 1.5rem;
-    cursor: pointer;
-    transition: background $duration-base $ease, border-color $duration-base $ease, color $duration-base $ease;
-
-    &:hover {
-      background: rgba($primary, 0.08);
-      border-color: rgba($primary, 0.7);
-      color: $gold-light;
-    }
-  }
-}
-
-// ── Cart item ─────────────────────────────────────────────────
-.cart-item {
-  display: flex;
-  gap: $spacing-md;
-  padding: 1.25rem 0;
-  border-bottom: 1px solid rgba($outline-variant, 0.1);
-
-  &:last-child { border-bottom: none; }
-
-  // Mejora 1: slide-in al agregar ítem nuevo
-  &--enter {
-    animation: cartItemEnter 0.45s $ease forwards;
-  }
-
-  &__img {
-    width: 120px;
-    height: 88px;
-    object-fit: cover;
-    object-position: center top;
-    flex-shrink: 0;
-    border-radius: $radius-sm;
-    background: $surface-container;
-  }
-
-  &__info {
-    flex: 1;
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-  }
-
-  &__name {
-    font-family: $font-headline;
-    font-size: $title-sm;
-    font-weight: 400;
-    font-style: italic;
-    color: $on-surface;
-    margin: 0 0 0.25rem;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  &__price {
-    font-size: $body-sm;
-    color: $on-surface-variant;
-    margin: 0 0 0.5rem;
-    display: flex;
-    align-items: center;
-    gap: 0.4rem;
-
-    &--old {
-      text-decoration: line-through;
-      opacity: 0.45;
-    }
-  }
-
-  &__qty {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-
-    button {
-      background: $surface-container-high;
-      border: 1px solid rgba($outline-variant, 0.25);
-      color: $on-surface;
-      width: 32px;
-      height: 32px;
-      border-radius: $radius-sm;
-      cursor: pointer;
-      font-size: 1rem;
-      line-height: 1;
-      transition: all $duration-fast $ease;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-
-      &:hover:not(:disabled) {
-        background: rgba($primary, 0.15);
-        border-color: rgba($primary, 0.4);
-        color: $primary;
-      }
-
-      &:disabled { opacity: 0.25; cursor: not-allowed; }
-    }
-
-    span {
-      width: 26px;
-      text-align: center;
-      font-size: $body-sm;
-      font-weight: 600;
-      color: $on-surface;
-    }
-  }
-
-  &__right {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    justify-content: space-between;
-    flex-shrink: 0;
-  }
-
-  &__sub {
-    font-family: $font-headline;
-    font-size: $title-md;
-    font-weight: 400;
-    color: $primary;
-    margin: 0;
-    white-space: nowrap;
-    letter-spacing: 0.03em;
-  }
-
-  &__remove {
-    background: none;
-    border: none;
-    color: rgba($on-surface-variant, 0.35);
-    cursor: pointer;
-    font-size: 13px;
-    padding: 0.2rem;
-    transition: color $duration-fast $ease, transform $duration-fast $ease;
-
-    &:hover {
-      color: $error;
-      transform: scale(1.2);
-    }
-  }
-}
-
-// ── Footer ────────────────────────────────────────────────────
-.cart-footer {
-  padding: 1.25rem 1.75rem $spacing-xl;
-  border-top: 1px solid rgba($primary, 0.12);
-  flex-shrink: 0;
-  display: flex;
-  flex-direction: column;
-  gap: $spacing-md;
-  background: rgba($surface-container, 0.5);
-
-  &__shipping {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-family: $font-label;
-    font-size: 10px;
     font-weight: 600;
-    letter-spacing: 0.18em;
+    letter-spacing: 0.2em;
     text-transform: uppercase;
     color: $on-surface-variant;
-
-    &--free {
-      color: $primary;
-      letter-spacing: 0.12em;
-    }
-  }
-
-  &__shipping-hint {
-    font-size: 10px;
-    color: rgba($on-surface-variant, 0.55);
-    text-align: center;
-    letter-spacing: 0.06em;
     margin: 0;
-  }
-
-  // Mejora 5: línea de ahorro total
-  &__savings {
-    font-family: $font-label;
-    font-size: 10px;
-    font-weight: 600;
-    letter-spacing: 0.12em;
-    color: $primary;
-    text-align: center;
-    padding: 0.45rem 0.75rem;
-    background: rgba($primary, 0.07);
-    border: 1px solid rgba($primary, 0.18);
-    margin: 0;
-  }
-
-  &__total {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-  }
-
-  &__total span:first-child {
-    font-family: $font-label;
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 0.35em;
-    text-transform: uppercase;
-    color: $on-surface-variant;
-  }
-
-  &__total-val {
-    font-family: $font-headline;
-    font-size: $headline-sm;
-    font-weight: 400;
-    color: $primary;
-    letter-spacing: 0.02em;
-  }
-
-  &__cta {
-    display: block;
-    width: 100%;
-    background: $primary;
-    color: $on-primary;
-    border: none;
-    cursor: pointer;
-    font-family: $font-label;
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 0.35em;
-    text-transform: uppercase;
-    text-align: center;
-    text-decoration: none;
-    padding: 1rem;
-    position: relative;
-    overflow: hidden;
-    transition: background $duration-base $ease, box-shadow $duration-base $ease, transform $duration-fast $ease;
-
-    &::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(
-        105deg,
-        transparent 35%,
-        rgba($on-surface,0.18) 50%,
-        transparent 65%
-      );
-      transform: translateX(-100%);
-      transition: transform 0.5s $ease;
-    }
-
-    &:hover {
-      background: $gold-light;
-      box-shadow: 0 6px 24px rgba($primary, 0.35);
-      transform: translateY(-1px);
-
-      &::after { transform: translateX(100%); }
-    }
-
-    &:active { transform: translateY(0) scale(0.99); }
-  }
-}
-
-// ── Suggestion ────────────────────────────────────────────────
-@keyframes suggestionIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
-.cart-suggestion {
-  margin-top: $spacing-md;
-  padding-top: $spacing-md;
-  border-top: 1px solid rgba($outline-variant, 0.12);
-  animation: suggestionIn 0.4s $ease forwards;
-
-  &__label {
-    font-family: $font-label;
-    font-size: 9px;
-    font-weight: 700;
-    letter-spacing: 0.28em;
-    text-transform: uppercase;
-    color: $on-surface-variant;
-    margin: 0 0 $spacing-sm;
     opacity: 0.6;
   }
 
-  &__card {
-    display: flex;
-    align-items: center;
-    gap: $spacing-md;
-    background: rgba($surface-container-high, 0.5);
-    border: 1px solid rgba($primary, 0.1);
-    border-radius: $radius-sm;
-    padding: 0.75rem;
-    transition: border-color $duration-fast $ease;
-
-    &:hover { border-color: rgba($primary, 0.3); }
-  }
-
-  &__img {
-    width: 52px;
-    height: 52px;
-    object-fit: cover;
-    border-radius: $radius-sm;
-    flex-shrink: 0;
-    background: $surface-container;
-  }
-
-  &__info {
-    flex: 1;
-    min-width: 0;
-  }
-
-  &__name {
-    font-family: $font-headline;
-    font-size: $body-sm;
-    font-weight: 400;
-    font-style: italic;
-    color: $on-surface;
-    margin: 0 0 0.2rem;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  &__price {
-    font-size: $body-sm;
+  &__cta {
+    background: none;
+    border: 1px solid rgba($primary, 0.35);
     color: $primary;
-    margin: 0;
-    letter-spacing: 0.03em;
-  }
-
-  &__add {
-    background: rgba($primary, 0.1);
-    border: 1px solid rgba($primary, 0.3);
-    color: $primary;
-    width: 32px;
-    height: 32px;
-    border-radius: $radius-full;
-    font-size: 1.2rem;
-    line-height: 1;
+    font-family: $font-body;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    padding: 0.65rem 1.5rem;
     cursor: pointer;
-    flex-shrink: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: background $duration-fast $ease, border-color $duration-fast $ease, transform $duration-fast $ease;
+    transition: background $duration-fast $ease, border-color $duration-fast $ease;
 
     &:hover {
-      background: rgba($primary, 0.22);
+      background: rgba($primary, 0.08);
       border-color: rgba($primary, 0.6);
-      transform: scale(1.1);
     }
-
-    &:active { transform: scale(0.95); }
   }
 }
 
-// ── Promo Banner ──────────────────────────────────────────────
-@keyframes promoIn {
-  from { opacity: 0; transform: translateY(12px); }
-  to   { opacity: 1; transform: translateY(0); }
+// ── Items list ────────────────────────────────────────────────
+.cart-items {
+  display: flex;
+  flex-direction: column;
+  padding: 0 1.5rem;
 }
 
-.cart-promo {
-  position: relative;
-  margin-top: $spacing-lg;
-  border-radius: $radius-sm;
-  overflow: hidden;
-  cursor: pointer;
-  flex: 1;
-  min-height: 200px;
-  animation: promoIn 0.5s $ease forwards;
+// ── Single item ───────────────────────────────────────────────
+.cart-item {
+  display: flex;
+  gap: 1rem;
+  padding: 1.1rem 0;
+  border-bottom: 1px solid rgba($outline-variant, 0.08);
+
+  &:last-of-type { border-bottom: none; }
+
+  &--enter { animation: cartItemEnter 0.4s $ease both; }
+
+  &__img-wrap {
+    position: relative;
+    flex-shrink: 0;
+    width: 80px;
+    height: 80px;
+    border-radius: $radius-sm;
+    overflow: hidden;
+    background: $surface-container;
+  }
 
   &__img {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    object-position: center center;
+    object-position: center top;
     display: block;
-    position: absolute;
-    inset: 0;
-    transition: transform 0.5s $ease;
   }
 
-  &__overlay {
+  &__badge {
     position: absolute;
-    inset: 0;
-    background: linear-gradient(
-      135deg,
-      rgba($background, 0.72) 0%,
-      rgba($background, 0.28) 100%
-    );
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-end;
-    padding: 0.85rem 1rem;
-    gap: 0.2rem;
-  }
-
-  &__tag {
-    font-family: $font-label;
+    top: 4px;
+    left: 4px;
+    background: $primary;
+    color: $on-primary;
     font-size: 8px;
     font-weight: 700;
-    letter-spacing: 0.3em;
+    letter-spacing: 0.1em;
     text-transform: uppercase;
-    color: $primary;
-    background: rgba($primary, 0.12);
-    border: 1px solid rgba($primary, 0.3);
-    padding: 0.15rem 0.5rem;
-    align-self: flex-start;
+    padding: 2px 5px;
+    border-radius: 2px;
   }
 
-  &__title {
+  &__body {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  &__top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.5rem;
+  }
+
+  &__name {
     font-family: $font-headline;
-    font-size: $title-md;
+    font-size: 1rem;
     font-weight: 400;
     font-style: italic;
     color: $on-surface;
     margin: 0;
-    letter-spacing: 0.03em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
-  &:hover &__img {
-    transform: scale(1.04);
+  &__remove {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    flex-shrink: 0;
+    background: none;
+    border: none;
+    color: rgba($on-surface-variant, 0.3);
+    cursor: pointer;
+    transition: color $duration-fast $ease;
+    padding: 0;
+
+    &:hover { color: $error; }
+  }
+
+  &__bottom {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  &__qty {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    background: $surface-container;
+    border: 1px solid rgba($outline-variant, 0.18);
+    border-radius: $radius-full;
+    overflow: hidden;
+
+    button {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 30px;
+      height: 30px;
+      background: none;
+      border: none;
+      color: $on-surface-variant;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: color $duration-fast $ease, background $duration-fast $ease;
+
+      &:hover:not(:disabled) { color: $primary; background: rgba($primary, 0.08); }
+      &:disabled { opacity: 0.2; cursor: not-allowed; }
+    }
+
+    span {
+      width: 28px;
+      text-align: center;
+      font-size: 12px;
+      font-weight: 700;
+      color: $on-surface;
+      border-left: 1px solid rgba($outline-variant, 0.12);
+      border-right: 1px solid rgba($outline-variant, 0.12);
+    }
+  }
+
+  &__prices {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.1rem;
+  }
+
+  &__price-old {
+    font-size: 11px;
+    color: $on-surface-variant;
+    text-decoration: line-through;
+    opacity: 0.45;
+  }
+
+  &__price-total {
+    font-family: $font-headline;
+    font-size: 1.05rem;
+    font-weight: 400;
+    color: $primary;
+    letter-spacing: 0.02em;
   }
 }
 
-// ── Responsive ────────────────────────────────────────────────
-@media screen and (max-width: 480px) {
-  .cart-drawer {
-    max-width: 100vw;
+// ── Sugerencia ───────────────────────────────────────────────
+.cart-suggest {
+  margin-top: 0.5rem;
+  padding: 1rem 0 0.5rem;
+  border-top: 1px solid rgba($outline-variant, 0.08);
+
+  &__label {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: $on-surface-variant;
+    opacity: 0.5;
+    margin: 0 0 0.6rem;
+  }
+
+  &__card {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    background: rgba($surface-container-high, 0.4);
+    border: 1px solid rgba($primary, 0.08);
+    border-radius: $radius-sm;
+    padding: 0.65rem;
+    transition: border-color $duration-fast $ease;
+
+    &:hover { border-color: rgba($primary, 0.22); }
+  }
+
+  &__img {
+    width: 46px;
+    height: 46px;
+    object-fit: cover;
+    border-radius: $radius-sm;
+    flex-shrink: 0;
+    background: $surface-container;
+  }
+
+  &__info { flex: 1; min-width: 0; }
+
+  &__name {
+    font-family: $font-headline;
+    font-size: 0.875rem;
+    font-style: italic;
+    font-weight: 400;
+    color: $on-surface;
+    margin: 0 0 0.15rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &__price {
+    font-size: 12px;
+    color: $primary;
+    margin: 0;
+  }
+
+  &__add {
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba($primary, 0.1);
+    border: 1px solid rgba($primary, 0.28);
+    border-radius: $radius-full;
+    color: $primary;
+    font-size: 1.1rem;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background $duration-fast $ease, transform $duration-fast $ease;
+
+    &:hover { background: rgba($primary, 0.22); transform: scale(1.08); }
+    &:active { transform: scale(0.95); }
+  }
+}
+
+// ── Footer ───────────────────────────────────────────────────
+.cart-footer {
+  flex-shrink: 0;
+  border-top: 1px solid rgba($primary, 0.1);
+  background: rgba($surface-container, 0.6);
+  backdrop-filter: blur(12px);
+  padding: 1.1rem 1.5rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+// ── Cupón ────────────────────────────────────────────────────
+.cart-coupon {
+  &__chip {
+    display: flex;
+    flex-direction: column;
     width: 100%;
-  }
-  .cart-header {
-    padding: 1.5rem 1.25rem 1rem;
-  }
-  .cart-content {
-    padding: 0.5rem 1rem;
-  }
-  .cart-footer {
-    padding: 1rem 1.25rem 1.25rem;
-  }
-  .cart-item {
-    &__img {
-      width: 88px;
-      height: 70px;
+    background: $surface-container-high;
+    border: 1px solid rgba($primary, 0.25);
+    border-radius: $radius-full;
+    overflow: hidden;
+    box-shadow: 0 2px 14px rgba(0,0,0,0.35);
+
+    &--applied { cursor: default; }
+
+    &--with-timer { border-radius: $radius-lg; }
+
+    &--suggest {
+      cursor: pointer;
+      transition: border-color $duration-fast $ease, box-shadow $duration-fast $ease;
+
+      &:hover:not(:disabled) {
+        border-color: rgba($primary, 0.5);
+        box-shadow: 0 4px 20px rgba(0,0,0,0.4), 0 0 0 1px rgba($primary, 0.12);
+      }
+      &:disabled { opacity: 0.5; cursor: not-allowed; }
+    }
+
+    &--urgent { border-color: rgba(#ff6b6b, 0.45); }
+
+    &-row {
+      display: flex;
+      align-items: center;
+      width: 100%;
+    }
+
+    &-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      min-width: 32px;
+      background: rgba($primary, 0.12);
+      border-radius: 50%;
+      color: $primary;
+      margin: 0.28rem 0 0.28rem 0.35rem;
+    }
+
+    &-code {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.09em;
+      color: $primary;
+      padding: 0 0.4rem;
+      white-space: nowrap;
+    }
+
+    &-value {
+      font-size: 10px;
+      color: rgba($on-surface, 0.45);
+      white-space: nowrap;
+    }
+
+    &-footer {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 0 0.65rem 0.4rem;
+      font-size: 9px;
+      font-weight: 500;
+      color: rgba($on-surface-variant, 0.55);
+      letter-spacing: 0.04em;
+      font-variant-numeric: tabular-nums;
+      transition: color $duration-base $ease;
+
+      svg { opacity: 0.6; flex-shrink: 0; }
+
+      &--urgent {
+        color: #ff6b6b;
+        animation: timerUrgent 0.9s ease-in-out infinite;
+      }
+    }
+
+    &-bar {
+      height: 2px;
+      background: rgba($primary, 0.08);
+
+      &-fill {
+        height: 100%;
+        background: $primary;
+        transition: width 1s linear, background $duration-base $ease;
+
+        .cart-coupon__chip--urgent & { background: #ff6b6b; }
+      }
+    }
+
+    &-apply {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: rgba($primary, 0.65);
+      border-left: 1px solid rgba($primary, 0.12);
+      padding: 0.5rem 0.75rem;
+      white-space: nowrap;
+    }
+
+    &-remove {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 34px;
+      min-height: 38px;
+      background: none;
+      border: none;
+      border-left: 1px solid rgba($primary, 0.1);
+      color: rgba($on-surface, 0.25);
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: background $duration-fast $ease, color $duration-fast $ease;
+
+      &:hover { background: rgba(255,255,255,0.04); color: rgba($on-surface, 0.6); }
     }
   }
+
+  &__suggestion {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    background: rgba($primary, 0.05);
+    border: 1px dashed rgba($primary, 0.3);
+    border-radius: $radius-sm;
+    color: $on-surface-variant;
+    font-size: 12px;
+    cursor: pointer;
+    text-align: left;
+    overflow: hidden;
+    transition: background $duration-fast $ease, border-color $duration-fast $ease;
+    margin-bottom: 0.5rem;
+
+    svg { color: $primary; flex-shrink: 0; }
+    strong { color: $primary; letter-spacing: 0.06em; }
+
+    &:hover {
+      background: rgba($primary, 0.1);
+      border-color: rgba($primary, 0.5);
+    }
+
+    // el padding va en la fila, no en el botón, para que la barra llegue al borde
+    &--with-timer { padding: 0; }
+  }
+
+  &__suggestion-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    width: 100%;
+    padding: 0.55rem 0.75rem;
+  }
+
+  &__suggestion-cta {
+    margin-left: auto;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: $primary;
+    white-space: nowrap;
+  }
+
+  &__row {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  &__input {
+    flex: 1;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba($outline-variant, 0.2);
+    color: $on-surface;
+    font-family: $font-body;
+    font-size: 12px;
+    letter-spacing: 0.05em;
+    padding: 0.55rem 0.85rem;
+    border-radius: $radius-sm;
+    outline: none;
+    transition: border-color $duration-fast $ease;
+
+    &::placeholder { color: rgba($on-surface, 0.22); }
+    &:focus { border-color: rgba($primary, 0.35); }
+  }
+
+  &__btn {
+    background: none;
+    border: 1px solid rgba($primary, 0.35);
+    color: $primary;
+    font-family: $font-body;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    padding: 0.55rem 1rem;
+    border-radius: $radius-sm;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background $duration-fast $ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+
+    &:hover:not(:disabled) { background: rgba($primary, 0.08); }
+    &:disabled { opacity: 0.45; cursor: not-allowed; }
+  }
+
+  &__spinner {
+    width: 11px;
+    height: 11px;
+    border: 1.5px solid rgba($primary, 0.3);
+    border-top-color: $primary;
+    border-radius: 50%;
+    animation: couponSpin 0.7s linear infinite;
+    flex-shrink: 0;
+  }
+
+  &__error {
+    font-size: 10px;
+    color: $error;
+    margin: 0.3rem 0 0;
+    letter-spacing: 0.03em;
+  }
+}
+
+// ── Desglose ─────────────────────────────────────────────────
+.cart-breakdown {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 0.6rem 0;
+  border-top: 1px solid rgba($outline-variant, 0.1);
+  border-bottom: 1px solid rgba($outline-variant, 0.1);
+
+  &__row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 11px;
+    color: $on-surface-variant;
+    letter-spacing: 0.04em;
+
+    &--discount span:last-child { color: #4caf82; font-weight: 600; }
+    &--savings span:last-child  { color: $primary; font-weight: 600; }
+  }
+
+  &__free {
+    font-weight: 700;
+    color: $primary;
+    letter-spacing: 0.08em;
+  }
+
+  &__hint {
+    font-size: 10px;
+    color: rgba($on-surface-variant, 0.5);
+    text-align: center;
+    margin: 0.1rem 0 0;
+    letter-spacing: 0.03em;
+  }
+}
+
+// ── Total ────────────────────────────────────────────────────
+.cart-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+
+  &__label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: $on-surface-variant;
+  }
+
+  &__val {
+    font-family: $font-headline;
+    font-size: 1.6rem;
+    font-weight: 400;
+    color: $primary;
+    letter-spacing: 0.02em;
+  }
+}
+
+// ── CTA ──────────────────────────────────────────────────────
+.cart-cta {
+  display: block;
+  width: 100%;
+  background: $primary;
+  color: $on-primary;
+  border: none;
+  cursor: pointer;
+  font-family: $font-body;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  text-align: center;
+  text-decoration: none;
+  padding: 1rem;
+  border-radius: $radius-sm;
+  position: relative;
+  overflow: hidden;
+  transition: background $duration-base $ease, box-shadow $duration-base $ease, transform $duration-fast $ease;
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(105deg, transparent 35%, rgba(255,255,255,0.15) 50%, transparent 65%);
+    transform: translateX(-100%);
+    transition: transform 0.5s $ease;
+  }
+
+  &:hover {
+    background: $gold-light;
+    box-shadow: 0 6px 28px rgba($primary, 0.35);
+    transform: translateY(-1px);
+
+    &::after { transform: translateX(100%); }
+  }
+
+  &:active { transform: translateY(0) scale(0.99); }
+}
+
+// ── Responsive ────────────────────────────────────────────────
+@media (max-width: 480px) {
+  .cart-drawer { width: 100vw; }
+  .cart-header { padding: 1.25rem 1.25rem 1rem; }
+  .cart-items  { padding: 0 1.25rem; }
+  .cart-footer { padding: 1rem 1.25rem 1.25rem; }
+  .cart-cta    { min-height: 48px; }
+}
+
+@media (max-width: 360px) {
+  .cart-coupon__row { flex-wrap: wrap; }
+  .cart-coupon__btn { width: 100%; justify-content: center; }
+  .cart-item__qty button { width: 36px; height: 36px; }
 }

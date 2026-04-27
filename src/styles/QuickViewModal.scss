@@ -245,5 +245,15 @@
     &__info {
       padding: $spacing-xl $section-padding-x-mobile $spacing-xl;
     }
+
+    &__close {
+      width: 44px;
+      height: 44px;
+      top: 0.5rem;
+      right: 0.5rem;
+      background: rgba($background, 0.7);
+      border: 1px solid rgba($primary, 0.2);
+      border-radius: 50%;
+    }
   }
 }

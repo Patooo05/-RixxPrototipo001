@@ -1,6 +1,6 @@
 import "../styles/ProductSkeleton.scss";
 
-const SkeletonCard = () => (
+export const SkeletonCard = () => (
   <div className="skeleton-card" aria-hidden="true">
     <div className="skeleton-card__image" />
     <div className="skeleton-card__info">

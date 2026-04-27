@@ -1,4 +1,4 @@
-import React, { useState, useContext } from "react";
+import { useState, useContext, useRef, useEffect } from "react";
 import { AuthContext } from "./AuthContext.jsx";
 import { useNavigate } from "react-router-dom";
 import "../styles/AuthModals.scss";
@@ -20,6 +20,19 @@ const LoginModal = ({ show, onClose, onSwitchToRegister }) => {
   const [error,    setError]    = useState("");
   const [loading,  setLoading]  = useState(false);
   const [showPwd,  setShowPwd]  = useState(false);
+  const modalRef = useRef(null);
+
+  useEffect(() => {
+    if (!show) return;
+    // Focus first focusable element
+    const first = modalRef.current?.querySelector('input, button');
+    first?.focus();
+
+    // Escape closes modal
+    const onKey = (e) => { if (e.key === "Escape") onClose(); };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [show, onClose]);
 
   if (!show) return null;
 
@@ -62,7 +75,7 @@ const LoginModal = ({ show, onClose, onSwitchToRegister }) => {
 
   return (
     <div className="auth-modal-overlay" onClick={(e) => e.target === e.currentTarget && onClose()}>
-      <div className="auth-modal" role="dialog" aria-modal="true" aria-labelledby="login-title">
+      <div className="auth-modal" ref={modalRef} role="dialog" aria-modal="true" aria-labelledby="login-title">
 
         <button className="auth-modal__close" onClick={onClose} aria-label="Cerrar">
           <IconClose />

@@ -1,4 +1,5 @@
 @use "variables" as *;
+@use "mixins" as m;
 
 .products-banner {
   position: relative;
@@ -18,6 +19,7 @@
     transform: translate(-50%, -50%);
     z-index: 1;
     filter: brightness(0.5);
+    will-change: transform;
   }
 
   &__overlay {
@@ -30,5 +32,70 @@
       rgba($background, 0.85)
     );
     z-index: 2;
+  }
+
+  &__content {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    padding-bottom: 14vh;
+    gap: $spacing-lg;
+    animation: banner-content-in 900ms cubic-bezier(0.215, 0.61, 0.355, 1) both;
+  }
+
+  &__eyebrow {
+    @include m.label-uppercase($size: $label-md);
+    color: $primary;
+    letter-spacing: 0.55em;
+    opacity: 0.85;
+  }
+
+  &__cta {
+    @include m.btn-primary;
+    text-decoration: none;
+    display: inline-block;
+    padding: 0.85rem 2.75rem;
+    font-size: $label-lg;
+    letter-spacing: 0.35em;
+  }
+
+  @keyframes banner-content-in {
+    from {
+      opacity: 0;
+      transform: translateY(18px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    opacity: 1 !important;
+    transform: none !important;
+
+    &__video {
+      will-change: auto;
+      transform: translate(-50%, -50%) !important;
+    }
+
+    &__content {
+      animation: none;
+    }
+  }
+
+  @include m.respond-to(mobile) {
+    &__content {
+      padding-bottom: 10vh;
+    }
+
+    &__cta {
+      padding: 0.75rem 2rem;
+      font-size: $label-md;
+    }
   }
 }

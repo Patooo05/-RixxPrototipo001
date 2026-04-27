@@ -7,6 +7,7 @@ import { AuthContext } from "../../AuthContext.jsx";
 import { useCart } from "../../CartContext.jsx";
 import LoginModal from "../../LoginModal.jsx";
 import RegisterModal from "../../RegisterModal.jsx";
+import { prefetchRoute } from "../../../hooks/usePrefetch.js";
 
 const Navbar = ({ onCartClick }) => {
   const [scrolled, setScrolled]        = useState(false);
@@ -32,7 +33,7 @@ const Navbar = ({ onCartClick }) => {
     return () => window.removeEventListener("rixx:open-register", handler);
   }, []);
 
-  // Cerrar menu al cambiar de ruta
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { setMenuOpen(false); }, [location.pathname]);
 
   // Helper: link activo
@@ -55,31 +56,31 @@ const Navbar = ({ onCartClick }) => {
                 </Link>
               </li>
               <li>
-                <Link to="/productos" className={isActive("/productos") ? "navbar__link--active" : ""}>
+                <Link to="/productos" className={isActive("/productos") ? "navbar__link--active" : ""} onMouseEnter={() => prefetchRoute('/productos')}>
                   Productos
                 </Link>
               </li>
               {isLoggedIn && (
                 <>
                   <li className="navbar__link-desktop-only">
-                    <Link to="/about" className={isActive("/about") ? "navbar__link--active" : ""}>
+                    <Link to="/about" className={isActive("/about") ? "navbar__link--active" : ""} onMouseEnter={() => prefetchRoute('/about')}>
                       Nosotros
                     </Link>
                   </li>
                   <li className="navbar__link-desktop-only">
-                    <Link to="/contacto" className={isActive("/contacto") ? "navbar__link--active" : ""}>
+                    <Link to="/contacto" className={isActive("/contacto") ? "navbar__link--active" : ""} onMouseEnter={() => prefetchRoute('/contacto')}>
                       Contacto
                     </Link>
                   </li>
                 </>
               )}
               <li className="navbar__link-mobile-only">
-                <Link to="/about" className={isActive("/about") ? "navbar__link--active" : ""}>
+                <Link to="/about" className={isActive("/about") ? "navbar__link--active" : ""} onMouseEnter={() => prefetchRoute('/about')}>
                   Nosotros
                 </Link>
               </li>
               <li className="navbar__link-mobile-only">
-                <Link to="/contacto" className={isActive("/contacto") ? "navbar__link--active" : ""}>
+                <Link to="/contacto" className={isActive("/contacto") ? "navbar__link--active" : ""} onMouseEnter={() => prefetchRoute('/contacto')}>
                   Contacto
                 </Link>
               </li>
@@ -121,12 +122,12 @@ const Navbar = ({ onCartClick }) => {
             {!isLoggedIn && (
               <ul className="navbar__links navbar__links-right">
                 <li>
-                  <Link to="/about" className={isActive("/about") ? "navbar__link--active" : ""}>
+                  <Link to="/about" className={isActive("/about") ? "navbar__link--active" : ""} onMouseEnter={() => prefetchRoute('/about')}>
                     Nosotros
                   </Link>
                 </li>
                 <li>
-                  <Link to="/contacto" className={isActive("/contacto") ? "navbar__link--active" : ""}>
+                  <Link to="/contacto" className={isActive("/contacto") ? "navbar__link--active" : ""} onMouseEnter={() => prefetchRoute('/contacto')}>
                     Contacto
                   </Link>
                 </li>
@@ -141,13 +142,13 @@ const Navbar = ({ onCartClick }) => {
               )}
               {isLoggedIn && !isAdmin && (
                 <>
-                  <Link to="/perfil" className="nav-icon-btn" aria-label="Perfil" onClick={closeMenu} data-tooltip="Perfil">
+                  <Link to="/perfil" className="nav-icon-btn" aria-label="Perfil" onClick={closeMenu} onMouseEnter={() => prefetchRoute('/perfil')} data-tooltip="Perfil">
                     <IconUser />
                   </Link>
-                  <Link to="/favoritos" className={`nav-icon-btn${isActive("/favoritos") ? " nav-icon-btn--active" : ""}`} aria-label="Favoritos" onClick={closeMenu} data-tooltip="Favoritos">
+                  <Link to="/favoritos" className={`nav-icon-btn${isActive("/favoritos") ? " nav-icon-btn--active" : ""}`} aria-label="Favoritos" onClick={closeMenu} onMouseEnter={() => prefetchRoute('/favoritos')} data-tooltip="Favoritos">
                     <IconHeart />
                   </Link>
-                  <Link to="/mis-pedidos" className={`nav-icon-btn${isActive("/mis-pedidos") ? " nav-icon-btn--active" : ""}`} aria-label="Mis pedidos" onClick={closeMenu} data-tooltip="Mis pedidos">
+                  <Link to="/mis-pedidos" className={`nav-icon-btn${isActive("/mis-pedidos") ? " nav-icon-btn--active" : ""}`} aria-label="Mis pedidos" onClick={closeMenu} onMouseEnter={() => prefetchRoute('/mis-pedidos')} data-tooltip="Mis pedidos">
                     <IconOrders />
                   </Link>
                   <button className="nav-icon-btn nav-cart" onClick={onCartClick} aria-label="Carrito" data-tooltip="Carrito">
@@ -159,7 +160,7 @@ const Navbar = ({ onCartClick }) => {
               )}
               {isAdmin && (
                 <>
-                  <Link to="/admin" className="nav-icon-btn" aria-label="Admin" onClick={closeMenu} data-tooltip="Admin">
+                  <Link to="/admin" className="nav-icon-btn" aria-label="Admin" onClick={closeMenu} onMouseEnter={() => prefetchRoute('/admin')} data-tooltip="Admin">
                     <IconGrid />
                   </Link>
                   <button className="nav-icon-btn" onClick={logout} aria-label="Cerrar sesión" data-tooltip="Cerrar sesión">

@@ -1,10 +1,13 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useContext } from "react";
 import { supabase, isSupabaseEnabled } from "../lib/supabase";
+import { AuthContext } from "./AuthContext.jsx";
 import "../styles/ProductReviews.scss";
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
 const PAGE_SIZE = 5;
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 /**
  * Formats a date string to Spanish long format.
@@ -39,6 +42,62 @@ const computeSummary = (reviews) => {
     total,
     distribution, // [count1★, count2★, count3★, count4★, count5★]
   };
+};
+
+/**
+ * Checks whether the user (by email) has an "entregado" order containing the
+ * given product. Verification is done by both product id and name to handle
+ * older orders. Uses raw fetch with AbortController (8 s timeout).
+ */
+const checkVerifiedPurchase = async (email, productId, productName) => {
+  if (!email || !SUPABASE_URL || !SUPABASE_ANON_KEY) return false;
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 8000);
+
+  try {
+    const url =
+      `${SUPABASE_URL}/rest/v1/orders` +
+      `?select=items,status` +
+      `&user_email=eq.${encodeURIComponent(email)}` +
+      `&status=eq.entregado`;
+
+    const res = await fetch(url, {
+      signal: controller.signal,
+      headers: {
+        apikey: SUPABASE_ANON_KEY,
+        Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!res.ok) {
+      console.warn("[ProductReviews] orders fetch responded", res.status);
+      return false;
+    }
+
+    const orders = await res.json();
+
+    // Each order.items is an array of objects like { id, name, ... }
+    return orders.some((order) => {
+      const items = Array.isArray(order.items) ? order.items : [];
+      return items.some(
+        (item) =>
+          (productId != null && String(item.id) === String(productId)) ||
+          (productName && item.name &&
+            item.name.toLowerCase().trim() === productName.toLowerCase().trim())
+      );
+    });
+  } catch (err) {
+    if (err.name === "AbortError") {
+      console.warn("[ProductReviews] purchase-check timed out");
+    } else {
+      console.error("[ProductReviews] purchase-check error:", err);
+    }
+    return false;
+  } finally {
+    clearTimeout(timer);
+  }
 };
 
 // ── Sub-components ─────────────────────────────────────────────────────────
@@ -152,14 +211,37 @@ const DistributionBar = ({ label, count, total }) => {
   );
 };
 
+// ── Verified-purchase badge ────────────────────────────────────────────────
+
+const VerifiedBadge = () => (
+  <span
+    className="reviews__badge reviews__badge--verified"
+    aria-label="Compra verificada"
+    title="Este usuario compró el producto"
+  >
+    ✓ Compra verificada
+  </span>
+);
+
 // ── Main Component ─────────────────────────────────────────────────────────
 
-const ProductReviews = ({ productId }) => {
-  const [reviews,  setReviews]  = useState([]);
-  const [loading,  setLoading]  = useState(true);
-  const [showAll,  setShowAll]  = useState(false);
-  const [formOpen, setFormOpen] = useState(false);
-  const [submitState, setSubmitState] = useState("idle"); // idle | loading | success | error
+/**
+ * Props:
+ *   productId   — ID of the product (required)
+ *   productName — display name of the product (optional, used for legacy order matching)
+ */
+const ProductReviews = ({ productId, productName }) => {
+  const { currentUser } = useContext(AuthContext);
+
+  const [reviews,       setReviews]       = useState([]);
+  const [loading,       setLoading]       = useState(true);
+  const [showAll,       setShowAll]       = useState(false);
+  const [formOpen,      setFormOpen]      = useState(false);
+  const [submitState,   setSubmitState]   = useState("idle"); // idle | loading | success | error
+
+  // Verified-purchase state for the current user
+  const [isVerified,      setIsVerified]      = useState(false);
+  const [verifyChecked,   setVerifyChecked]   = useState(false); // true once the check is done
 
   // Form fields
   const [name,    setName]    = useState("");
@@ -169,7 +251,31 @@ const ProductReviews = ({ productId }) => {
 
   const formRef = useRef(null);
 
-  // ── Fetch ──────────────────────────────────────────────────────────────
+  // ── Verified purchase check ────────────────────────────────────────────
+
+  useEffect(() => {
+    // Reset whenever product or user changes
+    setIsVerified(false);
+    setVerifyChecked(false);
+
+    if (!currentUser?.email || productId == null || productId === "") {
+      setVerifyChecked(true);
+      return;
+    }
+
+    let cancelled = false;
+    checkVerifiedPurchase(currentUser.email, productId, productName).then(
+      (result) => {
+        if (!cancelled) {
+          setIsVerified(result);
+          setVerifyChecked(true);
+        }
+      }
+    );
+    return () => { cancelled = true; };
+  }, [currentUser?.email, productId, productName]);
+
+  // ── Fetch reviews ──────────────────────────────────────────────────────
 
   const fetchReviews = useCallback(async () => {
     // Guard: skip fetch if productId is invalid
@@ -230,8 +336,8 @@ const ProductReviews = ({ productId }) => {
     const e = {};
     if (!name.trim())              e.name    = "Ingresá tu nombre.";
     if (rating === 0)              e.rating  = "Seleccioná una puntuación.";
-    if (comment.trim().length < 20)
-      e.comment = `El comentario debe tener al menos 20 caracteres (${comment.trim().length}/20).`;
+    if (comment.trim().length < 10)
+      e.comment = `El comentario debe tener al menos 10 caracteres (${comment.trim().length}/10).`;
     return e;
   };
 
@@ -249,7 +355,8 @@ const ProductReviews = ({ productId }) => {
       author_name:       name.trim(),
       rating,
       comment:           comment.trim(),
-      verified_purchase: false,
+      verified_purchase: isVerified,  // campo legado (boolean)
+      verified:          isVerified,  // nuevo campo en la tabla
       created_at:        new Date().toISOString(),
     };
 
@@ -364,10 +471,9 @@ const ProductReviews = ({ productId }) => {
               <div className="reviews__item-header">
                 <div className="reviews__item-meta">
                   <span className="reviews__item-author">{review.author_name}</span>
-                  {review.verified_purchase && (
-                    <span className="reviews__badge" aria-label="Compra verificada">
-                      ✓ Compra verificada
-                    </span>
+                  {/* Mostrar badge si la reseña tiene verified:true o verified_purchase:true */}
+                  {(review.verified || review.verified_purchase) && (
+                    <VerifiedBadge />
                   )}
                 </div>
                 <time
@@ -401,7 +507,13 @@ const ProductReviews = ({ productId }) => {
       {formOpen && (
         <div className="reviews__form-wrap" ref={formRef}>
           <div className="reviews__form-inner">
-            <h3 className="reviews__form-title">Tu opinión</h3>
+            <div className="reviews__form-title-row">
+              <h3 className="reviews__form-title">Tu opinión</h3>
+              {/* Badge en el formulario: solo si la verificación terminó y es positiva */}
+              {verifyChecked && isVerified && (
+                <VerifiedBadge />
+              )}
+            </div>
 
             {submitState === "success" ? (
               <div className="reviews__success" role="status">
@@ -490,3 +602,24 @@ const ProductReviews = ({ productId }) => {
 };
 
 export default ProductReviews;
+
+/*
+ * ─────────────────────────────────────────────────────────────────────────────
+ * SQL — Agregar columna `verified` a la tabla reviews en Supabase
+ * Correr en el SQL Editor de Supabase (una sola vez):
+ *
+ *   ALTER TABLE reviews
+ *     ADD COLUMN IF NOT EXISTS verified boolean NOT NULL DEFAULT false;
+ *
+ * Si también querés un índice para filtrar rápido por compras verificadas:
+ *
+ *   CREATE INDEX IF NOT EXISTS idx_reviews_verified
+ *     ON reviews (verified)
+ *     WHERE verified = true;
+ *
+ * Nota: el campo `verified_purchase` (boolean) ya existía en la tabla y se
+ * mantiene para retrocompatibilidad. El nuevo campo `verified` es el canónico
+ * que escribe esta versión del componente. El listado de reseñas muestra el
+ * badge si cualquiera de los dos campos es true.
+ * ─────────────────────────────────────────────────────────────────────────────
+ */

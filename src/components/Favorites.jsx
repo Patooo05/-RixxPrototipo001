@@ -3,6 +3,8 @@ import { Link } from "react-router-dom";
 import { useWishlist } from "./WishlistContext";
 import { useCart } from "./CartContext";
 import { ProductsContext } from "./ProductsContext";
+import { usePageTitle } from "../hooks/usePageTitle";
+import { useToast } from "./ToastContext";
 import "../styles/Favorites.scss";
 
 const formatPrice = (n) =>
@@ -29,9 +31,11 @@ const HeartFilledIcon = () => (
 );
 
 const Favorites = () => {
-  const { items, toggleWishlist } = useWishlist();
+  usePageTitle("Mis favoritos");
+  const { items, toggleWishlist, orphansRemovedCount, dismissOrphansNotice } = useWishlist();
   const { add, openCart } = useCart();
   const { products } = useContext(ProductsContext);
+  const { toast } = useToast();
 
   // Resolve full product objects from wishlist IDs
   const wishlistProducts = (products ?? []).filter((p) =>
@@ -41,10 +45,25 @@ const Favorites = () => {
   const handleAddToCart = (product) => {
     add(product, 1);
     openCart();
+    toast.success(`${product.name} agregado al carrito`);
   };
 
   return (
     <main className="favorites">
+      {orphansRemovedCount > 0 && (
+        <div className="favorites__orphan-notice" role="alert">
+          <span className="favorites__orphan-notice-text">
+            Algunos productos ya no están disponibles y fueron removidos de tus favoritos.
+          </span>
+          <button
+            className="favorites__orphan-notice-dismiss"
+            onClick={dismissOrphansNotice}
+            aria-label="Cerrar aviso"
+          >
+            ×
+          </button>
+        </div>
+      )}
       <header className="favorites__header">
         <span className="favorites__eyebrow">Mi cuenta</span>
         <h1 className="favorites__title">

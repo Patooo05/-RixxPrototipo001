@@ -1,8 +1,9 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback, memo } from "react";
 import { Link } from "react-router-dom";
 import { useCart } from "./CartContext";
 import { useWishlist } from "./WishlistContext";
 import QuickViewModal from "./QuickViewModal";
+import { prefetchRoute } from "../hooks/usePrefetch.js";
 import "../styles/ProductCard.scss";
 
 const formatPrice = (price) => "$ " + Number(price).toLocaleString("es-UY");
@@ -68,6 +69,7 @@ const ProductCard = ({ product, index = 0 }) => {
   const [quickViewOpen, setQuickViewOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [imgLoaded, setImgLoaded] = useState(false);
   const shareRef = useRef(null);
 
   useEffect(() => {
@@ -93,48 +95,57 @@ const ProductCard = ({ product, index = 0 }) => {
     ? product.price * (1 - product.descuento.porcentaje / 100)
     : null;
 
-  const handleAddToCart = (e) => {
+  const handleAddToCart = useCallback((e) => {
     e.preventDefault();
     if (!soldOut && cart) {
       cart.add(product, 1);
       cart.openCart();
     }
-  };
+  }, [soldOut, cart, product]);
 
-  const handleWishlist = (e) => {
+  const handleWishlist = useCallback((e) => {
     e.preventDefault();
     e.stopPropagation();
     toggleWishlist(product.id);
-  };
+  }, [toggleWishlist, product.id]);
 
-  const handleQuickView = (e) => {
+  const handleQuickView = useCallback((e) => {
     e.preventDefault();
     e.stopPropagation();
     setQuickViewOpen(true);
-  };
+  }, []);
 
   const productUrl = `${window.location.origin}/producto/${product.id}`;
   const shareText = `Mirá estos lentes: ${product.name} — ${productUrl}`;
 
-  const handleShareWhatsApp = (e) => {
+  const handleShareToggle = useCallback((e) => {
+    e.preventDefault();
+    setShareOpen((o) => !o);
+  }, []);
+
+  const handleShareWhatsApp = useCallback((e) => {
     e.preventDefault();
     window.open(`https://wa.me/?text=${encodeURIComponent(shareText)}`, "_blank", "noopener");
     setShareOpen(false);
-  };
+  }, [shareText]);
 
-  const handleShareInstagram = async (e) => {
+  const handleShareInstagram = useCallback(async (e) => {
     e.preventDefault();
     if (navigator.share) {
       try {
         await navigator.share({ title: product.name, text: shareText, url: productUrl });
-      } catch (_) { /* user cancelled */ }
+      } catch { /* user cancelled */ }
     } else {
       await navigator.clipboard.writeText(productUrl);
       setCopied(true);
       setTimeout(() => setCopied(false), 2500);
     }
     setShareOpen(false);
-  };
+  }, [product.name, shareText, productUrl]);
+
+  const handleImgLoad = useCallback(() => {
+    setImgLoaded(true);
+  }, []);
 
   return (
     <>
@@ -160,10 +171,22 @@ const ProductCard = ({ product, index = 0 }) => {
         </button>
 
         {/* Imagen */}
-        <Link to={`/producto/${product.id}`} className="product-card__img-link">
-          <div className="product-card__image-wrapper">
+        <Link to={`/producto/${product.id}`} className="product-card__img-link" onMouseEnter={() => prefetchRoute('/producto')}>
+          <div className={`product-card__image-wrapper${!imgLoaded && product.image ? " product-card__image-skeleton" : ""}`}>
             {product.image
-              ? <img src={product.image} alt={product.name} loading="lazy" />
+              ? <img
+                  src={product.image}
+                  alt={product.name}
+                  width={400}
+                  height={533}
+                  loading="lazy"
+                  decoding="async"
+                  fetchPriority="low"
+                  draggable="false"
+                  onLoad={handleImgLoad}
+                  className={`product-card__img${imgLoaded ? " product-card__img--loaded" : ""}`}
+                  style={{ opacity: imgLoaded ? 1 : 0, transition: "opacity 0.3s ease" }}
+                />
               : <div className="product-card__image-placeholder" />
             }
 
@@ -184,7 +207,7 @@ const ProductCard = ({ product, index = 0 }) => {
           {product.category && (
             <span className="product-card__category">{product.category}</span>
           )}
-          <Link to={`/producto/${product.id}`} className="product-card__name-link">
+          <Link to={`/producto/${product.id}`} className="product-card__name-link" onMouseEnter={() => prefetchRoute('/producto')}>
             <h3 className="product-card__name">{product.name}</h3>
           </Link>
 
@@ -214,7 +237,7 @@ const ProductCard = ({ product, index = 0 }) => {
           <div className="product-card__share" ref={shareRef}>
             <button
               className="product-card__share-btn"
-              onClick={(e) => { e.preventDefault(); setShareOpen((o) => !o); }}
+              onClick={handleShareToggle}
               aria-label="Compartir producto"
               aria-expanded={shareOpen}
             >
@@ -262,4 +285,12 @@ const ProductCard = ({ product, index = 0 }) => {
   );
 };
 
-export default ProductCard;
+export default memo(ProductCard, (prev, next) => {
+  return (
+    prev.product?.id === next.product?.id &&
+    prev.product?.stock === next.product?.stock &&
+    prev.product?.price === next.product?.price &&
+    prev.product?.descuento === next.product?.descuento &&
+    prev.isWishlisted === next.isWishlisted
+  );
+});

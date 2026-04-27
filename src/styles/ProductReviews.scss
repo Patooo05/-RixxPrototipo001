@@ -10,9 +10,14 @@
   margin: 0 auto;
   padding: $spacing-3xl $spacing-xl $spacing-2xl;
   color: $on-surface;
+  box-sizing: border-box;
 
   @include respond-to(mobile) {
     padding: $spacing-2xl $section-padding-x-mobile $spacing-xl;
+  }
+
+  @media (max-width: 480px) {
+    padding: $spacing-xl 1rem $spacing-lg;
   }
 }
 
@@ -267,11 +272,20 @@
   font-weight: 700;
   letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: $primary;
-  border: 1px solid rgba($primary, 0.25);
+  color: $primary;           // $primary = #D4AF37 (dorado)
+  border: 1px solid rgba($primary, 0.35);
   padding: 0.15rem 0.55rem;
   border-radius: $radius-sm;
-  background: rgba($primary, 0.05);
+  background: rgba($primary, 0.08);
+
+  // Variante usada dentro del formulario (tamaño levemente mayor)
+  &--verified {
+    font-size: 10px;
+    padding: 0.2rem 0.65rem;
+    border-color: rgba($primary, 0.45);
+    background: rgba($primary, 0.10);
+    box-shadow: 0 0 0 3px rgba($primary, 0.06);
+  }
 }
 
 .reviews__item-date {
@@ -361,6 +375,15 @@
   max-width: 560px;
 }
 
+// Row that holds the form title + optional verified badge side by side
+.reviews__form-title-row {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+  flex-wrap: wrap;
+  margin-bottom: $spacing-xl;
+}
+
 .reviews__form-title {
   font-family: $font-headline;
   font-size: $title-lg;
@@ -368,7 +391,7 @@
   font-style: italic;
   letter-spacing: 0.02em;
   color: $on-surface;
-  margin: 0 0 $spacing-xl;
+  margin: 0;  // margin now handled by .reviews__form-title-row
 }
 
 .reviews__form {

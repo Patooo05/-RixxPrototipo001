@@ -55,6 +55,76 @@
   }
 }
 
+// ── Charts section ────────────────────────────────────────────
+.ventas-charts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+
+  @media (max-width: 900px) { grid-template-columns: 1fr; }
+
+  &__card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    border-radius: 8px;
+    padding: 1.5rem;
+  }
+
+  &__kpis {
+    grid-column: 1 / -1;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    border-radius: 8px;
+    padding: 1.5rem;
+  }
+
+  &__kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    margin-top: 0.5rem;
+
+    @media (max-width: 900px) { grid-template-columns: repeat(2, 1fr); }
+    @media (max-width: 480px) { grid-template-columns: 1fr 1fr; }
+  }
+
+  &__kpi {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 6px;
+  }
+
+  &__kpi-label {
+    font-family: $font-label;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: rgba($on-surface, 0.38);
+  }
+
+  &__kpi-value {
+    font-family: $font-headline;
+    font-size: 1.6rem;
+    font-weight: 300;
+    color: $primary;
+    line-height: 1;
+  }
+
+  &__kpi-sub {
+    font-family: $font-label;
+    font-size: 8px;
+    letter-spacing: 0.12em;
+    color: rgba($on-surface, 0.25);
+    text-transform: uppercase;
+    margin-top: 0.1rem;
+  }
+}
+
 .ventas-chart-card {
   background: rgba($surface-container-lowest, 0.4);
   border: 1px solid rgba($on-surface, 0.08);
@@ -1302,4 +1372,125 @@
   text-transform: uppercase;
   color: rgba($on-surface, 0.3);
   padding: 1.5rem 0;
+}
+
+// ── Pagination ────────────────────────────────────────────────────────────────
+.vl__pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-top: 1px solid rgba($on-surface, 0.07);
+  margin-top: 4px;
+}
+
+.vl__pagination-info {
+  font-family: $font-label;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: rgba($on-surface, 0.3);
+}
+
+.vl__page-btn {
+  padding: 5px 12px;
+  background: transparent;
+  border: 1px solid rgba($on-surface, 0.1);
+  border-radius: 6px;
+  color: rgba($on-surface, 0.55);
+  font-family: $font-label;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  transition: border-color 150ms ease, color 150ms ease, background 150ms ease;
+
+  &:hover:not(:disabled) {
+    border-color: rgba($primary, 0.35);
+    color: $primary;
+    background: rgba($primary, 0.06);
+  }
+
+  &--disabled,
+  &:disabled {
+    color: rgba($on-surface, 0.2);
+    cursor: not-allowed;
+    border-color: rgba($on-surface, 0.06);
+  }
+}
+
+// ── Quick Sale Combobox ───────────────────────────────────────
+.qs-combobox {
+  position: relative;
+  width: 100%;
+
+  &__trigger {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 9px 12px;
+    background: rgba(#fff, .04);
+    border: 1px solid rgba(#fff, .1);
+    border-radius: 8px;
+    cursor: pointer;
+    color: #fff;
+    font-size: 0.875rem;
+    transition: border-color .2s;
+    &:hover, &--open { border-color: $primary; }
+    &:focus-visible { outline: 2px solid $primary; outline-offset: 2px; }
+  }
+
+  &__selected-name { flex: 1; font-weight: 500; text-align: left; }
+  &__selected-meta { font-size: 0.75rem; color: rgba(#fff, .45); white-space: nowrap; }
+  &__placeholder   { flex: 1; color: rgba(#fff, .3); text-align: left; }
+  &__arrow         { margin-left: auto; opacity: .5; flex-shrink: 0; }
+
+  &__dropdown {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0; right: 0;
+    background: #1c1c1c;
+    border: 1px solid rgba(#fff, .1);
+    border-radius: 8px;
+    z-index: 10000;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(#000, .6);
+  }
+
+  &__search {
+    width: 100%;
+    padding: 8px 12px;
+    background: rgba(#fff, .04);
+    border: none;
+    border-bottom: 1px solid rgba(#fff, .08);
+    color: #fff;
+    font-size: 0.8125rem;
+    outline: none;
+    &::placeholder { color: rgba(#fff, .28); }
+  }
+
+  &__list {
+    list-style: none;
+    margin: 0;
+    padding: 4px 0;
+    max-height: 210px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(#fff, .12) transparent;
+  }
+
+  &__empty { padding: 12px; text-align: center; color: rgba(#fff, .3); font-size: .8rem; }
+
+  &__option {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    cursor: pointer;
+    transition: background .15s;
+    &:hover            { background: rgba(#fff, .05); }
+    &--selected        { background: rgba($primary, .1); }
+    &-name             { font-size: .875rem; color: #fff; }
+    &-meta             { font-size: .75rem; color: rgba(#fff, .4); white-space: nowrap; }
+  }
 }

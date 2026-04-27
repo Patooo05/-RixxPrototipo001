@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { Link } from "react-router-dom";
 import { useCart } from "./CartContext";
@@ -8,6 +8,7 @@ const formatPrice = (price) => "$ " + Number(price).toLocaleString("es-UY");
 
 const QuickViewModal = ({ product, onClose }) => {
   const cart = useCart();
+  const panelRef = useRef(null);
 
   const hasDiscount =
     product.descuento && new Date(product.descuento.hasta) > new Date();
@@ -21,6 +22,30 @@ const QuickViewModal = ({ product, onClose }) => {
       onClose();
     }
   };
+
+  // Focus panel on mount + trap focus inside
+  useEffect(() => {
+    const panel = panelRef.current;
+    if (!panel) return;
+    panel.focus();
+
+    const focusable = panel.querySelectorAll(
+      'a[href], button:not([disabled]), input, textarea, select, [tabindex]:not([tabindex="-1"])'
+    );
+    const first = focusable[0];
+    const last  = focusable[focusable.length - 1];
+
+    const handleTab = (e) => {
+      if (e.key !== "Tab") return;
+      if (e.shiftKey) {
+        if (document.activeElement === first) { e.preventDefault(); last?.focus(); }
+      } else {
+        if (document.activeElement === last)  { e.preventDefault(); first?.focus(); }
+      }
+    };
+    panel.addEventListener("keydown", handleTab);
+    return () => panel.removeEventListener("keydown", handleTab);
+  }, []);
 
   // Close on Escape key
   useEffect(() => {
@@ -44,10 +69,18 @@ const QuickViewModal = ({ product, onClose }) => {
   };
 
   return createPortal(
-    <div className="quick-view-overlay" onClick={handleOverlayClick}>
-      <div className="quick-view-panel">
-        <button className="quick-view-panel__close" onClick={onClose} aria-label="Cerrar">
-          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5">
+    <div className="quick-view-overlay" onClick={handleOverlayClick} aria-hidden="true">
+      <div
+        className="quick-view-panel"
+        ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="qv-name"
+        tabIndex={-1}
+        aria-hidden="false"
+      >
+        <button className="quick-view-panel__close" onClick={onClose} aria-label="Cerrar vista rápida">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
             <line x1="4" y1="4" x2="16" y2="16" />
             <line x1="16" y1="4" x2="4" y2="16" />
           </svg>
@@ -55,7 +88,14 @@ const QuickViewModal = ({ product, onClose }) => {
 
         <div className="quick-view-panel__image">
           {product.image ? (
-            <img src={product.image} alt={product.name} />
+            <img
+              src={product.image}
+              alt={product.name}
+              loading="lazy"
+              decoding="async"
+              width={400}
+              height={500}
+            />
           ) : (
             <div className="quick-view-panel__image-placeholder" />
           )}
@@ -66,7 +106,7 @@ const QuickViewModal = ({ product, onClose }) => {
             <span className="quick-view-panel__category">{product.category}</span>
           )}
 
-          <h2 className="quick-view-panel__name">{product.name}</h2>
+          <h2 id="qv-name" className="quick-view-panel__name">{product.name}</h2>
 
           <div className="quick-view-panel__pricing">
             {hasDiscount ? (

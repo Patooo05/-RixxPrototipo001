@@ -617,7 +617,8 @@
     padding: 4rem 1.5rem 4rem;
 
     &__track {
-      height: 400px;
+      height: auto;
+      min-height: 300px;
     }
 
     // Fully hide side cards on very small screens to avoid overflow

@@ -14,7 +14,9 @@
       "Bash(winget install:*)",
       "Bash(py:*)",
       "Bash(dir \"C:\\\\Users\\\\user\\\\.claude\\\\skills\\\\ui-ux-pro-max\\\\scripts\")",
-      "Bash(dir \"C:\\\\Users\\\\user\\\\.claude\\\\skills\\\\ui-ux-pro-max\\\\data\")"
+      "Bash(dir \"C:\\\\Users\\\\user\\\\.claude\\\\skills\\\\ui-ux-pro-max\\\\data\")",
+      "Bash(wc -l src/components/*.jsx)",
+      "Bash(grep -r \"setInterval\\\\|setTimeout\" src/components/*.jsx)"
     ]
   }
 }

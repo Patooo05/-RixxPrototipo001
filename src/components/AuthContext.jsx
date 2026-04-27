@@ -1,4 +1,5 @@
-import React, { createContext, useState, useEffect, useCallback } from "react";
+/* eslint-disable react-refresh/only-export-components */
+import { createContext, useState, useEffect, useCallback } from "react";
 import { supabase } from "../lib/supabase";
 
 export const AuthContext = createContext();
@@ -67,8 +68,8 @@ const LocalStorageAuthProvider = ({ children }) => {
   };
 
   const register = (name, email, password) => {
-    if (!name || !email || !password) return false;
-    if (users.some(u => u.email === email)) return false;
+    if (!name || !email || !password) return { ok: false, error: "Completá todos los campos" };
+    if (users.some(u => u.email === email)) return { ok: false, error: "Este email ya está registrado" };
     const newUser = {
       id: Date.now(),
       name,
@@ -83,7 +84,33 @@ const LocalStorageAuthProvider = ({ children }) => {
     const safe = safeUser(newUser);
     setCurrentUser(safe);
     localStorage.setItem("currentUser", JSON.stringify(safe));
-    return true;
+    return { ok: true };
+  };
+
+  const updateUser = ({ name, email, password }) => {
+    if (!currentUser) return { ok: false, error: "No hay sesión activa" };
+    const trimmedName = (name ?? "").trim();
+    const trimmedEmail = (email ?? "").trim();
+    if (!trimmedName) return { ok: false, error: "El nombre no puede estar vacío" };
+    if (!trimmedEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail))
+      return { ok: false, error: "Email inválido" };
+    if (
+      trimmedEmail !== currentUser.email &&
+      users.some(u => u.email === trimmedEmail && u.id !== currentUser.id)
+    ) return { ok: false, error: "Ese email ya está en uso" };
+
+    const updated = users.map(u => {
+      if (u.id !== currentUser.id) return u;
+      const base = { ...u, name: trimmedName, email: trimmedEmail };
+      return password ? { ...base, password: hashPwd(password) } : base;
+    });
+    saveUsers(updated);
+
+    const updatedUser = updated.find(u => u.id === currentUser.id);
+    const { password: _omit, ...safe } = updatedUser;
+    setCurrentUser(safe);
+    localStorage.setItem("currentUser", JSON.stringify(safe));
+    return { ok: true };
   };
 
   const toggleUserStatus = (id) => {
@@ -138,6 +165,7 @@ const LocalStorageAuthProvider = ({ children }) => {
       login,
       logout,
       register,
+      updateUser,
       isLoggedIn,
       isAdmin,
       username,
@@ -288,40 +316,95 @@ const SupabaseAuthProvider = ({ children }) => {
   };
 
   const register = async (name, email, password) => {
-    if (!name || !email || !password) return false;
+    if (!name || !email || !password) return { ok: false, error: "Completá todos los campos" };
+
+    // ── Verificar email duplicado en localStorage primero ──────────────────────
+    const localUsers = (() => { try { return JSON.parse(localStorage.getItem("users") || "[]"); } catch { return []; } })();
+    if (localUsers.some(u => u.email === email)) {
+      return { ok: false, error: "Este email ya está registrado. ¿Querés iniciar sesión?" };
+    }
+
+    // ── Intentar Supabase Auth ─────────────────────────────────────────────────
+    let supabaseUserId = null;
     try {
       const { data, error } = await Promise.race([
         supabase.auth.signUp({ email, password }),
         new Promise((_, reject) => setTimeout(() => reject(new Error('signUp-timeout')), 10000)),
       ]);
+
+      if (error) {
+        const msg  = error.message?.toLowerCase() ?? "";
+        const code = error.code ?? "";
+        const status = error.status ?? 0;
+        // Email duplicado → error definitivo, no hacer fallback
+        if (code === "user_already_exists" || msg.includes("already") || msg.includes("registered")) {
+          return { ok: false, error: "Este email ya está registrado. ¿Querés iniciar sesión?" };
+        }
+        // Todos los demás errores (rate limit, email inválido, contraseña débil, etc.)
+        // → continuar con fallback localStorage
+        console.warn("[Auth] signUp Supabase falló, usando fallback localStorage:", code, error.message);
+      } else {
+        supabaseUserId = data.user?.id ?? null;
+      }
+    } catch (err) {
+      if (err.message !== "signUp-timeout") {
+        console.warn("[Auth] signUp excepción, usando fallback localStorage:", err.message);
+      }
+    }
+
+    // ── Crear usuario localmente (fallback o complemento del auth de Supabase) ──
+    const newUser = {
+      id: supabaseUserId ?? crypto.randomUUID(),
+      name,
+      email,
+      password: hashPwd(password),
+      role: "Cliente",
+      active: true,
+      permissions: [],
+    };
+
+    // Guardar en localStorage
+    try {
+      localStorage.setItem("users", JSON.stringify([...localUsers, newUser]));
+    } catch { /* quota — no crítico */ }
+
+    // Intentar crear perfil en Supabase user_profiles en segundo plano
+    const { password: _omit, ...profilePayload } = newUser;
+    supabase.from("user_profiles").upsert(profilePayload, { onConflict: "id" }).then(null, () => {});
+
+    const { password: _pw, ...safe } = newUser;
+    setCurrentUser(safe);
+    localStorage.setItem("currentUser", JSON.stringify(safe));
+    return { ok: true };
+  };
+
+  const updateUser = async ({ name, email, password }) => {
+    if (!currentUser) return { ok: false, error: "No hay sesión activa" };
+    const trimmedName = (name ?? "").trim();
+    const trimmedEmail = (email ?? "").trim();
+    if (!trimmedName) return { ok: false, error: "El nombre no puede estar vacío" };
+    if (!trimmedEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail))
+      return { ok: false, error: "Email inválido" };
+
+    try {
+      const updates = { name: trimmedName, email: trimmedEmail };
+      const { error } = await supabase
+        .from("user_profiles")
+        .update(updates)
+        .eq("id", currentUser.id);
       if (error) throw error;
 
-      const userId = data.user?.id;
-      if (!userId) throw new Error("No user ID returned from signUp");
+      if (password) {
+        const { error: pwdError } = await supabase.auth.updateUser({ password });
+        if (pwdError) throw pwdError;
+      }
 
-      // Check if admin pre-created a profile for this email
-      const { data: existing } = await supabase
-        .from("user_profiles")
-        .select("*")
-        .eq("email", email)
-        .single();
-
-      const profilePayload = {
-        id: userId,
-        name: existing?.name || name,
-        email,
-        role: existing?.role || "Cliente",
-        active: true,
-        permissions: existing?.permissions || [],
-      };
-      await Promise.race([
-        supabase.from("user_profiles").upsert(profilePayload, { onConflict: "id" }),
-        new Promise((_, reject) => setTimeout(() => reject(new Error('upsert-timeout')), 10000)),
-      ]);
-      setCurrentUser(profilePayload);
-      return true;
+      const updated = { ...currentUser, name: trimmedName, email: trimmedEmail };
+      setCurrentUser(updated);
+      localStorage.setItem("currentUser", JSON.stringify(updated));
+      return { ok: true };
     } catch {
-      return false;
+      return { ok: false, error: "No se pudo actualizar el perfil. Intentá de nuevo." };
     }
   };
 
@@ -403,6 +486,7 @@ const SupabaseAuthProvider = ({ children }) => {
       login,
       logout,
       register,
+      updateUser,
       isLoggedIn,
       isAdmin,
       username,

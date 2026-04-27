@@ -1,4 +1,5 @@
 import { useContext, useEffect } from "react";
+import { usePageTitle } from "../hooks/usePageTitle";
 import ProductCard from "./ProductCard";
 import FilterBar from "./FilterBar";
 import ProductSkeleton from "./ProductSkeleton";
@@ -13,6 +14,7 @@ const CATEGORY_DESCRIPTIONS = {
 };
 
 const ProductsGrid = () => {
+  usePageTitle("Colección");
   const {
     filteredProducts,
     loading,

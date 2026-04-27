@@ -73,7 +73,7 @@ function analyzeOperations(products) {
 
 function analyzeGrowth(products, metrics) {
   const opportunities = [];
-  const { margin, revenue, costs } = metrics;
+  const { margin } = metrics;
   const marginNum = parseFloat(margin);
 
   // Categorías con oportunidad

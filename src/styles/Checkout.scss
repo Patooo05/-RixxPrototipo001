@@ -126,6 +126,81 @@
   }
 }
 
+// ── Step indicator (inline-style replacement) ─────────────────
+.checkout__step-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  margin-bottom: $spacing-2xl;
+}
+
+.checkout__step-item {
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+
+.checkout__step-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.checkout__step-circle {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 400;
+  flex-shrink: 0;
+  border: 2px solid $outline-variant;
+  background: transparent;
+  color: $on-surface-variant;
+  transition: border-color $duration-base $ease, background $duration-base $ease, color $duration-base $ease;
+
+  &--active {
+    border-color: $primary;
+    background: $primary;
+    color: $on-primary;
+    font-weight: 700;
+  }
+
+  &--done {
+    border-color: $primary;
+    background: rgba($primary, 0.15);
+    color: $primary;
+  }
+}
+
+.checkout__step-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: $on-surface-variant;
+  white-space: nowrap;
+
+  &--active,
+  &--done {
+    color: $primary;
+  }
+}
+
+.checkout__step-line {
+  flex: 1;
+  height: 1px;
+  background: $outline-variant;
+  max-width: 48px;
+  min-width: 24px;
+  margin-bottom: 17px;
+  align-self: flex-start;
+  margin-top: 14px;
+}
+
 // ── Section wrapper ───────────────────────────────────────────
 .checkout__section {
   &--confirm {
@@ -150,7 +225,7 @@
   gap: 1.25rem 1.5rem;
   margin-bottom: 1.25rem;
 
-  @media (max-width: 540px) {
+  @media (max-width: 480px) {
     grid-template-columns: 1fr;
   }
 }
@@ -201,6 +276,12 @@
   &::placeholder { color: rgba($on-surface-variant, 0.45); }
 
   &:focus { border-color: $primary; }
+
+  &:focus-visible {
+    border-color: $primary;
+    outline: 2px solid $primary;
+    outline-offset: 2px;
+  }
 
   &--error { border-color: $error !important; }
 
@@ -257,6 +338,7 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 1.75rem;
+  min-height: 48px;
   font-family: $font-label;
   font-size: $label-lg;
   font-weight: 600;
@@ -474,6 +556,31 @@
   line-height: 1;
   transition: color $duration-base $ease;
   &:hover { color: $error; }
+}
+
+.checkout__coupon-timer {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: $primary;
+  letter-spacing: 0.04em;
+  margin-left: auto;
+  margin-right: 0.5rem;
+  opacity: 0.85;
+
+  svg { flex-shrink: 0; }
+
+  &--urgent {
+    color: $error;
+    animation: coupon-timer-urgent 0.9s ease-in-out infinite;
+  }
+}
+
+@keyframes coupon-timer-urgent {
+  0%, 100% { opacity: 0.85; }
+  50%       { opacity: 1; }
 }
 
 // ── Price breakdown ────────────────────────────────────────────
@@ -720,6 +827,11 @@
   border-radius: 50%;
   animation: spin 0.7s linear infinite;
   flex-shrink: 0;
+
+  &--wa {
+    border-color: rgba(#fff, 0.35);
+    border-top-color: #fff;
+  }
 }
 
 @keyframes spin {
@@ -746,6 +858,53 @@
   max-width: 420px;
   margin: 0 auto $spacing-xl;
   line-height: 1.7;
+}
+
+// ── Success page meta ─────────────────────────────────────────
+.checkout__success-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: $spacing-sm;
+  margin-bottom: $spacing-xl;
+}
+
+.checkout__success-order-id {
+  font-family: $font-headline;
+  font-size: $title-lg;
+  font-weight: 500;
+  color: $primary;
+  letter-spacing: 0.08em;
+}
+
+.checkout__success-note {
+  font-size: $body-sm;
+  color: $on-surface-variant;
+  max-width: 380px;
+  line-height: 1.6;
+  text-align: center;
+  margin: 0;
+}
+
+.checkout__success-orders-link {
+  display: inline-flex;
+  align-items: center;
+  margin-top: $spacing-sm;
+  font-family: $font-label;
+  font-size: $label-lg;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: $on-surface-variant;
+  text-decoration: none;
+  border-bottom: 1px solid $outline-variant;
+  padding-bottom: 2px;
+  transition: color $duration-fast $ease, border-color $duration-fast $ease;
+
+  &:hover {
+    color: $primary;
+    border-color: $primary;
+  }
 }
 
 // ── Marketing opt-in ──────────────────────────────────────────

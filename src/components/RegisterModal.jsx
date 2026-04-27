@@ -1,6 +1,8 @@
-import React, { useState, useContext } from "react";
+import { useState, useContext, useRef, useEffect } from "react";
 import { AuthContext } from "./AuthContext.jsx";
 import "../styles/AuthModals.scss";
+
+const WELCOME_COUPON = "RIXX001";
 
 const IconClose = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
@@ -12,26 +14,49 @@ const IconClose = () => (
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-const RegisterModal = ({ show, onClose, onSwitchToLogin }) => {
-  const { register, users } = useContext(AuthContext);
+const EyeIcon = ({ open }) => open ? (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+  </svg>
+) : (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>
+  </svg>
+);
 
-  const [name,     setName]     = useState("");
-  const [email,    setEmail]    = useState("");
-  const [password, setPassword] = useState("");
-  const [confirm,  setConfirm]  = useState("");
-  const [loading,  setLoading]  = useState(false);
-  const [apiError, setApiError] = useState("");
+const RegisterModal = ({ show, onClose, onSwitchToLogin }) => {
+  const { register } = useContext(AuthContext);
+
+  const [name,        setName]        = useState("");
+  const [email,       setEmail]       = useState("");
+  const [password,    setPassword]    = useState("");
+  const [confirm,     setConfirm]     = useState("");
+  const [loading,     setLoading]     = useState(false);
+  const [apiError,    setApiError]    = useState("");
+  const [success,     setSuccess]     = useState(false);
+  const [copied,      setCopied]      = useState(false);
+  const [showPwd,     setShowPwd]     = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   // Field-level validation errors — activate on blur, clear on change
   const [touched,    setTouched]    = useState({});
   const [fieldErrors, setFieldErrors] = useState({});
+  const modalRef = useRef(null);
+
+  useEffect(() => {
+    if (!show) return;
+    const first = modalRef.current?.querySelector('input, button');
+    first?.focus();
+    const onKey = (e) => { if (e.key === "Escape") onClose(); };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [show, onClose]);
 
   if (!show) return null;
 
   // ── Validators ──────────────────────────────────────────────
   const validateEmail = (val) => {
     if (!emailRegex.test(val)) return "Email inválido";
-    if (users?.some((u) => u.email === val)) return "Este email ya está registrado";
     return "";
   };
 
@@ -101,15 +126,31 @@ const RegisterModal = ({ show, onClose, onSwitchToLogin }) => {
     setLoading(true);
     await new Promise((r) => setTimeout(r, 300));
 
-    const success = await register(name, email, password);
+    const result = await register(name, email, password);
     setLoading(false);
 
-    if (success) {
-      resetForm();
-      onClose();
+    if (result?.ok) {
+      setSuccess(true);
     } else {
-      setApiError("Este email ya está registrado");
+      setApiError(result?.error ?? "No se pudo crear la cuenta. Intentá de nuevo.");
     }
+  };
+
+  const handleCopyCoupon = () => {
+    navigator.clipboard.writeText(WELCOME_COUPON).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    });
+  };
+
+  const handleClose = () => {
+    if (success) {
+      window.dispatchEvent(new CustomEvent("rixx:coupon-chip", { detail: { code: WELCOME_COUPON } }));
+    }
+    resetForm();
+    setSuccess(false);
+    setCopied(false);
+    onClose();
   };
 
   const resetForm = () => {
@@ -124,13 +165,32 @@ const RegisterModal = ({ show, onClose, onSwitchToLogin }) => {
   };
 
   return (
-    <div className="auth-modal-overlay" onClick={(e) => e.target === e.currentTarget && onClose()}>
+    <div className="auth-modal-overlay" onClick={(e) => e.target === e.currentTarget && handleClose()}>
       <div className="auth-modal" role="dialog" aria-modal="true" aria-label="Crear cuenta">
 
-        <button className="auth-modal__close" onClick={onClose} aria-label="Cerrar">
+        <button className="auth-modal__close" onClick={handleClose} aria-label="Cerrar">
           <IconClose />
         </button>
 
+        {/* ── Pantalla de bienvenida con cupón ── */}
+        {success ? (
+          <div className="auth-modal__welcome">
+            <div className="auth-modal__welcome-icon">◆</div>
+            <h2 className="auth-modal__title">Bienvenido/a, <em>{name}</em></h2>
+            <p className="auth-modal__subtitle">Tu cuenta fue creada. Como regalo de bienvenida, tenés este cupón para tu primera compra:</p>
+            <div className="auth-modal__coupon-box">
+              <span className="auth-modal__coupon-code">{WELCOME_COUPON}</span>
+              <button className="auth-modal__coupon-copy" onClick={handleCopyCoupon}>
+                {copied ? "Copiado ✓" : "Copiar"}
+              </button>
+            </div>
+            <p className="auth-modal__coupon-hint">Ingresalo en el checkout al hacer tu primera compra.</p>
+            <button className="auth-modal__submit" onClick={handleClose}>
+              Ir a comprar
+            </button>
+          </div>
+        ) : (
+          <>
         {/* Header */}
         <div className="auth-modal__header">
           <span className="auth-modal__eyebrow">Opcional</span>
@@ -143,6 +203,7 @@ const RegisterModal = ({ show, onClose, onSwitchToLogin }) => {
           <li><span className="auth-modal__benefit-check">✓</span> Seguí tus pedidos en tiempo real</li>
           <li><span className="auth-modal__benefit-check">✓</span> Guardá tus favoritos</li>
           <li><span className="auth-modal__benefit-check">✓</span> Completá el checkout sin formularios</li>
+          <li><span className="auth-modal__benefit-check">✓</span> Cupón de bienvenida al registrarte</li>
         </ul>
 
         <form className="auth-modal__form" onSubmit={handleSubmit} noValidate>
@@ -179,16 +240,26 @@ const RegisterModal = ({ show, onClose, onSwitchToLogin }) => {
 
           <div className="auth-modal__field">
             <label htmlFor="reg-password" className="auth-modal__label">Contraseña</label>
-            <input
-              id="reg-password"
-              className={`auth-modal__input${touched.password && fieldErrors.password ? " auth-modal__input--error" : ""}`}
-              type="password"
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => handlePasswordChange(e.target.value)}
-              onBlur={() => handleBlur("password")}
-              autoComplete="new-password"
-            />
+            <div className="auth-modal__input-wrap">
+              <input
+                id="reg-password"
+                className={`auth-modal__input${touched.password && fieldErrors.password ? " auth-modal__input--error" : ""}`}
+                type={showPwd ? "text" : "password"}
+                placeholder="Mínimo 8 caracteres"
+                value={password}
+                onChange={(e) => handlePasswordChange(e.target.value)}
+                onBlur={() => handleBlur("password")}
+                autoComplete="new-password"
+              />
+              <button
+                type="button"
+                className="auth-modal__pwd-toggle"
+                onClick={() => setShowPwd((v) => !v)}
+                aria-label={showPwd ? "Ocultar contraseña" : "Mostrar contraseña"}
+              >
+                <EyeIcon open={showPwd} />
+              </button>
+            </div>
             {touched.password && fieldErrors.password && (
               <span className="auth-modal__error-msg">{fieldErrors.password}</span>
             )}
@@ -196,16 +267,26 @@ const RegisterModal = ({ show, onClose, onSwitchToLogin }) => {
 
           <div className="auth-modal__field">
             <label htmlFor="reg-confirm" className="auth-modal__label">Confirmar contraseña</label>
-            <input
-              id="reg-confirm"
-              className={`auth-modal__input${touched.confirm && fieldErrors.confirm ? " auth-modal__input--error" : ""}`}
-              type="password"
-              placeholder="••••••••"
-              value={confirm}
-              onChange={(e) => handleConfirmChange(e.target.value)}
-              onBlur={() => handleBlur("confirm")}
-              autoComplete="new-password"
-            />
+            <div className="auth-modal__input-wrap">
+              <input
+                id="reg-confirm"
+                className={`auth-modal__input${touched.confirm && fieldErrors.confirm ? " auth-modal__input--error" : ""}`}
+                type={showConfirm ? "text" : "password"}
+                placeholder="Repetí la contraseña"
+                value={confirm}
+                onChange={(e) => handleConfirmChange(e.target.value)}
+                onBlur={() => handleBlur("confirm")}
+                autoComplete="new-password"
+              />
+              <button
+                type="button"
+                className="auth-modal__pwd-toggle"
+                onClick={() => setShowConfirm((v) => !v)}
+                aria-label={showConfirm ? "Ocultar contraseña" : "Mostrar contraseña"}
+              >
+                <EyeIcon open={showConfirm} />
+              </button>
+            </div>
             {touched.confirm && fieldErrors.confirm && (
               <span className="auth-modal__error-msg">{fieldErrors.confirm}</span>
             )}
@@ -226,6 +307,8 @@ const RegisterModal = ({ show, onClose, onSwitchToLogin }) => {
           ¿Ya tenés cuenta?
           <button type="button" onClick={handleSwitch}>Iniciá sesión</button>
         </div>
+          </>
+        )}
 
       </div>
     </div>

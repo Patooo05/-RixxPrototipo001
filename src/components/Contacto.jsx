@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import { usePageTitle } from "../hooks/usePageTitle";
+import { useToast } from "./ToastContext";
 import "../styles/Contacto.scss";
 
 const ASUNTOS = [
@@ -65,9 +67,15 @@ const IconLocation = () => (
   </svg>
 );
 
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 export default function Contacto() {
+  usePageTitle("Contacto");
+  const { toast } = useToast();
   const [form, setForm] = useState(EMPTY_FORM);
   const [success, setSuccess] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [emailError, setEmailError] = useState("");
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -91,9 +99,31 @@ export default function Contacto() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (!form.nombre || !form.email || !form.mensaje) return;
+
+    if (!EMAIL_RE.test(form.email)) {
+      setEmailError("Ingresá un email válido.");
+      return;
+    }
+    setEmailError("");
+    setSending(true);
+
+    const texto = [
+      `*Consulta desde rixx.uy*`,
+      `*Nombre:* ${form.nombre}`,
+      `*Email:* ${form.email}`,
+      `*Asunto:* ${ASUNTOS.find(a => a.value === form.asunto)?.label || form.asunto || "General"}`,
+      `*Mensaje:* ${form.mensaje}`,
+    ].join("\n");
+
+    const url = `https://wa.me/59898868601?text=${encodeURIComponent(texto)}`;
+    window.open(url, "_blank", "noopener,noreferrer");
+
+    toast.success("Mensaje enviado correctamente");
     setSuccess(true);
     setForm(EMPTY_FORM);
-    setTimeout(() => setSuccess(false), 3000);
+    setSending(false);
+    setTimeout(() => setSuccess(false), 4000);
   };
 
   return (
@@ -148,9 +178,15 @@ export default function Contacto() {
                   required
                   autoComplete="email"
                   value={form.email}
-                  onChange={handleChange}
+                  onChange={(e) => { handleChange(e); setEmailError(""); }}
                   placeholder="tu@email.com"
+                  aria-describedby={emailError ? "email-error" : undefined}
                 />
+                {emailError && (
+                  <span id="email-error" className="contacto-page__field-error" role="alert">
+                    {emailError}
+                  </span>
+                )}
               </div>
 
               <div className="contacto-page__field">
@@ -191,12 +227,12 @@ export default function Contacto() {
 
               {success && (
                 <p className="contacto-page__success" role="status">
-                  ¡Mensaje enviado! Te contactamos pronto.
+                  ¡Gracias! Tu mensaje fue enviado por WhatsApp.
                 </p>
               )}
 
-              <button type="submit" className="primary-btn contacto-page__submit">
-                Enviar mensaje
+              <button type="submit" className="primary-btn contacto-page__submit" disabled={sending}>
+                {sending ? "Enviando…" : "Enviar por WhatsApp"}
               </button>
             </form>
           </div>
@@ -209,9 +245,10 @@ export default function Contacto() {
                 <p className="contacto-page__info-label">Email</p>
                 <a
                   className="contacto-page__info-value"
-                  href="mailto:contacto@rixx.uy"
+                  href="mailto:contacto@rixxlentes.com"
+                  aria-label="Enviar email a contacto@rixxlentes.com"
                 >
-                  contacto@rixx.uy
+                  contacto@rixxlentes.com
                 </a>
               </div>
             </div>
@@ -225,8 +262,9 @@ export default function Contacto() {
                   href="https://wa.me/59898868601"
                   target="_blank"
                   rel="noreferrer"
+                  aria-label="Enviar WhatsApp al +598 98 868 601"
                 >
-                  +598 99 000 000
+                  +598 98 868 601
                 </a>
               </div>
             </div>

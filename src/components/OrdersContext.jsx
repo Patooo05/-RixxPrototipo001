@@ -1,10 +1,84 @@
-import React, { createContext, useContext, useState, useCallback, useRef } from "react";
+/* eslint-disable react-refresh/only-export-components */
+import { createContext, useContext, useState, useCallback, useRef } from "react";
 import { supabase, isSupabaseEnabled } from "../lib/supabase";
+import { sbFetch, sbUrl, sbKey } from "../lib/supabaseHelpers";
 
 export const OrdersContext = createContext(null);
 
 const LS_KEY = "rixx_orders";
 
+// ── Google Sheets webhook ─────────────────────────────────────────────────────
+// Set VITE_GOOGLE_SHEETS_WEBHOOK in .env to enable automatic row append on delivery.
+const SHEETS_URL = import.meta.env.VITE_GOOGLE_SHEETS_WEBHOOK;
+
+async function sheetsWebhook(payload) {
+  if (!SHEETS_URL) return false;
+  try {
+    const res = await fetch(SHEETS_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      console.warn(`[OrdersContext] Google Sheets webhook error ${res.status} — verificá que el escenario de Make esté activo.`);
+      return false;
+    }
+    return true;
+  } catch (err) {
+    console.warn("[OrdersContext] Google Sheets webhook failed:", err.message);
+    return false;
+  }
+}
+
+// Formatea el número de orden: 001RX, 002RX, etc.
+export function formatOrderNumber(order) {
+  if (order?.order_number) return String(order.order_number).padStart(3, "0") + "RX";
+  return (order?.id || "").toString().slice(0, 8).toUpperCase();
+}
+
+async function postToSheets(order) {
+  const items = (() => { try { const it = typeof order.items === "string" ? JSON.parse(order.items) : (order.items || []); return it.map(i => `${i.name} x${i.qty}`).join(", "); } catch { return "—"; } })();
+  return await sheetsWebhook({
+    action:       "add",
+    id:           formatOrderNumber(order),
+    fecha:        order.created_at ? new Date(order.created_at).toLocaleDateString("es-UY") : new Date().toLocaleDateString("es-UY"),
+    cliente:      order.user_name  || "—",
+    email:        order.user_email || "—",
+    telefono:     order.user_phone || "—",
+    productos:    items,
+    subtotal:     order.subtotal   || 0,
+    envio:        order.shipping   || 0,
+    descuento:    order.discount   || 0,
+    total:        order.total      || 0,
+    pago:         order.payment_method || "—",
+    departamento: order.departamento   || "—",
+    direccion:    order.direccion      || "—",
+  });
+}
+
+async function deleteFromSheets(order) {
+  await sheetsWebhook({
+    action: "delete",
+    id:     formatOrderNumber(order),
+  });
+}
+
+async function notifyAdmin(order) {
+  const items = (() => { try { const it = typeof order.items === "string" ? JSON.parse(order.items) : (order.items || []); return it.map(i => `${i.name} x${i.qty}`).join(", "); } catch { return "—"; } })();
+  await sheetsWebhook({
+    action:     "new_order",
+    id:         formatOrderNumber(order),
+    fecha:      order.created_at ? new Date(order.created_at).toLocaleDateString("es-UY") : new Date().toLocaleDateString("es-UY"),
+    cliente:    order.user_name  || "—",
+    email:      order.user_email || "—",
+    telefono:   order.user_phone || "—",
+    productos:  items,
+    total:      order.total      || 0,
+    pago:       order.payment_method || "—",
+  });
+}
+
+// ── localStorage helpers ──────────────────────────────────────────────────────
 function readLocalOrders() {
   try {
     const raw = localStorage.getItem(LS_KEY);
@@ -16,11 +90,8 @@ function readLocalOrders() {
 
 function writeLocalOrders(orders) {
   try {
-    // Guardar solo las últimas 20 para no llenar el localStorage
-    const trimmed = orders.slice(0, 20);
-    localStorage.setItem(LS_KEY, JSON.stringify(trimmed));
+    localStorage.setItem(LS_KEY, JSON.stringify(orders.slice(0, 20)));
   } catch {
-    // Si sigue lleno, limpiar todo y guardar solo la más reciente
     try {
       localStorage.setItem(LS_KEY, JSON.stringify(orders.slice(0, 1)));
     } catch {
@@ -29,14 +100,14 @@ function writeLocalOrders(orders) {
   }
 }
 
+// ── Provider ──────────────────────────────────────────────────────────────────
 export function OrdersProvider({ children }) {
-  const [orders, setOrders] = useState([]);
+  const [orders, setOrders]   = useState([]);
   const [loading, setLoading] = useState(false);
-  const isSubmitting = useRef(false);
+  const isSubmitting          = useRef(false);
 
-  // ── createOrder ────────────────────────────────────────────────────────────
+  // ── createOrder ─────────────────────────────────────────────────────────────
   const createOrder = useCallback(async (orderData) => {
-    // Bloquear doble submit
     if (isSubmitting.current) return null;
     isSubmitting.current = true;
 
@@ -64,26 +135,33 @@ export function OrdersProvider({ children }) {
           departamento:      orderData.shipping_address?.departamento ?? null,
         };
 
-        const timeout = new Promise((resolve) =>
-          setTimeout(() => resolve({ __timeout: true }), 12000)
-        );
-
-        const result = await Promise.race([
-          supabase.from("orders").insert([payload]).select().single(),
-          timeout,
-        ]);
-
-        if (result?.__timeout) {
-          console.warn("[OrdersContext] createOrder timeout — usando fallback localStorage");
-          // Caer al fallback sin lanzar error
-        } else {
-          const { data, error } = result;
-          if (!error && data) {
-            const full = { ...orderData, ...data };
+        try {
+          const data = await sbFetch("orders", {
+            method: "POST",
+            body: JSON.stringify(payload),
+          });
+          const inserted = Array.isArray(data) ? data[0] : data;
+          if (inserted) {
+            const full = { ...orderData, ...inserted };
             setOrders((prev) => [full, ...prev]);
+            notifyAdmin(full);
+            if (full.status === "entregado") postToSheets(full);
+            if (orderData.coupon_code) {
+              const code = orderData.coupon_code;
+              sbFetch(`coupons?code=eq.${encodeURIComponent(code)}&select=used_count`)
+                .then((rows) => {
+                  const current = Array.isArray(rows) && rows[0] ? rows[0].used_count ?? 0 : 0;
+                  return sbFetch(`coupons?code=eq.${encodeURIComponent(code)}`, {
+                    method: "PATCH",
+                    body: JSON.stringify({ used_count: current + 1 }),
+                  });
+                })
+                .catch(() => {});
+            }
             return full;
           }
-          console.error("[OrdersContext] Supabase insert error:", error?.message);
+        } catch (err) {
+          console.warn("[OrdersContext] createOrder sbFetch falló, usando fallback localStorage:", err.message);
         }
       }
 
@@ -96,19 +174,20 @@ export function OrdersProvider({ children }) {
       const existing = readLocalOrders();
       writeLocalOrders([newOrder, ...existing]);
       setOrders((prev) => [newOrder, ...prev]);
+      notifyAdmin(newOrder);
+      if (newOrder.status === "entregado") postToSheets(newOrder);
       return newOrder;
     } finally {
       isSubmitting.current = false;
     }
   }, []);
 
-  // ── getUserOrders ──────────────────────────────────────────────────────────
+  // ── getUserOrders ────────────────────────────────────────────────────────────
   const getUserOrders = useCallback(async (email) => {
     if (!email) return [];
     setLoading(true);
-
     try {
-      const localAll = readLocalOrders();
+      const localAll    = readLocalOrders();
       const localOrders = localAll.filter((o) => o.user_email === email);
 
       if (isSupabaseEnabled) {
@@ -124,17 +203,14 @@ export function OrdersProvider({ children }) {
           return localOrders;
         }
 
-        const remote = data ?? [];
-        const remoteIds = new Set(remote.map((o) => o.id));
-        const localOnly = localOrders.filter((o) => !remoteIds.has(o.id));
-        const merged = [...remote, ...localOnly].sort(
+        // Supabase is source of truth — use only remote data, never merge with localStorage.
+        const remote = (data ?? []).sort(
           (a, b) => new Date(b.created_at) - new Date(a.created_at)
         );
-        setOrders(merged);
-        return merged;
+        setOrders(remote);
+        return remote;
       }
 
-      // Fallback: localStorage only
       setOrders(localOrders);
       return localOrders;
     } finally {
@@ -142,123 +218,116 @@ export function OrdersProvider({ children }) {
     }
   }, []);
 
-  // ── getAllOrders ───────────────────────────────────────────────────────────
+  // ── getAllOrders ─────────────────────────────────────────────────────────────
   const getAllOrders = useCallback(async () => {
     setLoading(true);
     try {
-      const local = readLocalOrders();
-      let remote = [];
-
       if (isSupabaseEnabled) {
-        const timeout = new Promise((resolve) =>
-          setTimeout(() => resolve({ __timeout: true }), 15000)
-        );
-
-        const result = await Promise.race([
-          supabase.from("orders").select("*").order("created_at", { ascending: false }),
-          timeout,
-        ]);
-
-        if (result?.__timeout) {
-          console.warn("[OrdersContext] getAllOrders timeout — retornando órdenes de localStorage");
-          const merged = local.sort(
-            (a, b) => new Date(b.created_at) - new Date(a.created_at)
-          );
-          setOrders(merged);
-          return merged;
-        }
-
-        const { data, error } = result;
-        if (error) {
-          console.error("[OrdersContext] Supabase getAllOrders error:", error);
-        } else {
-          remote = data ?? [];
-          // Si Supabase funciona, limpiar localStorage — Supabase es la fuente de verdad
-          // Solo conservar órdenes locales que todavía no están en Supabase
-          const remoteIds = new Set(remote.map(o => o.id));
-          const pendingLocal = local.filter(o => !remoteIds.has(o.id));
-          if (pendingLocal.length !== local.length) {
-            writeLocalOrders(pendingLocal);
-          }
+        try {
+          const data = await sbFetch("orders?select=*&order=created_at.desc");
+          const remote = Array.isArray(data) ? data : [];
+          // Supabase is source of truth — wipe local cache to match exactly,
+          // so deleted orders never resurrect on next load.
+          writeLocalOrders(remote);
+          setOrders(remote);
+          return remote;
+        } catch (err) {
+          console.warn("[OrdersContext] getAllOrders falló, usando localStorage:", err.message);
         }
       }
 
-      // Merge: Supabase orders + local orders not already in Supabase
-      const remoteIds = new Set(remote.map(o => o.id));
-      const localOnly = local.filter(o => !remoteIds.has(o.id));
-      const merged = [...remote, ...localOnly].sort(
+      const local = readLocalOrders().sort(
         (a, b) => new Date(b.created_at) - new Date(a.created_at)
       );
-
-      setOrders(merged);
-      return merged;
+      setOrders(local);
+      return local;
     } finally {
       setLoading(false);
     }
   }, []);
 
-  // ── updateOrderStatus ──────────────────────────────────────────────────────
-  const updateOrderStatus = useCallback(async (id, status) => {
-    if (isSupabaseEnabled) {
-      const { data, error } = await supabase
-        .from("orders")
-        .update({ status })
-        .eq("id", id)
-        .select()
-        .single();
+  // ── updateOrderStatus ────────────────────────────────────────────────────────
+  const updateOrderStatus = useCallback(async (id, status, orderData = null) => {
+    // Update UI immediately so the admin sees the change right away
+    setOrders((prev) => prev.map((o) => (o.id === id ? { ...o, status } : o)));
 
-      if (!error && data) {
-        setOrders((prev) =>
-          prev.map((o) => (o.id === id ? { ...o, status } : o))
-        );
-        return data;
-      }
-      // If Supabase fails (order may be localStorage-only), fall through
-      console.warn("[OrdersContext] Supabase update failed, falling back to localStorage:", error);
-    }
-
-    // Fallback: localStorage (also used for localStorage-only orders when Supabase is enabled)
-    const all = readLocalOrders();
+    // Update localStorage
+    const all     = readLocalOrders();
     const updated = all.map((o) => (o.id === id ? { ...o, status } : o));
     writeLocalOrders(updated);
-    setOrders((prev) => prev.map((o) => (o.id === id ? { ...o, status } : o)));
-  }, []);
 
-  // ── deleteOrder ───────────────────────────────────────────────────────────────
-  const deleteOrder = useCallback(async (id) => {
-    if (isSupabaseEnabled) {
-      const { error } = await supabase.from("orders").delete().eq("id", id);
-      if (error) console.warn("[OrdersContext] deleteOrder error:", error.message);
-    }
-    const all = readLocalOrders();
-    writeLocalOrders(all.filter((o) => o.id !== id));
-    setOrders((prev) => prev.filter((o) => o.id !== id));
-  }, []);
-
-  // ── updateOrderFields ──────────────────────────────────────────────────────
-  const updateOrderFields = useCallback(async (id, fields) => {
-    if (isSupabaseEnabled) {
-      const { data, error } = await supabase
-        .from("orders")
-        .update(fields)
-        .eq("id", id)
-        .select()
-        .single();
-
-      if (!error && data) {
-        setOrders((prev) =>
-          prev.map((o) => (o.id === id ? { ...o, ...fields } : o))
-        );
-        return data;
+    // Persist to Supabase in background (raw fetch, no hanging)
+    if (isSupabaseEnabled && sbUrl() && sbKey()) {
+      try {
+        await sbFetch(`orders?id=eq.${encodeURIComponent(id)}`, {
+          method:  "PATCH",
+          body:    JSON.stringify({ status }),
+        });
+      } catch (err) {
+        console.warn("[OrdersContext] updateOrderStatus Supabase failed (UI already updated):", err.message);
       }
-      console.warn("[OrdersContext] Supabase updateOrderFields failed, falling back to localStorage:", error);
     }
 
-    const all = readLocalOrders();
+    // If order just became "entregado", send to Google Sheets
+    if (status === "entregado") {
+      const order = orderData ?? orders.find(o => o.id === id) ?? all.find(o => o.id === id);
+      if (order) return postToSheets({ ...order, status });
+    }
+    return true;
+  }, [orders]);
+
+  // ── updateOrderFields ────────────────────────────────────────────────────────
+  const updateOrderFields = useCallback(async (id, fields) => {
+    // Update UI immediately
+    setOrders((prev) => prev.map((o) => (o.id === id ? { ...o, ...fields } : o)));
+
+    // Update localStorage
+    const all     = readLocalOrders();
     const updated = all.map((o) => (o.id === id ? { ...o, ...fields } : o));
     writeLocalOrders(updated);
-    setOrders((prev) => prev.map((o) => (o.id === id ? { ...o, ...fields } : o)));
+
+    // Persist to Supabase in background
+    if (isSupabaseEnabled && sbUrl() && sbKey()) {
+      try {
+        await sbFetch(`orders?id=eq.${encodeURIComponent(id)}`, {
+          method: "PATCH",
+          body:   JSON.stringify(fields),
+        });
+      } catch (err) {
+        console.warn("[OrdersContext] updateOrderFields Supabase failed (UI already updated):", err.message);
+      }
+    }
   }, []);
+
+  // ── deleteOrder ──────────────────────────────────────────────────────────────
+  const deleteOrder = useCallback(async (id) => {
+    const orderToDelete = orders.find(o => o.id === id) ?? readLocalOrders().find(o => o.id === id);
+
+    if (isSupabaseEnabled) {
+      const { error } = await supabase.from("orders").delete().eq("id", id);
+      if (error) {
+        console.warn("[OrdersContext] deleteOrder Supabase error:", error.message);
+        return false;
+      }
+    }
+
+    setOrders((prev) => prev.filter((o) => o.id !== id));
+    writeLocalOrders(readLocalOrders().filter((o) => o.id !== id));
+    if (orderToDelete) deleteFromSheets(orderToDelete);
+    return true;
+  }, [orders]);
+
+  // ── syncEntregadosToSheets ────────────────────────────────────────────────────
+  // Manda todas las órdenes "entregado" al Google Sheet (para sincronización masiva)
+  const syncEntregadosToSheets = useCallback(async () => {
+    const entregados = orders.filter(o => o.status === "entregado");
+    let ok = 0;
+    for (const order of entregados) {
+      const success = await postToSheets(order);
+      if (success) ok++;
+    }
+    return { total: entregados.length, ok, fail: entregados.length - ok };
+  }, [orders]);
 
   const value = {
     orders,
@@ -269,6 +338,7 @@ export function OrdersProvider({ children }) {
     updateOrderStatus,
     updateOrderFields,
     deleteOrder,
+    syncEntregadosToSheets,
   };
 
   return (

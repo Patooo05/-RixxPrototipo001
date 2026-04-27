@@ -1,9 +1,11 @@
-import { useContext, useState } from "react";
+import { useContext, useState, useEffect } from "react";
+import { useSEO } from "../hooks/usePageTitle";
 import { useParams, Link } from "react-router-dom";
 import { ProductsContext } from "./ProductsContext";
 import QuantitySelector from "./QuantitySelector";
 import { useCart } from "./CartContext";
 import { useWishlist } from "./WishlistContext";
+import { useToast } from "./ToastContext";
 import RelatedProducts from "./RelatedProducts";
 import ProductReviews from "./ProductReviews";
 import "../styles/ProductDetail.scss";
@@ -50,13 +52,69 @@ const ShareIcon = () => (
 const ProductDetail = () => {
   const { id }       = useParams();
   const { products } = useContext(ProductsContext);
-  const { add }      = useCart();
+  const { add, openCart } = useCart();
   const { isWishlisted, toggleWishlist } = useWishlist();
+  const { toast } = useToast();
   const [qty, setQty] = useState(1);
   const [zoomOpen, setZoomOpen] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [selectedImg, setSelectedImg] = useState(0);
 
   const product = products.find((p) => String(p.id) === id);
+
+  // ── SEO: Open Graph + Twitter meta tags ─────────────────────
+  useSEO({
+    title:       product ? `${product.name} — RIXX Premium Eyewear` : undefined,
+    description: product
+      ? `${product.description || product.name} · Lentes de sol premium en Uruguay. Envío a todo el país.`
+      : undefined,
+    image:     product?.image,
+    type:      "product.item",
+    canonical: product ? `https://rixx.uy/producto/${product.id}` : undefined,
+  });
+
+  // ── SEO: JSON-LD structured data (schema.org/Product) ───────
+  useEffect(() => {
+    if (!product) return;
+    const soldOutLD = product.stock <= 0;
+    const availability = soldOutLD
+      ? "https://schema.org/OutOfStock"
+      : "https://schema.org/InStock";
+    const ldJson = {
+      "@context": "https://schema.org",
+      "@type":    "Product",
+      name:        product.name,
+      description: product.description || product.name,
+      image:       product.image || "",
+      brand: { "@type": "Brand", name: "RIXX" },
+      offers: {
+        "@type":        "Offer",
+        price:          String(product.price ?? ""),
+        priceCurrency:  "UYU",
+        availability,
+        url: `https://rixx.uy/producto/${product.id}`,
+      },
+    };
+    const script = document.createElement("script");
+    script.type = "application/ld+json";
+    script.id   = "product-ld-json";
+    script.textContent = JSON.stringify(ldJson);
+    document.head.appendChild(script);
+    return () => {
+      const existing = document.getElementById("product-ld-json");
+      if (existing) existing.remove();
+    };
+  }, [product]);
+
+  useEffect(() => {
+    if (!zoomOpen) return;
+    const handleKey = (e) => {
+      if (e.key === "Escape") setZoomOpen(false);
+    };
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, [zoomOpen]);
+
   const isInactive = product && product.status && product.status !== "activo";
 
   if (!product || isInactive) return (
@@ -85,7 +143,7 @@ const ProductDetail = () => {
         ? [product.image]
         : [];
 
-  const mainImage = images[0] ?? null;
+  const mainImage = images[selectedImg] ?? images[0] ?? null;
 
   const wishlisted = isWishlisted(product.id);
 
@@ -144,6 +202,20 @@ const ProductDetail = () => {
               <div className="main-image__placeholder" />
             )}
           </div>
+          {images.length > 1 && (
+            <div className="product-detail__thumbs">
+              {images.map((img, i) => (
+                <button
+                  key={i}
+                  className={`product-detail__thumb${i === selectedImg ? " product-detail__thumb--active" : ""}`}
+                  onClick={() => setSelectedImg(i)}
+                  aria-label={`Ver imagen ${i + 1}`}
+                >
+                  <img src={img} alt={`${product.name} vista ${i + 1}`} loading="lazy" />
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* ── Info ── */}
@@ -228,7 +300,7 @@ const ProductDetail = () => {
           ) : (
             <button
               className="product-detail__add-btn primary-btn"
-              onClick={() => add(product, qty)}
+              onClick={() => { add(product, qty); openCart(); toast.success(`${product.name} agregado al carrito`); }}
             >
               Añadir al carrito
             </button>

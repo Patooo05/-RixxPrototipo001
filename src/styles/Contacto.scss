@@ -232,4 +232,39 @@
       transform: translateY(0);
     }
   }
+
+  &__field-error {
+    display: block;
+    margin-top: 0.25rem;
+    font-family: v.$font-label;
+    font-size: 10px;
+    letter-spacing: 0.05em;
+    color: #e05a5a;
+  }
+
+  // ── Responsive ──────────────────────────────────────────
+  @media (max-width: 768px) {
+    &__hero {
+      padding: v.$spacing-3xl 0 3rem;
+    }
+
+    padding-top: calc(#{v.$navbar-height} + v.$spacing-2xl);
+  }
+
+  @media (max-width: 480px) {
+    &__hero {
+      padding: v.$spacing-2xl 0 2rem;
+    }
+
+    &__hero-inner {
+      padding: 0 1.25rem;
+    }
+
+    &__input {
+      font-size: 16px; // Previene zoom automático en iOS
+      padding: 0.85rem 0;
+    }
+
+    padding-top: calc(#{v.$navbar-height} + v.$spacing-xl);
+  }
 }

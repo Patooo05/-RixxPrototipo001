@@ -8,9 +8,9 @@ const GUEST_MESSAGES = [
     id: "promo",
     content: (onCta) => (
       <>
-        Registrate gratis&nbsp;&nbsp;
+        Registrate y recibí tu cupón de bienvenida&nbsp;&nbsp;
         <button className="announcement-bar__cta" onClick={onCta}>
-          → 20% off en tu primera compra
+          → Crear cuenta gratis
         </button>
       </>
     ),
@@ -25,7 +25,7 @@ const GUEST_MESSAGES = [
   },
   {
     id: "season",
-    content: () => "Nueva Temporada 2025 · Diseño atemporal para cada momento",
+    content: () => "Nueva Temporada 2026 · Diseño atemporal para cada momento",
   },
 ];
 
@@ -40,7 +40,7 @@ const USER_MESSAGES = [
   },
   {
     id: "season",
-    content: () => "Nueva Temporada 2025 · Nuevos modelos disponibles",
+    content: () => "Nueva Temporada 2026 · Nuevos modelos disponibles",
   },
   {
     id: "orders",
@@ -55,7 +55,7 @@ const AnnouncementBar = () => {
   const { isLoggedIn } = useContext(AuthContext);
 
   const [dismissed, setDismissed] = useState(
-    () => sessionStorage.getItem("rixx_bar_dismissed") === "1"
+    () => localStorage.getItem("rixx_bar_dismissed") === "1"
   );
   const [idx,     setIdx]     = useState(0);
   const [visible, setVisible] = useState(true);
@@ -81,7 +81,7 @@ const AnnouncementBar = () => {
     window.dispatchEvent(new CustomEvent("rixx:open-register"));
 
   const dismiss = () => {
-    sessionStorage.setItem("rixx_bar_dismissed", "1");
+    localStorage.setItem("rixx_bar_dismissed", "1");
     setDismissed(true);
   };
 

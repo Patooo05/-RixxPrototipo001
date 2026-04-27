@@ -1,4 +1,4 @@
-import { useState, useContext, useEffect, lazy, Suspense } from "react";
+import { useContext, useEffect, lazy, Suspense } from "react";
 import { useCart } from "./components/CartContext.jsx";
 import ErrorBoundary from "./components/ErrorBoundary.jsx";
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from "react-router-dom";
@@ -8,6 +8,8 @@ import CustomCursor     from "./components/CustomCursor.jsx";
 import AnnouncementBar  from "./components/AnnouncementBar.jsx";
 import SocialFloat      from "./components/SocialFloat.jsx";
 import Home             from "./components/Home.jsx";
+import GuestWelcomeModal from "./components/GuestWelcomeModal.jsx";
+import CouponChip        from "./components/CouponChip.jsx";
 
 const CartDrawer    = lazy(() => import("./components/CartDrawer.jsx"));
 const ProductsGrid  = lazy(() => import("./components/ProductsGrid.jsx"));
@@ -20,7 +22,8 @@ const Contacto      = lazy(() => import("./components/Contacto.jsx"));
 const Checkout      = lazy(() => import("./components/Checkout.jsx"));
 const MyOrders      = lazy(() => import("./components/MyOrders.jsx"));
 const Favorites     = lazy(() => import("./components/Favorites.jsx"));
-const NotFound      = lazy(() => import("./components/NotFound.jsx"));
+const NotFound        = lazy(() => import("./components/NotFound.jsx"));
+const OrderTracking   = lazy(() => import("./components/OrderTracking.jsx"));
 
 const PageLoader = () => (
   <div style={{ minHeight: "60vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -40,15 +43,13 @@ const ProtectedAdminRoute = ({ children }) => {
 // ── Page transition wrapper ───────────────────────────────────
 const PageWrapper = ({ children }) => {
   const location = useLocation();
-  const [key, setKey] = useState(location.pathname);
 
   useEffect(() => {
-    setKey(location.pathname);
     window.scrollTo({ top: 0, behavior: "instant" });
   }, [location.pathname]);
 
   return (
-    <div key={key} className="page-transition">
+    <div key={location.pathname} className="page-transition">
       {children}
     </div>
   );
@@ -63,12 +64,17 @@ function App() {
             <CustomCursor />
             <SocialFloat />
             <AnnouncementBar />
+            <GuestWelcomeModal />
+            <CouponChip />
             <Navbar onCartClick={openCart} />
-            <Suspense fallback={null}>
+            <Suspense fallback={
+              <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 9999 }} />
+            }>
               <CartDrawer isOpen={isCartOpen} onClose={closeCart} />
             </Suspense>
             <PageWrapper>
               <Suspense fallback={<PageLoader />}>
+              <ErrorBoundary>
               <Routes>
                 <Route path="/"             element={<Home />} />
                 <Route path="/productos"    element={<ProductsGrid />} />
@@ -82,6 +88,7 @@ function App() {
                 <Route path="/checkout"     element={<Checkout />} />
                 <Route path="/about"        element={<Nosotros />} />
                 <Route path="/contacto"     element={<Contacto />} />
+                <Route path="/pedido/:orderId" element={<OrderTracking />} />
                 <Route path="/colecciones"  element={<Navigate to="/productos" replace />} />
                 <Route path="/envios"       element={<Navigate to="/" replace />} />
                 <Route path="/cambios"      element={<Navigate to="/" replace />} />
@@ -89,6 +96,7 @@ function App() {
                 <Route path="/terminos"     element={<Navigate to="/" replace />} />
                 <Route path="*"             element={<NotFound />} />
               </Routes>
+              </ErrorBoundary>
               </Suspense>
             </PageWrapper>
             <Footer />

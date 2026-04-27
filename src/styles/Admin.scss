@@ -1,6 +1,7 @@
 @use "variables" as *;
 @use "mixins" as *;
 @use "ventas";
+@use "cupones";
 
 // ── Keyframes ─────────────────────────────────────────────────
 @keyframes flash-highlight {
@@ -11,6 +12,110 @@
 @keyframes row-flash-anim {
   0%, 100% { background: transparent; }
   40%       { background: rgba($primary, 0.14); }
+}
+
+@keyframes order-toast-in {
+  from { opacity: 0; transform: translateY(20px) scale(0.95); }
+  to   { opacity: 1; transform: translateY(0)   scale(1);    }
+}
+
+@keyframes order-toast-out {
+  from { opacity: 1; transform: translateY(0)   scale(1);    }
+  to   { opacity: 0; transform: translateY(20px) scale(0.95); }
+}
+
+// ── Toasts de pedidos nuevos (Realtime) ───────────────────────
+.order-toasts-container {
+  position: fixed;
+  bottom: 28px;
+  right: 28px;
+  z-index: 999999;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  pointer-events: none;
+
+  @media (max-width: 480px) {
+    bottom: 16px;
+    right: 12px;
+    left: 12px;
+  }
+}
+
+.order-toast {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: #1c1b18;
+  border: 1px solid rgba(212, 175, 55, 0.35);
+  border-left: 3px solid #D4AF37;
+  border-radius: 10px;
+  padding: 14px 16px;
+  min-width: 270px;
+  max-width: 320px;
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.55),
+    0 0 0 1px rgba(212, 175, 55, 0.08);
+  pointer-events: all;
+  animation: order-toast-in 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
+
+  &__icon {
+    flex-shrink: 0;
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    background: rgba(212, 175, 55, 0.1);
+    border: 1px solid rgba(212, 175, 55, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 1px;
+  }
+
+  &__body {
+    flex: 1;
+    min-width: 0;
+  }
+
+  &__label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #D4AF37;
+    margin: 0 0 2px;
+  }
+
+  &__customer {
+    font-size: 13px;
+    font-weight: 600;
+    color: #ede8df;
+    margin: 0 0 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &__total {
+    font-size: 12px;
+    color: #8a8480;
+    margin: 0;
+  }
+
+  &__close {
+    flex-shrink: 0;
+    background: transparent;
+    border: none;
+    color: #6a6460;
+    font-size: 18px;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0 0 0 4px;
+    transition: color 0.15s;
+    align-self: flex-start;
+
+    &:hover { color: #ede8df; }
+  }
 }
 
 // ── Badge sin costo ───────────────────────────────────────────
@@ -204,6 +309,29 @@
   gap: 1.6rem;
 }
 
+.dashboard-empty {
+  background: rgba(212, 175, 55, 0.06);
+  border: 1px solid rgba(212, 175, 55, 0.2);
+  border-radius: 10px;
+  padding: 1.25rem 1.5rem;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.55);
+  margin-bottom: 1.5rem;
+
+  &__link {
+    background: none;
+    border: none;
+    color: #D4AF37;
+    cursor: pointer;
+    font-size: inherit;
+    padding: 0;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+
+    &:hover { color: #f0cc60; }
+  }
+}
+
 .alert-banner {
   background: rgba(255, 165, 0, 0.08);
   border-left: 3px solid #ffa500;
@@ -230,6 +358,9 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   gap: 1rem;
+
+  @media (max-width: 900px) { grid-template-columns: repeat(2, 1fr); }
+  @media (max-width: 600px) { grid-template-columns: 1fr; }
 }
 
 .stat-card {
@@ -1202,6 +1333,26 @@
   }
 
   .product-drawer { width: 100%; }
+}
+
+@media (max-width: 768px) {
+  .admin-main {
+    padding: $spacing-lg;
+  }
+
+  .admin-sidebar {
+    &__nav { overflow-x: auto; }
+  }
+}
+
+@media (max-width: 480px) {
+  .admin-main {
+    padding: $spacing-md;
+  }
+
+  .admin-page {
+    padding-top: 2rem;
+  }
 }
 
 // ══════════════════════════════════════════════════════════════

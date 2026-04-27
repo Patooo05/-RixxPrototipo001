@@ -74,6 +74,7 @@ const RelatedProducts = ({ currentProductId, category }) => {
                       src={thumb}
                       alt={p.name}
                       className="related-products__card-img"
+                      loading="lazy"
                     />
                   ) : (
                     <div className="related-products__card-placeholder" />

@@ -43,6 +43,71 @@
       z-index: 0;
     }
 
+    &--image {
+      height: 100vh;
+      cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='11'%3E%3Ccircle cx='5.5' cy='5.5' r='4.5' fill='%23000000'/%3E%3C/svg%3E") 5 5, auto;
+
+      .banner__bg {
+        object-position: center center;
+      }
+
+      .banner-overlay {
+        background: linear-gradient(
+          180deg,
+          rgba($background, 0.05) 0%,
+          rgba($background, 0.1) 60%,
+          rgba($background, 0.35) 100%
+        );
+      }
+    }
+
+    .banner__img-overlay {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      background: linear-gradient(
+        180deg,
+        rgba(0,0,0,0) 40%,
+        rgba(0,0,0,0.15) 100%
+      );
+      pointer-events: none;
+    }
+
+    .banner__img-cta {
+      position: absolute;
+      bottom: calc(24% - 5rem);
+      left: calc(5.5% + 1rem);
+      z-index: 3;
+      background: #C9A84C;
+      border: 1px solid #A88A35;
+      color: #0a0a0a;
+      font-family: $font-body;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      padding: 15px 30px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 14px;
+      box-shadow: 0 4px 24px rgba(201, 168, 76, 0.5);
+      transition: background 0.25s ease, box-shadow 0.25s ease;
+
+      span {
+        font-size: 16px;
+        line-height: 1;
+        transition: transform 0.25s ease;
+      }
+
+      &:hover {
+        background: #A88A35;
+        box-shadow: 0 6px 28px rgba(212, 175, 55, 0.35);
+
+        span { transform: translateX(5px); }
+      }
+    }
+
     .banner-overlay {
       position: absolute;
       inset: 0;
@@ -83,7 +148,7 @@
           font-family: $font-headline;
           color: $on-surface;
           font-weight: 300;
-          font-size: clamp(3.5rem, 8vw, 8rem);
+          font-size: clamp(2rem, 8vw, 8rem);
           letter-spacing: -0.01em;
           line-height: 0.95;
           margin-bottom: $spacing-lg;
@@ -206,7 +271,7 @@
 
     &__text {
       font-family: $font-headline;
-      font-size: clamp(2.5rem, 6vw, 6rem);
+      font-size: clamp(2rem, 6vw, 6rem);
       font-weight: 300;
       font-style: italic;
       color: $on-surface;
@@ -256,7 +321,7 @@
 
     .under-title {
       font-family: $font-headline;
-      font-size: clamp(2.5rem, 4vw, 4.5rem);
+      font-size: clamp(2rem, 4vw, 4.5rem);
       font-weight: 300;
       font-style: italic;
       color: $on-surface;
@@ -305,6 +370,10 @@
   }
 
   @media (max-width: 480px) {
+    .banner {
+      height: 75vh;
+      min-height: 420px;
+    }
     .banner .banner__content {
       padding: 0 5vw 4vh;
       gap: 1.25rem;
@@ -318,13 +387,18 @@
       }
     }
     .middle-text {
-      margin: 5rem auto;
+      margin: 4rem auto;
+      padding: 0 1.25rem;
       p { font-size: clamp(1.5rem, 7vw, 3rem); }
     }
     .editorial-strip {
-      padding: 5rem $spacing-md;
+      padding: 4rem 1.25rem;
       &__text { font-size: clamp(1.75rem, 7vw, 3.5rem); }
     }
-    .social-box { margin: 3rem auto $spacing-2xl; }
+    .under-card-banner {
+      min-height: 380px;
+      .under-banner-overlay { min-height: 380px; padding: $spacing-2xl 1.25rem; }
+    }
+    .social-box { margin: 3rem auto $spacing-2xl; padding: 0 1.25rem; }
   }
 }

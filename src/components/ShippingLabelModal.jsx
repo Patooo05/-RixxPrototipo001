@@ -37,44 +37,45 @@ export default function ShippingLabelModal({ order, onClose }) {
   const handlePrint = () => {
     const content = printRef.current?.innerHTML;
     if (!content) return;
-    const win = window.open("", "_blank", "width=700,height=900");
-    win.document.write(`
-      <!DOCTYPE html>
-      <html lang="es">
-      <head>
-        <meta charset="UTF-8" />
-        <title>Boleta de envío #${orderId}</title>
-        <style>
-          * { box-sizing: border-box; margin: 0; padding: 0; }
-          body { font-family: Arial, sans-serif; background: #fff; color: #111; }
-          .sl { max-width: 600px; margin: 24px auto; border: 2px solid #111; }
-          .sl__header { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; border-bottom: 2px solid #111; background: #111; color: #fff; }
-          .sl__brand { font-size: 22px; font-weight: 900; letter-spacing: 0.1em; }
-          .sl__doc-title { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; opacity: 0.7; margin-top: 2px; }
-          .sl__order-id { font-size: 13px; font-weight: 700; font-family: monospace; background: #D4AF37; color: #111; padding: 4px 10px; border-radius: 4px; }
-          .sl__parties { display: grid; grid-template-columns: 1fr 1fr; border-bottom: 2px solid #111; }
-          .sl__party { padding: 14px 20px; }
-          .sl__party:first-child { border-right: 1px solid #111; }
-          .sl__party-label { font-size: 9px; text-transform: uppercase; letter-spacing: 0.12em; font-weight: 700; color: #666; margin-bottom: 8px; }
-          .sl__party-name { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
-          .sl__party-line { font-size: 12px; color: #333; line-height: 1.5; }
-          .sl__items { padding: 14px 20px; border-bottom: 1px solid #ddd; }
-          .sl__items-title { font-size: 9px; text-transform: uppercase; letter-spacing: 0.12em; font-weight: 700; color: #666; margin-bottom: 8px; }
-          .sl__item { display: flex; justify-content: space-between; font-size: 12px; padding: 3px 0; }
-          .sl__totals { padding: 10px 20px 14px; border-bottom: 2px solid #111; }
-          .sl__total-row { display: flex; justify-content: space-between; font-size: 12px; padding: 2px 0; color: #555; }
-          .sl__total-row--main { font-size: 15px; font-weight: 700; color: #111; margin-top: 6px; padding-top: 6px; border-top: 1px solid #ddd; }
-          .sl__footer { display: flex; align-items: center; justify-content: flex-end; padding: 16px 20px; gap: 16px; }
-          .sl__footer-text { font-size: 10px; color: #888; line-height: 1.6; text-align: right; }
-          .sl__date { font-size: 10px; color: #888; }
-        </style>
-      </head>
-      <body>${content}</body>
-      </html>
-    `);
-    win.document.close();
-    win.focus();
-    setTimeout(() => { win.print(); }, 300);
+    const html = `<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Boleta de env\u00edo</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: Arial, sans-serif; background: #fff; color: #111; }
+    .sl { max-width: 600px; margin: 24px auto; border: 2px solid #111; }
+    .sl__header { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; border-bottom: 2px solid #111; background: #111; color: #fff; }
+    .sl__brand { font-size: 22px; font-weight: 900; letter-spacing: 0.1em; }
+    .sl__doc-title { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; opacity: 0.7; margin-top: 2px; }
+    .sl__order-id { font-size: 13px; font-weight: 700; font-family: monospace; background: #D4AF37; color: #111; padding: 4px 10px; border-radius: 4px; }
+    .sl__parties { display: grid; grid-template-columns: 1fr 1fr; border-bottom: 2px solid #111; }
+    .sl__party { padding: 14px 20px; }
+    .sl__party:first-child { border-right: 1px solid #111; }
+    .sl__party-label { font-size: 9px; text-transform: uppercase; letter-spacing: 0.12em; font-weight: 700; color: #666; margin-bottom: 8px; }
+    .sl__party-name { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+    .sl__party-line { font-size: 12px; color: #333; line-height: 1.5; }
+    .sl__items { padding: 14px 20px; border-bottom: 1px solid #ddd; }
+    .sl__items-title { font-size: 9px; text-transform: uppercase; letter-spacing: 0.12em; font-weight: 700; color: #666; margin-bottom: 8px; }
+    .sl__item { display: flex; justify-content: space-between; font-size: 12px; padding: 3px 0; }
+    .sl__totals { padding: 10px 20px 14px; border-bottom: 2px solid #111; }
+    .sl__total-row { display: flex; justify-content: space-between; font-size: 12px; padding: 2px 0; color: #555; }
+    .sl__total-row--main { font-size: 15px; font-weight: 700; color: #111; margin-top: 6px; padding-top: 6px; border-top: 1px solid #ddd; }
+    .sl__footer { display: flex; align-items: center; justify-content: flex-end; padding: 16px 20px; gap: 16px; }
+    .sl__footer-text { font-size: 10px; color: #888; line-height: 1.6; text-align: right; }
+    .sl__date { font-size: 10px; color: #888; }
+  </style>
+</head>
+<body>${content}</body>
+</html>`;
+    const blob = new Blob([html], { type: "text/html;charset=utf-8" });
+    const url  = URL.createObjectURL(blob);
+    const win  = window.open(url, "_blank", "width=700,height=900");
+    win?.addEventListener("load", () => {
+      URL.revokeObjectURL(url);
+      setTimeout(() => win.print(), 300);
+    });
   };
 
   return createPortal(

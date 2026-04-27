@@ -85,10 +85,10 @@ const GlassSVG = ({ shape, accent }) => {
 
 const CollectionCarousel = () => {
   const [current, setCurrent] = useState(0);
-  const [prev, setPrev] = useState(null);
+  const [_prev, setPrev] = useState(null);
   const [animating, setAnimating] = useState(false);
   const timerRef = useRef(null);
-  const progressRef = useRef(null);
+  const _progressRef = useRef(null);
   const navigate = useNavigate();
 
   const count = COLLECTIONS.length;
@@ -195,7 +195,7 @@ const CollectionCarousel = () => {
           >
             {/* Full bleed image */}
             <div className="cc__img-wrap">
-              <img src={col.image} alt={col.title.replace("\n", " ")} className="cc__img" />
+              <img src={col.image} alt={col.title.replace("\n", " ")} className="cc__img" loading="lazy" />
               {/* Gradient overlay left→transparent */}
               <div className="cc__img-overlay" style={{ "--accent": col.accent }} />
             </div>

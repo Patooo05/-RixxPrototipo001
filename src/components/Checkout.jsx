@@ -1,9 +1,11 @@
 import { useState, useEffect, useContext } from "react";
+import { usePageTitle } from "../hooks/usePageTitle";
+import { useWelcomeTimer } from "../hooks/useWelcomeTimer";
 import { useCart } from "./CartContext.jsx";
 import { useOrders } from "./OrdersContext.jsx";
 import { AuthContext } from "./AuthContext.jsx";
 import { ProductsContext } from "./ProductsContext.jsx";
-import { supabase, isSupabaseEnabled } from "../lib/supabase.js";
+import { useToast } from "./ToastContext.jsx";
 import { Link, useNavigate } from "react-router-dom";
 import "../styles/Checkout.scss";
 
@@ -133,10 +135,15 @@ function buildWhatsAppMessage(form, items, subtotal, shipping, discount = 0, tot
 // ── Componente ────────────────────────────────────────────────
 
 export default function Checkout() {
-  const { syncedItems: items, total: subtotal, clear } = useCart();
-  const { createOrder } = useOrders();
-  const { isLoggedIn, register } = useContext(AuthContext);
+  usePageTitle("Checkout");
+  const { syncedItems: items, total: subtotal, clear,
+          appliedCoupon, appliedDiscount, removeCoupon,
+          markAppliedCouponUsed } = useCart();
+  const { mm: tmm, ss: tss, secs: tsecs } = useWelcomeTimer();
+  const { createOrder, getUserOrders } = useOrders();
+  const { isLoggedIn, register, currentUser } = useContext(AuthContext);
   const { products, updateProduct } = useContext(ProductsContext);
+  const { toast } = useToast();
   const navigate = useNavigate();
 
   // ── Post-purchase account creation modal ─────────────────────
@@ -144,19 +151,7 @@ export default function Checkout() {
   const [modalPassword, setModalPassword]       = useState("");
   const [modalError, setModalError]             = useState("");
   const [modalLoading, setModalLoading]         = useState(false);
-  const [lastOrder, setLastOrder]               = useState(null);
 
-  // ── Coupon state ──────────────────────────────────────────────
-  const [couponCode, setCouponCode]       = useState("");
-  const [appliedCoupon, setAppliedCoupon] = useState(null);  // { type, value, code }
-  const [couponError, setCouponError]     = useState("");
-  const [couponLoading, setCouponLoading] = useState(false);
-
-  const appliedDiscount = appliedCoupon
-    ? appliedCoupon.type === "percentage"
-      ? subtotal * (appliedCoupon.value / 100)
-      : appliedCoupon.value
-    : 0;
 
   const shipping  = calcShipping(subtotal);
   const grandTotal = subtotal + shipping - appliedDiscount;
@@ -178,6 +173,7 @@ export default function Checkout() {
   const [cardErrors, setCardErrors] = useState(EMPTY_CARD_ERRORS);
   const [sent, setSent]             = useState(false);
   const [processing, setProcessing] = useState(false);
+  const [confirmedOrder, setConfirmedOrder] = useState(null);
 
   // Persistir form completo en sessionStorage (pasos actuales)
   useEffect(() => {
@@ -190,7 +186,25 @@ export default function Checkout() {
     if (nombre || email || telefono) {
       localStorage.setItem(PERSIST_KEY, JSON.stringify({ nombre, email, telefono }));
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [form.nombre, form.email, form.telefono]);
+
+  // Pre-rellenar dirección desde el último pedido del usuario logueado
+  useEffect(() => {
+    if (!isLoggedIn || !currentUser?.email) return;
+    getUserOrders(currentUser.email).then((orders) => {
+      if (!orders || orders.length === 0) return;
+      const last = orders[0];
+      setForm((f) => ({
+        ...f,
+        nombre:      f.nombre      || last.user_name  || "",
+        telefono:    f.telefono    || last.user_phone  || "",
+        departamento: f.departamento !== "Montevideo" ? f.departamento : (last.shipping_address?.departamento || f.departamento),
+        direccion:   f.direccion   || last.shipping_address?.direccion || "",
+      }));
+    }).catch(() => { /* silencioso — el prefill no es crítico */ });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   if (items.length === 0 && !sent) {
     return (
@@ -207,82 +221,6 @@ export default function Checkout() {
     );
   }
 
-  // ── Coupon handler ────────────────────────────────────────
-  const applyCoupon = async () => {
-    const code = couponCode.trim().toUpperCase();
-    if (!code) { setCouponError("Ingresá un código de cupón"); return; }
-    setCouponLoading(true);
-    setCouponError("");
-
-    try {
-      if (!isSupabaseEnabled) {
-        setCouponError("Cupones no disponibles en modo offline");
-        return;
-      }
-
-      let result;
-      try {
-        result = await Promise.race([
-          supabase
-            .from("coupons")
-            .select("*")
-            .eq("code", code)
-            .eq("active", true)
-            .single(),
-          new Promise((_, reject) =>
-            setTimeout(() => reject(new Error("timeout")), 8000)
-          ),
-        ]);
-      } catch (raceErr) {
-        if (raceErr.message === "timeout") {
-          setCouponError("No se pudo validar el cupón, intentá de nuevo");
-          return;
-        }
-        throw raceErr;
-      }
-
-      const { data, error } = result;
-
-      if (error || !data) {
-        setCouponError("Cupón inválido o no encontrado");
-        return;
-      }
-
-      // Validar expiración
-      if (data.valid_until && new Date(data.valid_until) < new Date()) {
-        setCouponError("Este cupón ha expirado");
-        return;
-      }
-
-      // Validar compra mínima
-      if (data.min_purchase && subtotal < data.min_purchase) {
-        setCouponError(
-          `Este cupón requiere una compra mínima de ${formatPrice(data.min_purchase)}`
-        );
-        return;
-      }
-
-      // Validar usos máximos
-      if (data.max_uses != null && data.used_count >= data.max_uses) {
-        setCouponError("Este cupón ya alcanzó el límite de usos");
-        return;
-      }
-
-      setAppliedCoupon({ type: data.type, value: data.value, code: data.code });
-      setCouponError("");
-    } catch (err) {
-      console.error("[Checkout] applyCoupon error:", err);
-      setCouponError("Error al validar el cupón, intentá de nuevo");
-    } finally {
-      setCouponLoading(false);
-    }
-  };
-
-  const removeCoupon = () => {
-    setAppliedCoupon(null);
-    setCouponCode("");
-    setCouponError("");
-  };
 
   // ── Handlers ──────────────────────────────────────────────
 
@@ -371,10 +309,11 @@ export default function Checkout() {
   const afterOrderCreated = (order) => {
     decrementStock(order.items);
     sessionStorage.removeItem(SESSION_KEY);
+    if (markAppliedCouponUsed) markAppliedCouponUsed();
     clear();
     setSent(true);
+    setConfirmedOrder(order);
     setStep(3);
-    setLastOrder(order);
     // Show account-creation modal only if user isn't logged in
     if (!isLoggedIn) {
       setTimeout(() => setShowAccountModal(true), 800);
@@ -388,15 +327,18 @@ export default function Checkout() {
   };
 
   const handleConfirmWhatsApp = async () => {
-    // Guardar el pedido PRIMERO antes de abrir WhatsApp
-    // (el navegador puede suspender la página al salir, interrumpiendo createOrder)
-    let order = buildOrderPayload("whatsapp");
-    try { order = await createOrder(order) ?? order; } catch (e) { console.error(e); }
-
-    // Recién después abrir WhatsApp
+    // Abrir WhatsApp INMEDIATAMENTE en el contexto de gesto del usuario,
+    // antes de cualquier await — así el navegador no bloquea ni encola el popup.
     const msg = buildWhatsAppMessage(form, items, subtotal, shipping, appliedDiscount, grandTotal);
     const url = `https://wa.me/${toWaNumber(form.telefono)}?text=${encodeURIComponent(msg)}`;
     window.open(url, "_blank", "noopener,noreferrer");
+
+    // Deshabilitar el botón para evitar pedidos duplicados
+    setProcessing(true);
+
+    // Guardar el pedido en segundo plano (no bloquea la apertura de WhatsApp)
+    let order = buildOrderPayload("whatsapp");
+    try { order = await createOrder(order) ?? order; } catch (e) { console.error(e); toast.error("No se pudo registrar el pedido. Guardá el número de conversación de WhatsApp."); }
 
     afterOrderCreated(order);
   };
@@ -443,68 +385,23 @@ export default function Checkout() {
       <div className="checkout__inner">
 
         {/* ── Step Indicator ──────────────────────────────── */}
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 0, marginBottom: 32 }}>
+        <div className="checkout__step-indicator">
           {STEPS.map((label, idx) => {
             const n = idx + 1;
             const done    = step > n;
             const current = step === n;
 
-            const circleStyle = {
-              width: 28,
-              height: 28,
-              borderRadius: "50%",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: 13,
-              fontWeight: current ? 700 : 400,
-              flexShrink: 0,
-              border: done
-                ? "2px solid #D4AF37"
-                : current
-                  ? "2px solid #D4AF37"
-                  : "2px solid #353534",
-              background: done
-                ? "rgba(212,175,55,0.15)"
-                : current
-                  ? "#D4AF37"
-                  : "transparent",
-              color: done
-                ? "#D4AF37"
-                : current
-                  ? "#0a0a0a"
-                  : "#99907c",
-            };
-
-            const labelColor = done
-              ? "#D4AF37"
-              : current
-                ? "#D4AF37"
-                : "#99907c";
+            const circleClass = `checkout__step-circle${done ? " checkout__step-circle--done" : current ? " checkout__step-circle--active" : ""}`;
+            const labelClass  = `checkout__step-label${(done || current) ? " checkout__step-label--active" : ""}`;
 
             return (
-              <div key={n} style={{ display: "flex", alignItems: "center", gap: 0 }}>
-                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
-                  <div style={circleStyle}>{done ? "✓" : n}</div>
-                  <span style={{
-                    fontSize: 11,
-                    textTransform: "uppercase",
-                    letterSpacing: "0.08em",
-                    color: labelColor,
-                    whiteSpace: "nowrap",
-                  }}>{label}</span>
+              <div key={n} className="checkout__step-item">
+                <div className="checkout__step-body">
+                  <div className={circleClass}>{done ? "✓" : n}</div>
+                  <span className={labelClass}>{label}</span>
                 </div>
                 {idx < STEPS.length - 1 && (
-                  <div style={{
-                    flex: 1,
-                    height: 1,
-                    background: "#353534",
-                    maxWidth: 48,
-                    minWidth: 24,
-                    marginBottom: 17,
-                    alignSelf: "flex-start",
-                    marginTop: 14,
-                  }} />
+                  <div className="checkout__step-line" />
                 )}
               </div>
             );
@@ -552,6 +449,7 @@ export default function Checkout() {
                 <select
                   className="checkout__input checkout__input--select"
                   name="departamento" value={form.departamento} onChange={handleChange}
+                  autoComplete="address-level1"
                 >
                   {DEPARTAMENTOS.map((d) => <option key={d} value={d}>{d}</option>)}
                 </select>
@@ -564,6 +462,7 @@ export default function Checkout() {
                 className={`checkout__input checkout__input--textarea${errors.direccion ? " checkout__input--error" : ""}`}
                 name="direccion" value={form.direccion} onChange={handleChange}
                 placeholder="Calle, número, apartamento, esquina..." rows={3}
+                autoComplete="street-address"
               />
               {errors.direccion && <p className="field-error">{errors.direccion}</p>}
             </div>
@@ -603,12 +502,28 @@ export default function Checkout() {
               </span>
             </label>
 
+            {/* Cupón aplicado (viene del carrito) */}
+            {appliedCoupon && (
+              <div className="checkout__coupon-applied">
+                <span className="checkout__coupon-tag">
+                  <strong>{appliedCoupon.code}</strong> — {appliedCoupon.type === "percentage" ? `${appliedCoupon.value}% OFF` : `- ${formatPrice(appliedCoupon.value)}`}
+                </span>
+                {tsecs > 0 && (
+                  <span className={`checkout__coupon-timer${tsecs <= 60 ? " checkout__coupon-timer--urgent" : ""}`}>
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    {tmm}:{tss}
+                  </span>
+                )}
+                <button className="checkout__coupon-remove" onClick={removeCoupon} aria-label="Quitar cupón">✕</button>
+              </div>
+            )}
+
             {/* Banner envío gratis */}
             {subtotal < SHIPPING_FREE_THRESHOLD && (
               <div className="checkout__shipping-banner">
                 <IconTruck />
                 <span>
-                  Agregá <strong>{formatPrice(SHIPPING_FREE_THRESHOLD - subtotal)}</strong> más y el envío es gratis
+                  Llevá <strong>2 productos</strong> y el envío es gratis
                 </span>
               </div>
             )}
@@ -663,35 +578,21 @@ export default function Checkout() {
               ))}
             </div>
 
-            {/* ── Cupón de descuento ── */}
-            <div className="checkout__coupon">
-              {appliedCoupon ? (
-                <div className="checkout__coupon-applied">
-                  <span className="checkout__coupon-tag">
-                    🎟 <strong>{appliedCoupon.code}</strong> — {appliedCoupon.type === "percentage" ? `${appliedCoupon.value}% OFF` : `- ${formatPrice(appliedCoupon.value)}`}
+            {/* Cupón aplicado (solo lectura en step 2) */}
+            {appliedCoupon && (
+              <div className="checkout__coupon-applied" style={{ marginBottom: "0.5rem" }}>
+                <span className="checkout__coupon-tag">
+                  <strong>{appliedCoupon.code}</strong> — {appliedCoupon.type === "percentage" ? `${appliedCoupon.value}% OFF` : `- ${formatPrice(appliedCoupon.value)}`}
+                </span>
+                {tsecs > 0 && (
+                  <span className={`checkout__coupon-timer${tsecs <= 60 ? " checkout__coupon-timer--urgent" : ""}`}>
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    {tmm}:{tss}
                   </span>
-                  <button className="checkout__coupon-remove" onClick={removeCoupon} aria-label="Quitar cupón">✕</button>
-                </div>
-              ) : (
-                <div className="checkout__coupon-row">
-                  <input
-                    className="checkout__input checkout__coupon-input"
-                    placeholder="Código de cupón"
-                    value={couponCode}
-                    onChange={e => setCouponCode(e.target.value)}
-                    onKeyDown={e => e.key === "Enter" && applyCoupon()}
-                  />
-                  <button
-                    className="checkout__btn checkout__btn--ghost checkout__coupon-btn"
-                    onClick={applyCoupon}
-                    disabled={couponLoading}
-                  >
-                    {couponLoading ? "…" : "Aplicar"}
-                  </button>
-                </div>
-              )}
-              {couponError && <p className="field-error" style={{ marginTop: "0.4rem" }}>{couponError}</p>}
-            </div>
+                )}
+                <button className="checkout__coupon-remove" onClick={removeCoupon} aria-label="Quitar cupón">✕</button>
+              </div>
+            )}
 
             {/* Subtotal + envío + total */}
             <div className="checkout__price-breakdown">
@@ -857,8 +758,11 @@ export default function Checkout() {
                   onClick={handleConfirm}
                   disabled={processing}
                 >
-                  <IconWA />
-                  Confirmar por WhatsApp
+                  {processing ? (
+                    <><span className="checkout__spinner checkout__spinner--wa" /> Enviando…</>
+                  ) : (
+                    <><IconWA /> Confirmar por WhatsApp</>
+                  )}
                 </button>
               ) : (
                 <button
@@ -887,12 +791,27 @@ export default function Checkout() {
                 ? "Tu pedido fue enviado por WhatsApp. En breve nos ponemos en contacto para coordinar la entrega y el pago."
                 : "Tu pago fue procesado exitosamente. Recibirás un email de confirmación con los detalles de tu pedido y el seguimiento del envío."}
             </p>
+            <div className="checkout__success-meta">
+              {confirmedOrder?.id && (
+                <p className="checkout__success-order-id">
+                  #{String(confirmedOrder.id).slice(0, 8).toUpperCase()}
+                </p>
+              )}
+              <p className="checkout__success-note">
+                {paymentMethod === "whatsapp"
+                  ? "Te contactamos por WhatsApp en las próximas 2 horas para confirmar tu pedido."
+                  : "Tu pago fue procesado. Recibirás confirmación por email."}
+              </p>
+            </div>
             <button
               className="checkout__btn checkout__btn--primary"
               onClick={() => navigate("/productos")}
             >
               Seguir comprando
             </button>
+            <Link to="/mis-pedidos" className="checkout__success-orders-link">
+              Ver mis pedidos
+            </Link>
           </div>
         )}
 

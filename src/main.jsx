@@ -10,6 +10,12 @@ import { ToastProvider }    from "./components/ToastContext.jsx";
 import { ReviewsProvider }  from "./components/ReviewsContext.jsx";
 import "./styles/global.scss";
 
+if ('serviceWorker' in navigator && import.meta.env.PROD) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(() => {});
+  });
+}
+
 createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <AuthProvider>

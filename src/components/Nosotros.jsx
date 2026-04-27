@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { Link } from "react-router-dom";
+import { usePageTitle } from "../hooks/usePageTitle";
 import "../styles/Nosotros.scss";
 
 const valores = [
@@ -24,16 +25,19 @@ const ubicaciones = [
     pais: "Uruguay",
     direccion: "18 de Julio 842, Florida",
     horario: "Lun–Vie 9:00–18:00 · Sáb 10:00–14:00",
+    mapsUrl: "https://maps.google.com/?q=18+de+Julio+842+Florida+Uruguay",
   },
   {
     ciudad: "Montevideo",
     pais: "Uruguay",
     direccion: "Av. 18 de Julio 1234, Montevideo",
     horario: "Lun–Vie 9:00–19:00 · Sáb 10:00–15:00",
+    mapsUrl: "https://maps.google.com/?q=Av+18+de+Julio+1234+Montevideo+Uruguay",
   },
 ];
 
 export default function Nosotros() {
+  usePageTitle("Nosotros");
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
@@ -79,7 +83,29 @@ export default function Nosotros() {
               discreción y carácter propio.
             </p>
           </div>
-          <div className="nosotros-page__historia-space" aria-hidden="true" />
+          <div className="nosotros-page__historia-visual" aria-hidden="true">
+            <div className="nosotros-page__historia-quote">
+              <span className="nosotros-page__historia-quote-mark">"</span>
+              <p className="nosotros-page__historia-quote-text">
+                No seguimos tendencias.<br />Las definimos.
+              </p>
+              <span className="nosotros-page__historia-quote-attr">— RIXX, Florida 2021</span>
+            </div>
+            <div className="nosotros-page__historia-stat-row">
+              <div className="nosotros-page__historia-stat">
+                <span className="nosotros-page__historia-stat-num">3</span>
+                <span className="nosotros-page__historia-stat-label">Colecciones</span>
+              </div>
+              <div className="nosotros-page__historia-stat">
+                <span className="nosotros-page__historia-stat-num">+500</span>
+                <span className="nosotros-page__historia-stat-label">Clientes</span>
+              </div>
+              <div className="nosotros-page__historia-stat">
+                <span className="nosotros-page__historia-stat-num">UY</span>
+                <span className="nosotros-page__historia-stat-label">Origen</span>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -115,7 +141,15 @@ export default function Nosotros() {
               <div key={u.ciudad} className="nosotros-page__ubicacion-card">
                 <p className="nosotros-page__ubicacion-pais">{u.pais}</p>
                 <h3 className="nosotros-page__ubicacion-ciudad">{u.ciudad}</h3>
-                <p className="nosotros-page__ubicacion-dir">{u.direccion}</p>
+                <a
+                  href={u.mapsUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="nosotros-page__ubicacion-dir nosotros-page__ubicacion-dir--link"
+                  aria-label={`Ver ${u.ciudad} en Google Maps`}
+                >
+                  {u.direccion}
+                </a>
                 <p className="nosotros-page__ubicacion-horario">{u.horario}</p>
               </div>
             ))}

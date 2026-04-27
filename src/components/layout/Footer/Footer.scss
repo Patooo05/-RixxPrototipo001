@@ -8,6 +8,14 @@
   position: relative;
   overflow: hidden;
 
+  @media (max-width: 768px) {
+    padding: $spacing-3xl $spacing-lg $spacing-2xl;
+  }
+
+  @media (max-width: 480px) {
+    padding: $spacing-2xl $section-padding-x-mobile $spacing-xl;
+  }
+
   // Logo watermark
   &::before {
     content: "";
@@ -127,14 +135,17 @@
   }
 }
 
+@media (max-width: 768px) {
+  .footer__wordmark { font-size: 1.6rem; }
+  .footer__list li, .footer__list a { padding: 0.2rem 0; }
+}
+
 @media (max-width: 540px) {
-  .footer {
-    padding: $spacing-3xl $section-padding-x-mobile 2.5rem;
-  }
   .footer__grid {
     grid-template-columns: 1fr;
     gap: $gap-grid;
     text-align: center;
   }
   .footer__tagline { max-width: 100%; }
+  .footer__wordmark { font-size: 1.4rem; }
 }

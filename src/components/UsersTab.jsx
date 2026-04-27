@@ -1,4 +1,4 @@
-import { useState, useContext, useEffect, useRef } from "react";
+import { useState, useContext, useRef, useMemo } from "react";
 import { AuthContext } from "./AuthContext";
 import "../styles/UsersTab.scss";
 
@@ -35,17 +35,16 @@ const UsersTab = () => {
   const [form, setForm] = useState(emptyForm);
   const [selectedUser, setSelectedUser] = useState(null);
   const [feedback, setFeedback] = useState(null);
-  const [valid, setValid] = useState({ email: true, password: true });
   const [showPassword, setShowPassword] = useState(false);
   const [emailDupeError, setEmailDupeError] = useState("");
 
   /* ================= VALIDACIONES ================= */
-  useEffect(() => {
+  const valid = useMemo(() => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    setValid({
+    return {
       email: emailRegex.test(form.email),
       password: form.password.length >= 4,
-    });
+    };
   }, [form.email, form.password]);
 
   /* ================= HELPERS ================= */

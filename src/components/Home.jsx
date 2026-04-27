@@ -1,9 +1,9 @@
-import { useEffect, useState, useRef, useCallback } from "react";
+import { useEffect, useState, useRef, useCallback, Suspense } from "react";
+import { useSEO } from "../hooks/usePageTitle";
 import { useNavigate } from "react-router-dom";
 import "../styles/Home.scss";
-import bannerImage    from "../assets/img/fotomontaje3.webp";
-import underCardImage from "../assets/img/fotomontaje3.webp";
-import { fadeInOnScroll } from "../js/home";
+import bannerImage from "../assets/img/banner_oficcial.png";
+import underCardImage from "../assets/img/3.webp";
 
 import FeaturedProducts    from "../components/FeaturedProducts.jsx";
 import BenefitsStrip      from "../components/BenefitsStrip.jsx";
@@ -28,6 +28,10 @@ const SLIDES = [
 const INTERVAL = 7000;
 
 const Home = () => {
+  useSEO({
+    title:       "RIXX — Lentes de sol premium en Uruguay",
+    description: "Descubrí la colección de lentes de sol premium RIXX. Diseño, calidad y estilo. Envío a todo Uruguay.",
+  });
   const navigate = useNavigate();
   const [activeSlide, setActiveSlide] = useState(0);
   const timerRef = useRef(null);
@@ -50,47 +54,26 @@ const Home = () => {
     return () => clearInterval(timerRef.current);
   }, []);
 
-  useEffect(() => { fadeInOnScroll(); }, []);
+  useEffect(() => { import("../js/Home.js").then(m => m.fadeInOnScroll()); }, []);
 
 
   return (
     <main className="home">
 
       {/* ——— BANNER ——— */}
-      <section className="banner banner--carousel">
-        <img src={bannerImage} alt="" className="banner__bg" aria-hidden="true" />
-
-        <div className="banner-overlay" />
-
-        {SLIDES.map((slide, i) => (
-          <div key={i} className={`banner__content${i === activeSlide ? " banner__content--active" : ""}`}>
-            <div className="presentation-card">
-              <h2 className="presentation-card__title">
-                <em>{slide.title[0]}</em> {slide.title[1]}
-              </h2>
-              <p className="presentation-card__text">{slide.subtitle}</p>
-            </div>
-            <button className="primary-btn banner__cta" onClick={() => navigate("/productos")}>{slide.cta}</button>
-          </div>
-        ))}
-
-        <button className="banner__arrow banner__arrow--prev" onClick={prev} aria-label="Anterior">
-          <FaChevronLeft />
+      <section className="banner banner--image" aria-label="Banner principal">
+        <img
+          src={bannerImage}
+          alt="RIXX — Diseño que define, estilo que permanece"
+          className="banner__bg"
+          fetchPriority="high"
+          loading="eager"
+          decoding="sync"
+        />
+        <div className="banner__img-overlay" />
+        <button className="banner__img-cta" onClick={() => navigate("/productos")}>
+          DESCUBRÍ LA COLECCIÓN <span aria-hidden="true">→</span>
         </button>
-        <button className="banner__arrow banner__arrow--next" onClick={next} aria-label="Siguiente">
-          <FaChevronRight />
-        </button>
-
-        <div className="banner__dots">
-          {SLIDES.map((_, i) => (
-            <button
-              key={i}
-              className={`banner__dot${i === activeSlide ? " banner__dot--active" : ""}`}
-              onClick={() => goTo(i)}
-              aria-label={`Slide ${i + 1}`}
-            />
-          ))}
-        </div>
       </section>
 
       {/* ——— BENEFITS STRIP ——— */}
@@ -101,7 +84,7 @@ const Home = () => {
 
       {/* ——— FRASE EDITORIAL ——— */}
       <span className="section-divider" />
-      <section className="middle-text fade-in-on-scroll">
+      <section className="middle-text fade-in-on-scroll" aria-label="Frase editorial">
         <p>"Aquí el estilo es poder y la visión es tuya."</p>
       </section>
       <span className="section-divider" />
@@ -111,7 +94,7 @@ const Home = () => {
       <span className="section-divider" />
 
       {/* ——— EDITORIAL STRIP ——— */}
-      <section className="editorial-strip fade-in-on-scroll">
+      <section className="editorial-strip fade-in-on-scroll" aria-label="Tira editorial">
         <span className="editorial-strip__tag">Hecho en Uruguay — 2025</span>
         <p className="editorial-strip__text">Cada par, una declaración.</p>
       </section>
@@ -119,8 +102,8 @@ const Home = () => {
       <span className="section-divider" />
 
       {/* ——— UNDER-CARD BANNER ——— */}
-      <section className="under-card-banner fade-in-on-scroll">
-        <img src={underCardImage} alt="Nueva colección" className="under-banner-img" />
+      <section className="under-card-banner fade-in-on-scroll" aria-label="Nuevo packaging">
+        <img src={underCardImage} alt="Nueva colección" className="under-banner-img" loading="lazy" />
         <div className="under-banner-overlay">
           <header className="under-header">
             <h3 className="under-title">Nuevo Packaging</h3>
@@ -135,7 +118,7 @@ const Home = () => {
 
       {/* ——— CONTACTO ——— */}
       <span className="section-divider" />
-      <section className="social-box fade-in-on-scroll">
+      <section className="social-box fade-in-on-scroll" aria-label="Información de contacto">
         <p>Florida, Uruguay</p>
         <p><a href="https://wa.me/59898868601" target="_blank" rel="noopener noreferrer" style={{ color: "inherit", textDecoration: "none" }}>098 868 601</a></p>
         <p>contacto@rixxlentes.com</p>

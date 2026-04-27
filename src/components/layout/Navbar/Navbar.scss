@@ -8,8 +8,6 @@
 }
 
 // ── NAVBAR BASE ──────────────────────────────────────────────
-$announcement-bar-height: 32px;
-
 .navbar {
   position: fixed;
   top: $announcement-bar-height;
@@ -194,6 +192,9 @@ $announcement-bar-height: 32px;
   text-transform: uppercase;
   color: rgba($on-surface, 0.4);
   white-space: nowrap;
+  max-width: 90px;
+  overflow: hidden;
+  text-overflow: ellipsis;
   padding-left: 0.75rem;
   border-left: 1px solid rgba($on-surface, 0.1);
   margin-left: 0.25rem;
@@ -231,6 +232,16 @@ $announcement-bar-height: 32px;
   }
 }
 
+// ── TABLET: reducir gap de links ─────────────────────────────
+@media (max-width: 1024px) {
+  .navbar__links { gap: 2rem; }
+}
+
+@media (max-width: 900px) {
+  .navbar__links { gap: 1.4rem; }
+  .navbar__username { max-width: 60px; }
+}
+
 // ── MOBILE ───────────────────────────────────────────────────
 @media (max-width: 768px) {
 
@@ -264,6 +275,11 @@ $announcement-bar-height: 32px;
   .navbar__auth-btns { display: none; }
   .navbar__greeting  { display: none; }
 
+  .navbar__username { max-width: 70px; }
+
+  // Ocultar labels de tooltips en mobile
+  .nav-icon-btn[data-tooltip]::after { display: none; }
+
   // Mostrar toggle
   .navbar__toggle { display: flex; }
 
@@ -282,7 +298,7 @@ $announcement-bar-height: 32px;
     align-items: center;
     justify-content: center;
     gap: $spacing-2xl;
-    z-index: 199;
+    z-index: 201;
     animation: navbarEnter 0.35s $ease forwards;
 
     // En mobile el menú muestra todos los links
@@ -307,4 +323,10 @@ $announcement-bar-height: 32px;
 // ── MOBILE: ocultar elementos solo-desktop ────────────────────
 @media (max-width: 768px) {
   .navbar__link-desktop-only  { display: none; }
+}
+
+// ── SMALL MOBILE ─────────────────────────────────────────────
+@media (max-width: 480px) {
+  .navbar__container { padding: 0 0.9rem; }
+  .navbar__logo-img  { width: 38px; }
 }

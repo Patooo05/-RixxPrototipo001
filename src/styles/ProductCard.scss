@@ -392,12 +392,16 @@
       transform: translateY(0) scale(0.98);
     }
 
-    &--disabled {
+    &--disabled,
+    &:disabled,
+    &[disabled] {
       background: transparent;
       border: 1px solid rgba($on-surface, 0.12);
       color: rgba($on-surface, 0.3);
       box-shadow: none;
       cursor: not-allowed;
+      pointer-events: none;
+      opacity: 0.5;
       &:hover { transform: none; box-shadow: none; }
       &::after { display: none; }
     }

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import "../styles/QuantitySelector.scss";
 
 const QuantitySelector = ({ value, onChange, max = Infinity }) => {

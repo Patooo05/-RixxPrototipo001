@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import { useContext } from "react";
 import { ProductsContext } from "./ProductsContext";
 import "../styles/FilterBar.scss";
 
@@ -8,13 +8,14 @@ const FilterBar = () => {
   const {
     search, setSearch,
     categoryFilter, setCategoryFilter,
+    isFilterPending,
   } = useContext(ProductsContext);
 
   return (
     <div className="filter-bar">
 
       {/* Búsqueda */}
-      <div className="filter-bar__search">
+      <div className={`filter-bar__search${isFilterPending ? " filter-bar__search--pending" : ""}`}>
         <input
           type="text"
           placeholder="Buscar lentes..."
@@ -23,7 +24,10 @@ const FilterBar = () => {
           className="filter-bar__input"
           aria-label="Buscar productos"
         />
-        {search && (
+        {isFilterPending && (
+          <span className="filter-bar__spinner" aria-hidden="true" />
+        )}
+        {search && !isFilterPending && (
           <button
             className="filter-bar__clear"
             onClick={() => setSearch("")}

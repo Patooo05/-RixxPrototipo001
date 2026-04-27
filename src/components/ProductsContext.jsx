@@ -1,5 +1,7 @@
-import { createContext, useState, useMemo, useRef, useEffect } from "react";
+/* eslint-disable react-refresh/only-export-components */
+import { createContext, useState, useMemo, useRef, useEffect, useDeferredValue } from "react";
 import { supabase, isSupabaseEnabled } from "../lib/supabase";
+import { sbFetch } from "../lib/supabaseHelpers";
 
 export const ProductsContext = createContext();
 
@@ -50,37 +52,6 @@ const productToDb = (product) => ({
 // ── Helpers ────────────────────────────────────────────────────
 const now = () => new Date().toLocaleString("es-UY");
 
-// Raw fetch helper — bypasses Supabase JS client auth blocking
-const sbUrl = () => import.meta.env.VITE_SUPABASE_URL;
-const sbKey = () => import.meta.env.VITE_SUPABASE_ANON_KEY;
-const sbHeaders = () => ({
-  apikey: sbKey(),
-  Authorization: `Bearer ${sbKey()}`,
-  "Content-Type": "application/json",
-  Prefer: "return=representation",
-});
-
-const sbFetch = async (path, options = {}) => {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 12000);
-  try {
-    const res = await fetch(`${sbUrl()}/rest/v1/${path}`, {
-      ...options,
-      signal: controller.signal,
-      headers: { ...sbHeaders(), ...(options.headers || {}) },
-    });
-    clearTimeout(timeoutId);
-    if (!res.ok) {
-      const text = await res.text();
-      throw new Error(`Supabase ${res.status}: ${text}`);
-    }
-    const text = await res.text();
-    return text ? JSON.parse(text) : null;
-  } catch (err) {
-    clearTimeout(timeoutId);
-    throw err;
-  }
-};
 
 export const ProductsProvider = ({ children }) => {
   // In fallback mode nextIdRef tracks the auto-increment; unused in Supabase mode.
@@ -95,7 +66,6 @@ export const ProductsProvider = ({ children }) => {
     return [];
   });
   const [loading, setLoading]               = useState(SUPABASE_ENABLED);
-  const [history, setHistory]               = useState([]);
   const [changeLog, setChangeLog]           = useState([]);
   const [hasUnsavedChanges, setHasUnsaved]  = useState(false);
   const [lastSavedAt, setLastSavedAt]       = useState(null);
@@ -119,15 +89,18 @@ export const ProductsProvider = ({ children }) => {
   useEffect(() => {
     if (!SUPABASE_ENABLED) return;
 
-    // Muestra caché inmediatamente mientras carga en segundo plano
+    // Muestra caché inmediatamente y desbloquea la UI — Supabase actualiza en segundo plano
     try {
       const cached = localStorage.getItem("rixx_products_cache");
-      if (cached) setProducts(JSON.parse(cached));
+      if (cached) {
+        setProducts(JSON.parse(cached));
+        setLoading(false); // UI usable de inmediato si hay caché
+      }
     } catch { /* ignorar */ }
 
     const fetchProducts = async () => {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 15000);
+      const timeoutId = setTimeout(() => controller.abort(), 8000);
 
       try {
         const url = `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/products?select=*&order=created_at.desc`;
@@ -365,16 +338,6 @@ export const ProductsProvider = ({ children }) => {
     }
   };
 
-  // ── Historial de stock (local only) ─────────────────────────
-  const recordStockHistory = (id, oldStock, newStock) => {
-    const product = products.find((p) => p.id === id);
-    if (!product) return;
-    setHistory((prev) => [
-      ...prev,
-      { timestamp: now(), id, name: product.name, oldStock, newStock },
-    ]);
-  };
-
   // ── Marcar como guardado ─────────────────────────────────────
   const markProductsExported = () => {
     setHasUnsaved(false);
@@ -385,13 +348,20 @@ export const ProductsProvider = ({ children }) => {
     setChangeLog([]);
   };
 
+  // ── Deferred search — desacopla el tipeo del re-filtrado ─────
+  const deferredSearch = useDeferredValue(search);
+  const isFilterPending = deferredSearch !== search;
+
   // ── filteredProducts ─────────────────────────────────────────
   const filteredProducts = useMemo(() => {
     let result = products.filter((p) => !p.status || p.status === "activo");
-    if (search.trim()) {
-      const q = search.toLowerCase();
+    if (deferredSearch.trim()) {
+      const q = deferredSearch.toLowerCase();
       result = result.filter(
-        (p) => p.name.toLowerCase().includes(q) || (p.description || "").toLowerCase().includes(q)
+        (p) =>
+          (p.name || "").toLowerCase().includes(q) ||
+          (p.description || "").toLowerCase().includes(q) ||
+          (p.category || "").toLowerCase().includes(q)
       );
     }
     if (categoryFilter !== "Todos") result = result.filter((p) => p.category === categoryFilter);
@@ -403,7 +373,7 @@ export const ProductsProvider = ({ children }) => {
     if (sortOrder === "precio-desc") result.sort((a, b) => b.price - a.price);
     if (sortOrder === "nuevo")       result.sort((a, b) => String(b.id).localeCompare(String(a.id)));
     return result;
-  }, [products, search, categoryFilter, priceFilter, sortOrder, minPrice, maxPrice]);
+  }, [products, deferredSearch, categoryFilter, priceFilter, sortOrder, minPrice, maxPrice]);
 
   return (
     <ProductsContext.Provider
@@ -420,7 +390,6 @@ export const ProductsProvider = ({ children }) => {
         removeProduct,
         updateProduct,
         toggleFeatured,
-        recordStockHistory,
         markProductsExported,
         clearChangeLog,
         // Status y descuentos
@@ -435,6 +404,8 @@ export const ProductsProvider = ({ children }) => {
         // Filtro por rango de precio
         minPrice, setMinPrice,
         maxPrice, setMaxPrice,
+        // Deferred search state
+        isFilterPending,
       }}
     >
       {children}

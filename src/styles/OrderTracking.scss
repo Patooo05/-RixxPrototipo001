@@ -1,0 +1,493 @@
+@use "variables" as *;
+
+// ── OrderTracking — página pública de seguimiento ─────────────
+.order-tracking {
+  min-height: 100vh;
+  background: $background;
+  color: $on-surface;
+  padding: 0;
+  font-family: $font-body;
+
+  // ── Header ────────────────────────────────────────────────
+  &__header {
+    background: rgba(255, 255, 255, 0.03);
+    border-bottom: 1px solid rgba($primary, 0.15);
+    padding: 1.5rem 1.25rem;
+    text-align: center;
+  }
+
+  &__logo {
+    font-family: $font-headline;
+    font-size: 2rem;
+    font-weight: 700;
+    letter-spacing: 0.35em;
+    color: $primary;
+    text-transform: uppercase;
+    display: block;
+    text-decoration: none;
+    line-height: 1;
+  }
+
+  &__tagline {
+    font-size: 10px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: rgba($on-surface, 0.35);
+    margin-top: 0.35rem;
+  }
+
+  // ── Contenedor principal ───────────────────────────────────
+  &__container {
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 2rem 1.25rem 3rem;
+  }
+
+  // ── Loading ────────────────────────────────────────────────
+  &__loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    padding: 4rem 0;
+    color: rgba($on-surface, 0.45);
+    font-size: 11px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+  }
+
+  &__spinner {
+    width: 32px;
+    height: 32px;
+    border: 2px solid rgba($primary, 0.15);
+    border-top-color: $primary;
+    border-radius: 50%;
+    animation: ot-spin 0.85s linear infinite;
+  }
+
+  // ── Not found ──────────────────────────────────────────────
+  &__not-found {
+    text-align: center;
+    padding: 4rem 1rem;
+
+    &-icon {
+      font-size: 3rem;
+      display: block;
+      margin-bottom: 1.25rem;
+      opacity: 0.35;
+    }
+
+    h2 {
+      font-family: $font-headline;
+      font-size: 1.4rem;
+      color: $on-surface;
+      margin-bottom: 0.75rem;
+    }
+
+    p {
+      font-size: 0.875rem;
+      color: rgba($on-surface, 0.4);
+      line-height: 1.6;
+      max-width: 300px;
+      margin: 0 auto;
+    }
+  }
+
+  // ── Card del pedido ────────────────────────────────────────
+  &__card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba($primary, 0.12);
+    border-radius: $radius-sm;
+    overflow: hidden;
+  }
+
+  &__card-header {
+    padding: 1.5rem 1.5rem 1.25rem;
+    border-bottom: 1px solid rgba($on-surface, 0.06);
+  }
+
+  &__order-eyebrow {
+    font-size: 10px;
+    letter-spacing: 0.35em;
+    text-transform: uppercase;
+    color: $primary;
+    display: block;
+    margin-bottom: 0.5rem;
+    opacity: 0.85;
+  }
+
+  &__order-id {
+    font-family: $font-headline;
+    font-size: 1.25rem;
+    color: $on-surface;
+    letter-spacing: 0.05em;
+    margin: 0 0 0.25rem;
+  }
+
+  &__order-date {
+    font-size: 12px;
+    color: rgba($on-surface, 0.38);
+    letter-spacing: 0.04em;
+  }
+
+  // ── Stepper ────────────────────────────────────────────────
+  &__stepper {
+    padding: 2rem 1.5rem;
+    border-bottom: 1px solid rgba($on-surface, 0.06);
+  }
+
+  &__steps {
+    display: flex;
+    align-items: flex-start;
+    position: relative;
+  }
+
+  &__step {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    z-index: 1;
+
+    // Línea conectora entre pasos
+    &:not(:last-child)::after {
+      content: "";
+      position: absolute;
+      top: 13px;
+      left: 50%;
+      width: 100%;
+      height: 1px;
+      background: rgba($on-surface, 0.1);
+      z-index: 0;
+      transition: background $duration-base $ease;
+    }
+
+    &--completed:not(:last-child)::after {
+      background: $primary;
+    }
+
+    &--active:not(:last-child)::after {
+      background: rgba($primary, 0.3);
+    }
+  }
+
+  &__step-dot {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 1.5px solid rgba($on-surface, 0.18);
+    background: $background;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    z-index: 2;
+    transition: border-color $duration-base $ease,
+                background $duration-base $ease,
+                box-shadow $duration-base $ease;
+    flex-shrink: 0;
+
+    .order-tracking__step--completed & {
+      background: $primary;
+      border-color: $primary;
+    }
+
+    .order-tracking__step--active & {
+      border-color: $primary;
+      box-shadow: 0 0 0 4px rgba($primary, 0.16);
+    }
+  }
+
+  &__step-check {
+    width: 12px;
+    height: 12px;
+    fill: $background;
+    display: none;
+
+    .order-tracking__step--completed & {
+      display: block;
+    }
+  }
+
+  &__step-pulse {
+    width: 8px;
+    height: 8px;
+    background: $primary;
+    border-radius: 50%;
+    display: none;
+    animation: ot-pulse 1.6s ease-in-out infinite;
+
+    .order-tracking__step--active & {
+      display: block;
+    }
+  }
+
+  &__step-label {
+    margin-top: 0.65rem;
+    font-size: 9px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    text-align: center;
+    line-height: 1.35;
+    color: rgba($on-surface, 0.28);
+    transition: color $duration-base $ease;
+    max-width: 58px;
+
+    .order-tracking__step--completed & {
+      color: $primary;
+    }
+
+    .order-tracking__step--active & {
+      color: $on-surface;
+    }
+  }
+
+  // ── Status badge ───────────────────────────────────────────
+  &__status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.35rem 0.9rem;
+    background: rgba($primary, 0.08);
+    border: 1px solid rgba($primary, 0.22);
+    border-radius: $radius-sm;
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: $primary;
+    margin-top: 1.5rem;
+  }
+
+  &__status-dot {
+    width: 6px;
+    height: 6px;
+    background: $primary;
+    border-radius: 50%;
+    animation: ot-pulse 1.6s ease-in-out infinite;
+  }
+
+  // ── Secciones de info ──────────────────────────────────────
+  &__section {
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid rgba($on-surface, 0.06);
+
+    &:last-child {
+      border-bottom: none;
+    }
+  }
+
+  &__section-title {
+    font-size: 10px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: rgba($on-surface, 0.35);
+    margin: 0 0 0.9rem;
+  }
+
+  &__customer-name {
+    font-family: $font-headline;
+    font-size: 1.1rem;
+    color: $on-surface;
+  }
+
+  &__customer-email {
+    font-size: 0.8rem;
+    color: rgba($on-surface, 0.4);
+    margin-top: 0.2rem;
+  }
+
+  // ── Items del pedido ───────────────────────────────────────
+  &__items {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+  }
+
+  &__item {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  &__item-info {
+    flex: 1;
+  }
+
+  &__item-name {
+    font-size: 0.875rem;
+    color: $on-surface;
+    line-height: 1.4;
+  }
+
+  &__item-qty {
+    font-size: 11px;
+    color: rgba($on-surface, 0.38);
+    margin-top: 0.15rem;
+  }
+
+  &__item-price {
+    font-size: 0.875rem;
+    color: $primary;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+  }
+
+  // ── Totales ────────────────────────────────────────────────
+  &__totals {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+
+  &__total-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.8rem;
+    color: rgba($on-surface, 0.45);
+
+    &--final {
+      font-size: 1rem;
+      color: $on-surface;
+      font-weight: 600;
+      padding-top: 0.65rem;
+      border-top: 1px solid rgba($on-surface, 0.08);
+      margin-top: 0.15rem;
+
+      span:last-child {
+        color: $primary;
+      }
+    }
+  }
+
+  // ── Método de pago ─────────────────────────────────────────
+  &__payment {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    color: $on-surface;
+
+    &-icon {
+      opacity: 0.5;
+    }
+  }
+
+  // ── Footer de página ───────────────────────────────────────
+  &__page-footer {
+    text-align: center;
+    padding: 2rem 1.25rem 1.5rem;
+    font-size: 11px;
+    color: rgba($on-surface, 0.22);
+    letter-spacing: 0.1em;
+
+    a {
+      color: rgba($primary, 0.55);
+      text-decoration: none;
+      transition: color $duration-fast $ease;
+
+      &:hover {
+        color: $primary;
+      }
+    }
+  }
+
+  &__badge-wrap {
+    display: flex;
+    justify-content: center;
+  }
+
+  &__not-found-code {
+    color: $primary;
+  }
+
+  &__not-found-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 1.5rem;
+  }
+
+  &__not-found-back {
+    font-size: 0.8125rem;
+    color: rgba(#fff, 0.6);
+    text-decoration: none;
+    border: 1px solid rgba(#fff, 0.15);
+    padding: 0.5rem 1.25rem;
+    border-radius: 6px;
+    transition: border-color 0.2s, color 0.2s;
+    &:hover { color: #fff; border-color: rgba(#fff, 0.35); }
+  }
+
+  &__not-found-wa {
+    font-size: 0.8125rem;
+    color: #4caf82;
+    text-decoration: none;
+    border: 1px solid rgba(#4caf82, 0.3);
+    padding: 0.5rem 1.25rem;
+    border-radius: 6px;
+    transition: border-color 0.2s, background 0.2s;
+    &:hover { background: rgba(#4caf82, 0.08); border-color: rgba(#4caf82, 0.5); }
+  }
+}
+
+// ── Responsive ────────────────────────────────────────────────
+@media (max-width: 640px) {
+  .order-tracking__container {
+    padding: 1.5rem 1rem 2rem;
+  }
+
+  .order-tracking__steps {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0;
+  }
+
+  .order-tracking__step {
+    flex: none;
+    width: 100%;
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 0.85rem;
+    padding-bottom: 1.25rem;
+
+    // Vertical connector line instead of horizontal
+    &:not(:last-child)::after {
+      top: 28px;
+      left: 13px;
+      width: 1px;
+      height: 100%;
+    }
+  }
+
+  .order-tracking__step-label {
+    max-width: none;
+    text-align: left;
+    margin-top: 0.2rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .order-tracking__card-header {
+    padding: 1.25rem 1.25rem 1rem;
+  }
+  .order-tracking__stepper {
+    padding: 1.5rem 1.25rem;
+  }
+  .order-tracking__section {
+    padding: 1rem 1.25rem;
+  }
+}
+
+// ── Keyframes ─────────────────────────────────────────────────
+@keyframes ot-spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes ot-pulse {
+  0%, 100% { opacity: 1;   transform: scale(1);    }
+  50%       { opacity: 0.4; transform: scale(0.72); }
+}

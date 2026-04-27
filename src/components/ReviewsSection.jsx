@@ -110,7 +110,7 @@ const StarSelector = ({ value, onChange }) => (
 
 // ── Main component ────────────────────────────────────────────────────────────
 const ReviewsSection = () => {
-  const { reviews, loading, addReview } = useReviews();
+  const { reviews, addReview } = useReviews();
   const [active, setActive] = useState(0);
   const timerRef = useRef(null);
   const carouselRef = useRef(null);

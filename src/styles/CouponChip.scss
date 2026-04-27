@@ -1,0 +1,181 @@
+@use './variables' as *;
+@use './mixins' as *;
+
+@keyframes chip-in {
+  from { opacity: 0; transform: translateY(12px) scale(0.96); }
+  to   { opacity: 1; transform: translateY(0)    scale(1); }
+}
+@keyframes chip-out {
+  from { opacity: 1; transform: translateY(0)   scale(1); }
+  to   { opacity: 0; transform: translateY(8px) scale(0.97); }
+}
+@keyframes pulse-urgent {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.6; }
+}
+
+// ── Tarjeta flotante ──────────────────────────────────────────
+.coupon-chip {
+  position: fixed;
+  top: calc(#{$announcement-bar-height} + #{$navbar-height} + 0.6rem);
+  right: 1.25rem;
+  z-index: 1100;
+  width: 220px;
+  background: $surface-container-high;
+  border: 1px solid rgba($primary, 0.28);
+  border-radius: $radius-lg;
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.55),
+    0 0 0 1px rgba($primary, 0.05),
+    0 0 40px rgba($primary, 0.07);
+  overflow: hidden;
+  animation: chip-in 0.36s $ease both;
+
+  &--out     { animation: chip-out 0.36s $ease forwards; }
+  &--urgent  { border-color: rgba($error, 0.4); }
+
+  @media (max-width: 480px) {
+    width: calc(100vw - 2rem);
+    top: calc(#{$announcement-bar-height} + #{$navbar-height} + 0.4rem);
+    right: 1rem;
+  }
+}
+
+// ── Glow ambiental ────────────────────────────────────────────
+.coupon-chip__glow {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 50% 0%, rgba($primary, 0.07) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+// ── Header ────────────────────────────────────────────────────
+.coupon-chip__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 0.5rem 0 0.65rem;
+}
+
+.coupon-chip__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: $font-label;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: $primary;
+  opacity: 0.8;
+}
+
+.coupon-chip__close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  background: none;
+  border: none;
+  color: rgba($on-surface, 0.25);
+  cursor: pointer;
+  border-radius: $radius-sm;
+  transition: color $duration-fast $ease, background $duration-fast $ease;
+  flex-shrink: 0;
+
+  &:hover {
+    color: rgba($on-surface, 0.7);
+    background: rgba($on-surface, 0.06);
+  }
+}
+
+// ── Body: código + botón ──────────────────────────────────────
+.coupon-chip__body {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.2rem 0.5rem 0.35rem 0.65rem;
+  gap: 0.5rem;
+}
+
+.coupon-chip__code {
+  font-family: $font-headline;
+  font-size: 1.15rem;
+  font-weight: 300;
+  letter-spacing: 0.12em;
+  color: $primary;
+  line-height: 1;
+  filter: drop-shadow(0 0 6px rgba($primary, 0.25));
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.coupon-chip__copy {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0.45rem 0.85rem;
+  background: rgba($primary, 0.12);
+  border: 1px solid rgba($primary, 0.3);
+  border-radius: $radius-sm;
+  color: $primary;
+  font-family: $font-label;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: background $duration-fast $ease, border-color $duration-fast $ease, transform $duration-fast $ease;
+
+  &:hover {
+    background: rgba($primary, 0.22);
+    border-color: rgba($primary, 0.5);
+    transform: translateY(-1px);
+  }
+
+  &:active { transform: translateY(0); }
+
+  &--done {
+    background: rgba($primary, 0.18);
+    border-color: rgba($primary, 0.4);
+  }
+}
+
+// ── Footer: timer ─────────────────────────────────────────────
+.coupon-chip__footer {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0 0.65rem 0.45rem;
+  font-size: 9px;
+  font-weight: 500;
+  color: rgba($on-surface-variant, 0.55);
+  letter-spacing: 0.04em;
+  font-variant-numeric: tabular-nums;
+  transition: color $duration-base $ease;
+
+  .coupon-chip--urgent & {
+    color: $error;
+    animation: pulse-urgent 0.9s ease-in-out infinite;
+  }
+}
+
+// ── Barra de progreso ─────────────────────────────────────────
+.coupon-chip__bar {
+  height: 2px;
+  background: rgba($primary, 0.08);
+}
+
+.coupon-chip__bar-fill {
+  height: 100%;
+  background: $primary;
+  transition: width 1s linear, background $duration-base $ease;
+
+  .coupon-chip--urgent & { background: $error; }
+}
